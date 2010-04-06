@@ -21,13 +21,13 @@
   </build>
   <repositories>
   	<repository>
-  		<id>mygrid-repo1</id>
-  		<url>http://www.mygrid.org.uk/maven/repo1</url>
-  	</repository>
-  	<repository>
   		<id>mygrid-repository</id>
   		<name>myGrid Repository</name>
   		<url>http://www.mygrid.org.uk/maven/repository</url>
+  	</repository>
+  	<repository>
+  		<id>mygrid-repo1</id>
+  		<url>http://www.mygrid.org.uk/maven/repo1</url>
   	</repository>
   	<repository>
   		<id>mygrid-snapshot-repository</id>
