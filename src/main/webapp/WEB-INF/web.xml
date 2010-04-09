@@ -2,7 +2,7 @@
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-	id="WebApp_ID" version="2.5">
+	id="MetFusion" version="2.5">
 	
 	<display-name>MetFusion</display-name>
 	<welcome-file-list>
@@ -14,6 +14,12 @@
 		<welcome-file>default.jsp</welcome-file>
 	</welcome-file-list>
 
+	<!-- context parameters -->
+	<context-param>
+    	<param-name>javax.faces.DEFAULT_SUFFIX</param-name>
+ 	    <param-value>.jspx</param-value>
+    </context-param>
+		
 	<!-- servlets -->
 	<!-- Faces Servlet -->
 	<servlet>
@@ -54,6 +60,14 @@
 		<url-pattern>/block/*</url-pattern>
 	</servlet-mapping> 
 
+	<!-- add listener to properly remove created session folders -->
+	<listener>
+		<listener-class>
+			de.ipbhalle.MetFlow.web.listener.InputFileSessionCleaner
+		</listener-class>
+	</listener>
+	
+	<!-- set session timeout to 30 minutes -->
 	<session-config>
 		<session-timeout>30</session-timeout>
 	</session-config>
