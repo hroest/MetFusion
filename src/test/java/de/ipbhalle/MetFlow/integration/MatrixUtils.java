@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -109,6 +108,102 @@ public class MatrixUtils {
 	}
 	
 	/**
+	 * Returns the indices of the elements in arr that equal min.
+	 * 
+	 * @param arr the arr
+	 * 
+	 * @return the int[] 
+	 */
+	public static int[] whichMin(double[] arr) {
+		double[] copy = new double[arr.length];
+		for (int i = 0; i < arr.length; i++) {
+			copy[i] = arr[i];
+		}
+		Arrays.sort(copy);		// sort array ascending - minimum first
+		
+		double min = copy[0];
+		int count = 1;
+		for (int i = 1; i < copy.length; i++) {
+			if(copy[i] == min)
+				count++;
+			else break;
+		}
+		
+		int[] result = new int[count];
+		int check = 0;
+		for (int i = 0; i < arr.length; i++) {
+			if(arr[i] == min && check < count) {
+				result[check] = i;
+				check++;
+			}
+			if(check == count)
+				break;
+		}
+		return result;
+	}
+	
+	/**
+	 * Returns the indices of the elements in arr that equal max.
+	 * 
+	 * @param arr the array 
+	 * 
+	 * @return the int[] 
+	 */
+	public static int[] whichMax(double[] arr) {
+		double[] copy = new double[arr.length];
+		for (int i = 0; i < arr.length; i++) {
+			copy[i] = arr[i];
+		}
+		Arrays.sort(copy);		// sort array ascending - maximum last
+		
+		double max = copy[copy.length - 1];
+		int count = 1;
+		for (int i = copy.length - 2; i > 0; i--) {
+			if(copy[i] == max)
+				count++;
+			else break;
+		}
+		
+		int[] result = new int[count];
+		int check = 0;
+		for (int i = 0; i < arr.length; i++) {
+			if(arr[i] == max && check < count) {
+				result[check] = i;
+				check++;
+			}
+			if(check == count)
+				break;
+		}
+		return result;
+	}
+	
+	/**
+	 * Retrieves the minimum value of the array.
+	 * 
+	 * @param arr the array to be searched for
+	 * 
+	 * @return the minimum as double 
+	 */
+	public static double min(double[] arr) {
+		double[] copy = Arrays.copyOf(arr, arr.length);
+		Arrays.sort(copy);	// sort ascending, minimum at first position
+		return copy[0];
+	}
+	
+	/**
+	 * Retrieves the maximum value of the array.
+	 * 
+	 * @param arr the array to be searched for
+	 * 
+	 * @return the maximum as double
+	 */
+	public static double max(double[] arr) {
+		double[] copy = Arrays.copyOf(arr, arr.length);
+		Arrays.sort(copy);	// sort ascending, maximum at last position
+		return copy[copy.length -1];
+	}
+	
+	/**
 	 * Implements tied.ranks() method from R with ties.method="max".
 	 * 
 	 * @param arr
@@ -150,6 +245,14 @@ public class MatrixUtils {
 		return ranking;
 	}
 	
+	/**
+	 * Retrieves the rank of a certain number inside an array.
+	 * 
+	 * @param arr the arr
+	 * @param number the number of the rank 
+	 * 
+	 * @return the rank - returns 0 if number not found in array!
+	 */
 	private static int getRank(double[] arr, double number) {
 		int rank = 0;
 		for (int i = 0; i < arr.length; i++) {
@@ -159,6 +262,14 @@ public class MatrixUtils {
 		return rank;
 	}
 	
+	/**
+	 * Retrieves the tied rank (maximum method) of a certain number inside an array.
+	 * 
+	 * @param arr the arr
+	 * @param number the number
+	 * 
+	 * @return the tied rank - returns 0 if number not found in array!
+	 */
 	public static int getTiedRank(double[] arr, double number) {
 		int result = 0;
 		
