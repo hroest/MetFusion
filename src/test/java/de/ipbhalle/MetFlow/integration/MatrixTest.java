@@ -40,6 +40,21 @@ public class MatrixTest {
 	static int numHits = 3;
 	static float thresh = 0.5f;
 	
+	static double[] expectedResult = {2.35, 2.23, 1.55, 0.81, 1.57, 2.23, 1.50, 2.23,
+									  2.23, 1.12, 1.00, 1.48, 1.46, 1.18, 1.50};
+	
+	static int[] expectedTiedRanksOrig = {2, 2, 5, 5, 5, 6, 8, 8, 9, 11, 11, 12, 13, 14, 15};
+	static int[] expectedTiedRanks = {1, 5, 5, 5, 5, 6, 7, 9, 9, 10, 11, 12, 13, 14, 15};
+	static int[] expectedTiedRanksDelta = {1, -3, -2, -10, -1, 1, -1, 3, 4, -2, -3, 2, 2, 2, 6};
+	
+	static double expectedIdxScore = 1.5d;
+	static double expectedMaxResult = 2.35d;
+	
+	static int[] expectedIdx = {0, 1, 2, 3, 4, 5, 6};	// R -> 1,2,3,4,5,6,7
+	static int[] expectedIdxMaxResult = {0};	// R -> 1
+	static int[] expectedRankNew = {1, 2, 6, 8, 9, 5, 3, 7, 15, 12, 13, 14, 10, 11, 4};
+	
+	
 	/**
 	 * Test method for {@link org.apache.commons.math.linear.RealMatrix}.
 	 */
@@ -124,7 +139,6 @@ public class MatrixTest {
 		String[] rowNames = { "C00509", "C16232", "C06561", "C12087", "C14458", "C09826", "C03567",
 							  "C09614", "C09751", "C09047", "C17673", "C15567", "C01263", "C01592", "C08578" };
 		
-//		List linker = Collections.synchronizedList(new LinkedList());
 		Map<Integer, Node> colMap = new TreeMap<Integer, Node>();
 		if(colScores.length == colNames.length) {
 			for (int i = 0; i < colNames.length; i++) {
@@ -162,6 +176,11 @@ public class MatrixTest {
 		
 		// perform R-like which()
 		int[] idx = MatrixUtils.which(colScores, thresh, true, MatrixUtils.Ways.GREATER);
+		
+		// test equality of arrays
+		assertArrayEquals(expectedIdx, idx);
+		//
+		
 		double[] result = new double[tanimoto.getRowDimension()];
 		double idx_score = 0;
 		Map<Double, Integer> pos = new HashMap<Double, Integer>();
@@ -212,8 +231,24 @@ public class MatrixTest {
 				pos.put(result[i], i);
 				System.out.println("result["+i+"] = " + result[i]);
 			}
+			idx_score = thresh * numHits;
 		}
 		
+		// tests
+		assertArrayEquals(expectedResult, result, 0.0d);
+		assertEquals(expectedIdxScore, idx_score, 0d);
+		//
+		
+		// indices of rows with maximum sum of scores
+		int[] idx_max_result = MatrixUtils.whichMax(result);
+		double max_result = MatrixUtils.max(result);
+		
+		// tests
+		assertArrayEquals(expectedIdxMaxResult, idx_max_result);
+		assertEquals(expectedMaxResult, max_result, 0d);
+		//
+		
+		// tied ranking of new scores
 		int[] tied_ranks_orig = MatrixUtils.rank(rowScores, MatrixUtils.Order.DESCENDING);
 		int[] tied_ranks = MatrixUtils.rank(result, MatrixUtils.Order.DESCENDING);
 		int[] tied_ranks_delta = null;
@@ -230,11 +265,29 @@ public class MatrixTest {
 		}
 		System.out.println("length orig = " + tied_ranks_orig.length + "  length new = " + tied_ranks.length);
 		
+		// tests
+		assertArrayEquals(expectedTiedRanksOrig, tied_ranks_orig);
+		assertArrayEquals(expectedTiedRanks, tied_ranks);
+		assertArrayEquals(expectedTiedRanksDelta, tied_ranks_delta);
+		//
+		
 		// new ranking for tanimoto matrix
 		int[] rank_new = MatrixUtils.order(result, MatrixUtils.Order.DESCENDING);
+		
+		// test
+		assertArrayEquals(expectedRankNew, rank_new);
+		//
+		
 		System.out.println("rank_new");
 		for (int i = 0; i < rank_new.length; i++) {
 			System.out.print("["+i+"]=" + rank_new[i] + "  ");
+		}
+		
+		if(max_result > idx_score) {
+			
+		}
+		else {
+			
 		}
 	}
 }
