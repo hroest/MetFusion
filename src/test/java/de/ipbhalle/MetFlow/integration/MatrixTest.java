@@ -43,16 +43,19 @@ public class MatrixTest {
 	static double[] expectedResult = {2.35, 2.23, 1.55, 0.81, 1.57, 2.23, 1.50, 2.23,
 									  2.23, 1.12, 1.00, 1.48, 1.46, 1.18, 1.50};
 	
+	// ranks start with 1
 	static int[] expectedTiedRanksOrig = {2, 2, 5, 5, 5, 6, 8, 8, 9, 11, 11, 12, 13, 14, 15};
 	static int[] expectedTiedRanks = {1, 5, 5, 5, 5, 6, 7, 9, 9, 10, 11, 12, 13, 14, 15};
 	static int[] expectedTiedRanksDelta = {1, -3, -2, -10, -1, 1, -1, 3, 4, -2, -3, 2, 2, 2, 6};
+	static int[] expectedRankNew = {1, 2, 6, 8, 9, 5, 3, 7, 15, 12, 13, 14, 10, 11, 4};
 	
 	static double expectedIdxScore = 1.5d;
 	static double expectedMaxResult = 2.35d;
 	
+	// indices start with 0, while in R they start with 1
 	static int[] expectedIdx = {0, 1, 2, 3, 4, 5, 6};	// R -> 1,2,3,4,5,6,7
 	static int[] expectedIdxMaxResult = {0};	// R -> 1
-	static int[] expectedRankNew = {1, 2, 6, 8, 9, 5, 3, 7, 15, 12, 13, 14, 10, 11, 4};
+	
 	
 	
 	/**
@@ -107,12 +110,11 @@ public class MatrixTest {
 		
 		// read each line of text file
 		while ((line = bufRdr.readLine()) != null) {
-			StringTokenizer st = new StringTokenizer(line, ",");
-			int num = st.countTokens();
+			String[] split = line.split(",");
+			int num = split.length;
 			double[] values = new double[num];
-			while (st.hasMoreTokens()) {
-				// get next token and store it in the array
-				values[col] = Double.parseDouble(st.nextToken());
+			for (int i = 0; i < split.length; i++) {
+				values[col] = Double.parseDouble(split[i]);
 				col++;
 			}
 			col = 0;
@@ -159,7 +161,7 @@ public class MatrixTest {
 	}
 	
 	/**
-	 * threshold apporach
+	 * threshold apporach for chemicical similarity-based evaluation
 	 * 
 	 * @param tanimoto
 	 * @param rowScores
@@ -284,10 +286,10 @@ public class MatrixTest {
 		}
 		
 		if(max_result > idx_score) {
-			
+			assertTrue(max_result > idx_score);
 		}
 		else {
-			
+			assertFalse(max_result > idx_score);
 		}
 	}
 }
