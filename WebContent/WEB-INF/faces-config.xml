@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<faces-config
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_2_0.xsd"
+    version="2.0">
+	<converter>
+		<converter-id>de.ipbhalle.metfusion.web.controller.validation.SpectrumConverter</converter-id>
+		<converter-class>de.ipbhalle.metfusion.web.controller.validation.SpectrumConverter</converter-class>
+	</converter>
+	<validator>
+		<validator-id>de.ipbhalle.metfusion.web.controller.validation.SpectrumValidator</validator-id>
+		<validator-class>de.ipbhalle.metfusion.web.controller.validation.SpectrumValidator</validator-class>
+	</validator>
+
+</faces-config>

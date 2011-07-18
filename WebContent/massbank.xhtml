@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ice="http://www.icesoft.com/icefaces/component"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+<h:head><title>MassBank Lookup</title>
+<link href="/xmlhttp/css/styles.css" 
+      rel="stylesheet" type="text/css"/> 
+</h:head>
+<h:body>
+<div align="center">
+<table border="5">
+  <tr><th class="title">MassBank Lookup</th></tr>
+</table>
+<p/>
+<!--<div class="header">-->
+<!--	<ui:include src="/WEB-INF/inc-content/header.xhtml">-->
+<!--		<ui:param name="param_name" value="param_value"/>-->
+<!--	</ui:include>-->
+<!--</div>-->
+<h:form>
+<fieldset>
+	<legend>Instruments with Icefaces</legend>
+	<ice:panelGroup>
+		<ice:panelSeries var="group" value="#{databaseBean.instruments.keySet().toArray()}">
+			<ice:panelGrid columns="2">
+				<div style="margin:2px;">
+					#{group}
+				</div>
+				<div style="margin:2px; font-size:9">
+				<ice:panelGroup>
+					<h:selectManyCheckbox layout="pageDirection">
+       					<f:selectItems itemLabel="#{n}" itemValue="#{n}" var="n" value="#{databaseBean.instruments[group]}" />
+    				</h:selectManyCheckbox>
+				</ice:panelGroup>
+				</div>
+			</ice:panelGrid>
+		</ice:panelSeries>
+	</ice:panelGroup>
+</fieldset>
+<fieldset>
+  <legend>MassBank Instruments</legend>
+  <ui:repeat var="group" value="#{databaseBean.instruments.keySet().toArray()}">
+    <h2>#{group}</h2>
+    <ui:repeat var="inst" value="#{databaseBean.instruments[group]}" varStatus="status">
+      <h:outputText value=" and " rendered="#{status.last}"/>#{inst}<h:outputText value="," rendered="#{!status.last}"/>
+    </ui:repeat>
+    <div style="">
+    <h:selectManyCheckbox layout="pageDirection">
+       <f:selectItems itemLabel="#{n}" itemValue="#{n}" var="n" value="#{databaseBean.instruments[group]}" />
+    </h:selectManyCheckbox>
+    </div>
+  </ui:repeat>
+</fieldset>
+</h:form>
+
+</div>
+
+<!--<div class="footer">-->
+<!--	<ui:include src="/WEB-INF/inc-content/footer.xhtml">-->
+<!--		<ui:param name="param_name" value="param_value"/>-->
+<!--	</ui:include>-->
+<!--</div>-->
+</h:body></html>
