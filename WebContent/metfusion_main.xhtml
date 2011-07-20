@@ -190,6 +190,19 @@
 					
 					<ice:panelStack selectedPanel="#{appBean.selectedResult}">
 						<ice:panelGroup id="cluster">
+<!--							<ice:dataExporter for="tableCluster" label="Click to download Excel file." type="excel"-->
+<!--								popupBlockerLabel="Popup Blocker detected - click here to resume download..."-->
+<!--                				clickToCreateFileText="Click to create Excel file " image="/images/icons/xls.png"-->
+<!--                				outputTypeHandler="#{appBean.exporter}" id="exporterClusterTable" renderLabelAsButton="true"/>-->
+							
+							<ice:panelGroup style="background-color: MintCream;">
+<!--								<ice:graphicImage alt="excel icon" url="/images/icons/xls.png"></ice:graphicImage>-->
+								<ice:outputResource id="outputResource" resource="#{appBean.outputResource}"
+									label="Save results in Excel document." mimeType="application/vnd.ms-excel"
+									attachment="false" fileName="#{appBean.outputResource.resourceName}"
+									image="/images/icons/xls.png"/>
+      						</ice:panelGroup>
+							
 							<ice:dataTable id="tableCluster" value="#{appBean.tanimotoClusters}" rendered="#{appBean.showClusterResults}" 
 								var="entry" rows="20">
 								<f:facet name="header">
@@ -740,6 +753,47 @@
 			    		<ice:outputText value="#{appBean.errorMessage}" rendered="#{!(appBean.errorMessage.length() == 0)}"></ice:outputText>
 			    	</ice:panelGroup>
 			    </ice:panelTab>
+			    
+			    <ice:panelTab label="Information">
+			    	<ice:panelGroup>
+			    		<ice:panelCollapsible expanded="true">
+			    			<f:facet name="header">
+			    				<ice:panelGroup>
+			    					<ice:outputText value="News"></ice:outputText>
+			    				</ice:panelGroup>
+			    			</f:facet>
+			    			<ice:panelGroup id="pnlGrpNews">
+			    				Welcome to <b>MetFusion</b>, an approach to combine the knowledge from spectral databases like 
+								<a href="http://www.massbank.jp">MassBank</a> with the multitude of candidates generated
+								by fragmenters such as <a href="http://msbi.ipb-halle.de/MetFrag">MetFrag</a>.
+								<br/>
+								In order to do so, MS2 spectrum information is used to query MassBank and to provide
+								fragments for the combinatorical fragmentation to generate candidates that match this
+								specific fragmentation pattern.
+								<br/>
+								Combining both results is done via chemical similarity in terms of the Tanimoto coefficient.
+								Using this score in addition to the result scores from MassBank (spectrum similiarity) and
+								MetFrag (fragment matching) is now combined and used to rerank the list of fragmenter 
+								candidates. This approach shows an improved rank of the correct candidate compared to MetFrag. 
+								<hr/>
+								<b>News:</b><br/>
+								
+			    			</ice:panelGroup>
+			    		</ice:panelCollapsible>
+			    		
+			    		<ice:panelCollapsible expanded="false">
+			    			<f:facet name="header">
+			    				<ice:panelGroup>
+			    					<ice:outputText value="Manual"></ice:outputText>
+			    				</ice:panelGroup>
+			    			</f:facet>
+			    			<ice:panelGroup id="pnlGrpManual">
+										    			
+			    			</ice:panelGroup>
+			    		</ice:panelCollapsible>
+			    	</ice:panelGroup>
+			    </ice:panelTab>
+			    
 			</ice:panelTabSet>
 		</div>
 	</h:form>
