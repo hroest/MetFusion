@@ -10,7 +10,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,10 +24,22 @@ import javax.faces.bean.ApplicationScoped;
 import javax.faces.bean.CustomScoped;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
+
+import jxl.Workbook;
+import jxl.WorkbookSettings;
+import jxl.write.Label;
+import jxl.write.WritableCell;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableImage;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 
 import org.apache.commons.math.linear.RealMatrix;
 import org.icefaces.application.PortableRenderer;
@@ -35,6 +49,8 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
+import com.icesoft.faces.component.outputresource.OutputResource;
+import com.icesoft.faces.context.Resource;
 import com.icesoft.faces.context.effects.Effect;
 import com.icesoft.faces.context.effects.Highlight;
 
@@ -49,6 +65,8 @@ import de.ipbhalle.metfusion.threading.ImageGeneratorThread;
 import de.ipbhalle.metfusion.wrapper.ColorcodedMatrix;
 import de.ipbhalle.metfusion.wrapper.Result;
 import de.ipbhalle.metfusion.wrapper.ResultExt;
+import de.ipbhalle.metfusion.wrapper.XLSOutputHandler;
+import de.ipbhalle.metfusion.wrapper.XLSResource;
 
 
 //@ManagedBean(name = "appBean", eager = true)
@@ -144,6 +162,11 @@ public class MetFusionBean implements Serializable {
 	
 	private String errorMessage = "";
 	
+	/** output resource for all workflow results, will be stored in xls file */
+    private Resource outputResource;
+    private XLSOutputHandler exporter;
+    
+    
 	public MetFusionBean() {
 		setMblb(new MassBankLookupBean());
 		setMfb(new MetFragBean());
@@ -473,6 +496,9 @@ public class MetFusionBean implements Serializable {
 		 * TODO: set selected tab to 2 or 3 if errors occur
 		 */
 		
+		// create output resource for all workflow outputs
+		generateOutputResource();
+		
 		long time2 = System.currentTimeMillis() - time1;
 		System.out.println("time spended -> " + time2 + " ms");
 	}
@@ -526,6 +552,162 @@ public class MetFusionBean implements Serializable {
 			}
 		}
 		
+	}
+	
+	/** generates an output resource for the current workflow results, everything is stored inside a single Excel xls file
+	 *  where each workflow output ports is stored as a separate sheet  */
+	private void generateOutputResource() {
+		FacesContext fc = FacesContext.getCurrentInstance();
+		ExternalContext ec = fc.getExternalContext();
+		HttpSession session = (HttpSession) ec.getSession(false);
+		String sessionString = session.getId();
+		ServletContext sc = (ServletContext) ec.getContext();
+		String appPath = sc.getRealPath(".");
+		
+		//long time = new Date().getTime();
+		SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy_k-m-s");
+		String time = sdf.format(new Date());
+		String path = appPath + sep + "temp" + sep + sessionString + sep;
+		System.out.println("ressource path -> " + path);
+		
+		File dir = new File(path);
+		if(!dir.exists())
+			dir.mkdirs();
+		// skip creation of output resource if file access is denied
+		if(!dir.canWrite())
+			return;
+		
+		
+		String resourceName = "MetFusion_Results_" + time +  ".xls";
+		String folder = "./temp" + sep + sessionString + sep;
+		File f = new File(dir, resourceName);
+		System.out.println("outputresource -> " + f.getAbsolutePath());
+		boolean createFile = false;
+		try {
+			createFile = f.createNewFile();
+			if(!createFile) {
+				System.err.println("Error creating new file for Excel output [" + f.getAbsolutePath() + "]!");
+				return;
+			}
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		// create new Excel file
+		WritableSheet sheet = null;
+		WritableWorkbook workbook = null;
+		WorkbookSettings settings = new WorkbookSettings();
+		settings.setLocale(FacesContext.getCurrentInstance().getViewRoot().getLocale());
+		try {
+			workbook = Workbook.createWorkbook(f);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+//		String mimeType = "application/vnd.ms-excel";
+		
+		if(secondOrder.size() > 0) {
+			// set sheet name (output port) and position
+			sheet = workbook.createSheet("MetFusion Results", 0);//, outputs.indexOf(port));
+			
+			// write MetFusion results
+			for (ResultExt result : secondOrder) {
+				// set header for sheet, name it after output port name 
+				try {
+					WritableFont arial10font = new WritableFont(WritableFont.ARIAL, 10);
+					WritableCellFormat arial10format = new WritableCellFormat(arial10font);
+					arial10font.setBoldStyle(WritableFont.BOLD);
+					Label label = new Label(0, 0, "MetFusion", arial10format);
+					sheet.addCell(label);
+				} catch (WriteException we) {
+					we.printStackTrace();
+				}
+			}
+		}
+			
+		if(mblb.getResults().size() > 0) {
+			// set sheet name (output port) and position
+			sheet = workbook.createSheet("MassBank Results", 1);
+			
+			// write MassBank results
+			for (Result result : mblb.getResults()) {
+				
+			}
+		}
+		
+		if(mfb.getResults().size() > 0) {
+			// set sheet name (output port) and position
+			sheet = workbook.createSheet("MetFrag Results", 2);
+			
+			// write MetFrag results
+			for (Result result : mfb.getResults()) {
+				
+			}
+		}
+		
+		
+		
+		// for each workflow output port, create new sheet inside Excel file and store results
+//		for (WorkflowOutput port : outputs) {
+//			// set sheet name (output port) and position
+//			sheet = workbook.createSheet(port.getName(), outputs.indexOf(port));
+//			ArrayList<WorkflowOutput> elements = port.getElements();
+//			
+//			// set header for sheet, name it after output port name 
+//			try {
+//				WritableFont arial10font = new WritableFont(WritableFont.ARIAL, 10);
+//				WritableCellFormat arial10format = new WritableCellFormat(
+//						arial10font);
+//				arial10font.setBoldStyle(WritableFont.BOLD);
+//				Label label = new Label(0, 0, port.getName(), arial10format);
+//				sheet.addCell(label);
+//			} catch (WriteException we) {
+//				we.printStackTrace();
+//			}
+//			
+//			// for all output elements, store their result inside the current sheet
+//			// either store the image or the value part of an output 
+//			for (int i = 0; i < elements.size(); i++) {
+//				WritableCell cell = null;
+//				WritableImage wi = null;
+//				if(elements.get(i).isImage()) {		// output is image
+//					String imgPath = appPath + elements.get(i).getPath();
+//					File image = new File(imgPath);
+//					// write each image into the second column, leave one row space between them and 
+//					// resize the image to 1 column width and 2 rows height
+//					wi = new WritableImage(1, (i*3) + 1, 1, 2, image);
+//					sheet.addImage(wi);
+//				}
+//				else if(!elements.get(i).isImage()) {	// output is text
+//					cell = new Label(1, i, elements.get(i).getValue());
+//					try {
+//						sheet.addCell(cell);
+//					} catch (WriteException e) {
+//						System.out.println("Could not write excel cell");
+//						e.printStackTrace();
+//					}
+//				}
+//			}
+//		}
+		
+		// write the Excel file
+		try {
+			workbook.write();
+			workbook.close();
+		} catch (WriteException ioe) {
+			ioe.printStackTrace();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+		
+//		OutputResource out = new OutputResource();
+//		out.setFileName(f.getAbsolutePath());
+//		out.setMimeType(mimeType);
+		// store the current Excel file as output resource
+		XLSResource xls = new XLSResource(ec, resourceName, folder);
+		setOutputResource(xls);
+		
+		this.exporter = new XLSOutputHandler(f.getAbsolutePath());//, FacesContext.getCurrentInstance(), "Results");
 	}
 	
 	/**
@@ -713,36 +895,52 @@ public class MetFusionBean implements Serializable {
        this.effectOutputText = (Highlight) effectOutputText;
    }
 
-public void setSelectedResult(String selectedResult) {
-	this.selectedResult = selectedResult;
-}
-
-public String getSelectedResult() {
-	return selectedResult;
-}
-
-public void setSelectedTab(String selectedTab) {
-	this.selectedTab = selectedTab;
-}
-
-public String getSelectedTab() {
-	return selectedTab;
-}
-
-public void setErrorMessage(String errorMessage) {
-	this.errorMessage = errorMessage;
-}
-
-public String getErrorMessage() {
-	return errorMessage;
-}
-
-public void setColorMatrixAfter(ColorcodedMatrix colorMatrixAfter) {
-	this.colorMatrixAfter = colorMatrixAfter;
-}
-
-public ColorcodedMatrix getColorMatrixAfter() {
-	return colorMatrixAfter;
-}
+	public void setSelectedResult(String selectedResult) {
+		this.selectedResult = selectedResult;
+	}
+	
+	public String getSelectedResult() {
+		return selectedResult;
+	}
+	
+	public void setSelectedTab(String selectedTab) {
+		this.selectedTab = selectedTab;
+	}
+	
+	public String getSelectedTab() {
+		return selectedTab;
+	}
+	
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+	
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+	
+	public void setColorMatrixAfter(ColorcodedMatrix colorMatrixAfter) {
+		this.colorMatrixAfter = colorMatrixAfter;
+	}
+	
+	public ColorcodedMatrix getColorMatrixAfter() {
+		return colorMatrixAfter;
+	}
+	
+	public void setOutputResource(Resource outputResource) {
+		this.outputResource = outputResource;
+	}
+	
+	public Resource getOutputResource() {
+		return outputResource;
+	}
+	
+	public void setExporter(XLSOutputHandler exporter) {
+		this.exporter = exporter;
+	}
+	
+	public XLSOutputHandler getExporter() {
+		return exporter;
+	}
 
 }
