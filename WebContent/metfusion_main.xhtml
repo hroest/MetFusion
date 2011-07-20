@@ -199,8 +199,7 @@
 <!--								<ice:graphicImage alt="excel icon" url="/images/icons/xls.png"></ice:graphicImage>-->
 								<ice:outputResource id="outputResource" resource="#{appBean.outputResource}"
 									label="Save results in Excel document." mimeType="application/vnd.ms-excel"
-									attachment="false" fileName="#{appBean.outputResource.resourceName}"
-									image="/images/icons/xls.png"/>
+									fileName="#{appBean.outputResource.resourceName}" image="/images/icons/xls.png"/>
       						</ice:panelGroup>
 							
 							<ice:dataTable id="tableCluster" value="#{appBean.tanimotoClusters}" rendered="#{appBean.showClusterResults}" 

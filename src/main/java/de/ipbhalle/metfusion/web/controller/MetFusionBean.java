@@ -568,7 +568,7 @@ public class MetFusionBean implements Serializable {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy_k-m-s");
 		String time = sdf.format(new Date());
 		String path = appPath + sep + "temp" + sep + sessionString + sep;
-		System.out.println("ressource path -> " + path);
+		System.out.println("resource path -> " + path);
 		
 		File dir = new File(path);
 		if(!dir.exists())
@@ -707,7 +707,7 @@ public class MetFusionBean implements Serializable {
 		XLSResource xls = new XLSResource(ec, resourceName, folder);
 		setOutputResource(xls);
 		
-		this.exporter = new XLSOutputHandler(f.getAbsolutePath());//, FacesContext.getCurrentInstance(), "Results");
+		//this.exporter = new XLSOutputHandler(folder + resourceName);//, FacesContext.getCurrentInstance(), "Results");
 	}
 	
 	/**

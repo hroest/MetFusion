@@ -86,10 +86,10 @@ public class XLSResource implements Resource, Serializable{
 	 */
 	public InputStream open() throws IOException {
 		if (inputStream == null) {
-			HttpSession session = (HttpSession) extContext.getSession(false);
-			String sessionString = session.getId();
-            InputStream stream = extContext.getResourceAsStream("/temp/" + sessionString + "/" + resourceName);
-			//InputStream stream = extContext.getResourceAsStream(this.folder + resourceName);
+//			HttpSession session = (HttpSession) extContext.getSession(false);
+//			String sessionString = session.getId();
+            //InputStream stream = extContext.getResourceAsStream("/temp/" + sessionString + "/" + resourceName);
+			InputStream stream = extContext.getResourceAsStream(this.folder + resourceName);
             byte[] byteArray = toByteArray(stream);
             inputStream = new ByteArrayInputStream(byteArray);
         }
