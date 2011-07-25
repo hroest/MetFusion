@@ -24,7 +24,7 @@
 
 		<div id="content">
 			<ice:panelTabSet selectedIndex="#{appBean.selectedTab}">
-				<ice:panelTab label="Input">
+				<ice:panelTab label="Spectrum Query">
 				<div id="inputs" style="width: 100%;">
 					<div id="sourceParams" style="border: 1px dashed silver; width: 65%; float: left;">
 				    	<ice:panelGroup style="margin-left: 10px; margin-right: 10px;">
@@ -180,10 +180,9 @@
 			    	</div>
 			    </ice:panelTab>
 			    
-			    <ice:panelTab label="Output" rendered="#{appBean.showTable}">
+			    <ice:panelTab label="Query Results" rendered="#{appBean.showTable}">
 			    	<ice:selectOneRadio value="#{appBean.selectedResult}" partialSubmit="true" rendered="#{appBean.showTable}">
 						<f:selectItem itemLabel="MetFusion Cluster" itemValue="cluster" itemDisabled="#{!appBean.showClusterResults}"/>
-						<f:selectItem itemLabel="MetFusion List" itemValue="list" itemDisabled="#{!appBean.showTable}"/>
 						<f:selectItem itemLabel="Fragmenter List" itemValue="fragmenter" itemDisable="#{!appBean.showResultsFragmenter}"/>
 						<f:selectItem itemLabel="Database List" itemValue="database" itemDisabled="#{!appBean.showResultsDatabase}"/>
 					</ice:selectOneRadio>
@@ -305,101 +304,6 @@
 						 
 						        </ice:dataPaginator>
 						 
-						    </ice:panelGrid>
-						</ice:panelGroup>
-						
-						<ice:panelGroup id="list">
-							<ice:dataTable id="tableWeighted" value="#{appBean.secondOrder}" 
-					    		rendered="#{appBean.mblb.showResult}" var="entry" rows="20">
-								<f:facet name="header">
-									<ice:outputLabel value="MetFusion Ranking" />
-								</f:facet>
-								<ice:column>
-									<f:facet name="header">Port Name</f:facet>
-									#{entry.port}
-								</ice:column>
-								<ice:column>
-									<f:facet name="header">Record ID</f:facet>
-									<ice:outputLink id="linkOut" value="#{entry.url}" target="_blank">
-										<ice:outputText id="rowData" value="#{entry.id}" nospan="true"/>
-									</ice:outputLink>
-			<!--						#{entry.id}-->
-								</ice:column>
-								<ice:column>
-									<f:facet name="header">Compound Name</f:facet>
-									#{entry.name}
-								</ice:column>
-								<ice:column>
-									<f:facet name="header">Structure</f:facet>
-									<ice:graphicImage value="#{entry.imagePath}" alt="Structure"/>
-								</ice:column>
-								<ice:column>
-									<f:facet name="header">Score</f:facet>
-									<ice:outputText value="#{entry.score}">
-										<f:convertNumber maxFractionDigits="3"/>
-									</ice:outputText>
-								</ice:column>
-								<ice:column>
-									<f:facet name="header">Integration Score</f:facet>
-									<ice:outputText value="#{entry.resultScore}">
-										<f:convertNumber maxFractionDigits="3"/>
-									</ice:outputText>
-									<ice:graphicImage alt="Position change" url="#{entry.flag}" style="margin-left:3px; float: right;"/>
-								</ice:column>
-								<ice:column>
-									<f:facet name="header">Fragments</f:facet>
-									<ice:outputLink value="#{entry.landingURL}" target="_blank" style="text-decoration: underline;">
-										<ice:outputText value="Compute Fragments" nospan="true"/>
-									</ice:outputLink>
-								</ice:column>
-							</ice:dataTable>
-							
-							<ice:panelGrid columns="1" styleClass="scrollerTable2" columnClasses="standardTable_ColumnCentered" >
-						        <ice:dataPaginator id="scroll_1_tW" for="tableWeighted" fastStep="10"
-						                         pageCountVar="pageCount" pageIndexVar="pageIndex"
-						                         paginator="true" paginatorMaxPages="9" rendered="#{appBean.mblb.showResult}" >
-						 
-						                <f:facet name="first" >
-						                         <ice:graphicImage url="css/xp/css-images/arrow-first.gif" style="border:none;"/>
-						                </f:facet>
-						 
-						                <f:facet name="last">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-last.gif" style="border:none;" />
-						                </f:facet>
-						 
-						                <f:facet name="previous">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-previous.gif" style="border:none;" />
-						                </f:facet>
-						 
-						                <f:facet name="next">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-next.gif" style="border:none;" />
-						                </f:facet>
-						 
-						                <f:facet name="fastforward">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-ff.gif" style="border:none;" />
-						                </f:facet>
-						 
-						                <f:facet name="fastrewind">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-fr.gif" style="border:none;" />
-						                </f:facet>
-						 
-						        </ice:dataPaginator>
-						 
-						        <ice:dataPaginator id="scroll_2_tW" for="tableWeighted" rendered="#{appBean.mblb.showResult}" 
-						                        rowsCountVar="rowsCount" displayedRowsCountVar="displayedRowsCountVar"
-						                        firstRowIndexVar="firstRowIndex" lastRowIndexVar="lastRowIndex"
-						                        pageCountVar="pageCount" pageIndexVar="pageIndex">
-						 
-						                 <ice:outputFormat value="{0} candidates found, displaying {1} candidates from {2} to {3}. Page {4} / {5}" styleClass="standard" >
-						                        <f:param value="#{rowsCount}" />
-						                        <f:param value="#{displayedRowsCountVar}" />
-						                        <f:param value="#{firstRowIndex}" />
-						                        <f:param value="#{lastRowIndex}" />
-						                        <f:param value="#{pageIndex}" />
-						                        <f:param value="#{pageCount}" />
-						                </ice:outputFormat>
-						 
-						        </ice:dataPaginator>
 						    </ice:panelGrid>
 						</ice:panelGroup>
 						
@@ -555,6 +459,33 @@
 				</ice:panelTab>
 				
 			    <ice:panelTab label="Matrix" rendered="#{appBean.showResultTable}">
+			    	<!-- Controls to change panels -->
+			    	<ice:panelGroup style="float:left;">
+				    	<ice:selectOneRadio id="mainRadio" value="#{appBean.selectedMatrixPanel}"
+	                    		partialSubmit="true" accesskey="S">
+			                <f:selectItem
+			                        itemValue="orig"
+			                        itemLabel="Original Similarity Matrix"/>
+			                <f:selectItem
+			                        itemValue="new"
+			                        itemLabel="MetFusion computed Similarity Matrix"/>
+			            </ice:selectOneRadio>
+			    	</ice:panelGroup>
+			    	
+			    	<!-- TODO: stacking matrices einbauen -->
+			    	<ice:panelGroup>
+				    	<ice:panelStack id="stackingMatrices" selectedPanel="#{appBean.selectedMatrixPanel}">
+				    		<ice:panelGroup id="orig">
+				    		
+				    		</ice:panelGroup>
+				    		
+				    		<ice:panelGroup id="new">
+				    		
+				    		</ice:panelGroup>
+				    	</ice:panelStack>
+			    	</ice:panelGroup>
+			    	<br/>
+			    	
 			    	<ice:panelCollapsible id="coloredMatrixPanel" expanded="false"	rendered="#{appBean.mblb.showResult}">
 						<f:facet name="header">
 							<ice:panelGroup>
