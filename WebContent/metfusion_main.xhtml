@@ -458,224 +458,187 @@
 			    	
 				</ice:panelTab>
 				
-			    <ice:panelTab label="Matrix" rendered="#{appBean.showResultTable}">
-			    	<!-- Controls to change panels -->
-			    	<ice:panelGroup style="float:left;">
+			    <ice:panelTab label="Similarity Matrix" rendered="#{appBean.showResultTable}">
+			    	<!-- Controls to change stacking panels -->
+			    	<ice:panelGroup style="width:40%; border: 1px solid silver;">
 				    	<ice:selectOneRadio id="mainRadio" value="#{appBean.selectedMatrixPanel}"
 	                    		partialSubmit="true" accesskey="S">
 			                <f:selectItem
-			                        itemValue="orig"
+			                        itemValue="origSimMatrix"
 			                        itemLabel="Original Similarity Matrix"/>
 			                <f:selectItem
-			                        itemValue="new"
+			                        itemValue="newSimMatrix"
 			                        itemLabel="MetFusion computed Similarity Matrix"/>
 			            </ice:selectOneRadio>
 			    	</ice:panelGroup>
 			    	
-			    	<!-- TODO: stacking matrices einbauen -->
-			    	<ice:panelGroup>
-				    	<ice:panelStack id="stackingMatrices" selectedPanel="#{appBean.selectedMatrixPanel}">
-				    		<ice:panelGroup id="orig">
-				    		
-				    		</ice:panelGroup>
-				    		
-				    		<ice:panelGroup id="new">
-				    		
-				    		</ice:panelGroup>
-				    	</ice:panelStack>
-			    	</ice:panelGroup>
-			    	<br/>
-			    	
-			    	<ice:panelCollapsible id="coloredMatrixPanel" expanded="false"	rendered="#{appBean.mblb.showResult}">
-						<f:facet name="header">
-							<ice:panelGroup>
-								<ice:outputText id="coloredMatrixPanelHeader"
-									value="Tanimoto Similarity Matrix" />
-							</ice:panelGroup>
-						</f:facet>
-
-					<ice:panelGroup styleClass="exampleBox columnsTableContainer">
-						<div style="width:1400px; overflow:auto;">
-						<!-- dataTable with columns component -->
-						<ice:dataTable id="dataTbl" var="item" rendered="#{appBean.mfb.showResult}"
-							value="#{appBean.colorMatrix.rowDataModel}"
-							columnClasses="columnsColumn" rows="20" style="padding:0;">
-<!--							#{appBean.colorMatrix.rows}-->
-				
-							<ice:column>
-								<f:facet name="header">MetFrag Compounds</f:facet>
-								<ice:panelGroup style="text-align: center; white-space: nowrap;" panelTooltip="candidateTooltip">
-									<ice:outputLink id="linkOut" target="_blank"
-										value="#{appBean.mfb.results[item].url}">
-										<ice:outputText id="candidate"
-											value="#{appBean.mfb.results[item].id}"/>
-									</ice:outputLink>
-								</ice:panelGroup>
-								<ice:panelTooltip id="candidateTooltip">
-									<f:facet name="header">
-										<ice:outputText value="#{appBean.mfb.results[item].name}"/>
-									</f:facet>
-									<f:facet name="body">
-										<ice:graphicImage alt="compound image" url="#{appBean.mfb.results[item].imagePath}"/>
-									</f:facet>
-								</ice:panelTooltip>
-							</ice:column>
-
-							<ice:columns id="columnDataModel"
-								value="#{appBean.colorMatrix.columnDataModel}" var="column">
-								<f:facet name="header">
-									<ice:panelGroup style="text-align: center; white-space: nowrap;">
-										<ice:outputLink id="linkOut"
-											value="#{appBean.colorMatrix.columnDataModel.rowData.url}"
-											target="_blank">
-											<ice:outputText id="rowData"
-												value="#{appBean.colorMatrix.columnDataModel.rowData.id}"
-												nospan="true" />
+			    	<ice:panelStack id="stackingMatrices" selectedPanel="#{appBean.selectedMatrixPanel}">
+						<ice:panelGroup id="origSimMatrix" styleClass="exampleBox columnsTableContainer" rendered="#{appBean.mblb.showResult}">
+							<div style="width:1400px; overflow:auto;">
+							<!-- dataTable with columns component -->
+							<ice:dataTable id="dataTbl" var="item" rendered="#{appBean.mfb.showResult}"
+								value="#{appBean.colorMatrix.rowDataModel}"
+								columnClasses="columnsColumn" rows="20" style="padding:0;">
+					
+								<ice:column>
+									<f:facet name="header">MetFrag\MassBank Compounds</f:facet>
+									<ice:panelGroup style="text-align: center; white-space: nowrap;" panelTooltip="candidateTooltip">
+										<ice:outputLink id="linkOut" target="_blank"
+											value="#{appBean.mfb.results[item].url}">
+											<ice:outputText id="candidate"
+												value="#{appBean.mfb.results[item].id}"/>
 										</ice:outputLink>
 									</ice:panelGroup>
-								</f:facet>
-								<!-- display the table cell values-->
-								<ice:panelGroup style="text-align: center; white-space: nowrap;">
-									<ice:outputText id="cellValue"
-										value="#{appBean.colorMatrix.cellValue.valueShort}"
-										style="background-color:#{appBean.colorMatrix.cellValue.color}; padding: 2px;" />
-								</ice:panelGroup>
-							</ice:columns>
-						</ice:dataTable>
-						</div>
-						<ice:dataPaginator id="scroll_1_tan" for="dataTbl" fastStep="10"
-							pageCountVar="pageCount" pageIndexVar="pageIndex"
-							paginator="true" paginatorMaxPages="9"
-							rendered="#{appBean.mblb.showResult}">
-
-							<f:facet name="first">
-								<ice:graphicImage url="css/xp/css-images/arrow-first.gif"
-									style="border:none;" />
-							</f:facet>
-
-							<f:facet name="last">
-								<ice:graphicImage url="css/xp/css-images/arrow-last.gif"
-									style="border:none;" />
-							</f:facet>
-
-							<f:facet name="previous">
-								<ice:graphicImage url="css/xp/css-images/arrow-previous.gif"
-									style="border:none;" />
-							</f:facet>
-
-							<f:facet name="next">
-								<ice:graphicImage url="css/xp/css-images/arrow-next.gif"
-									style="border:none;" />
-							</f:facet>
-
-							<f:facet name="fastforward">
-								<ice:graphicImage url="css/xp/css-images/arrow-ff.gif"
-									style="border:none;" />
-							</f:facet>
-
-							<f:facet name="fastrewind">
-								<ice:graphicImage url="css/xp/css-images/arrow-fr.gif"
-									style="border:none;" />
-							</f:facet>
-
-						</ice:dataPaginator>
-
-					</ice:panelGroup>
-					</ice:panelCollapsible>
-					
-			    </ice:panelTab>
-			    
-			    <ice:panelTab label="MatrixAfter" rendered="#{appBean.showResultTable}">
-			    	<ice:panelCollapsible id="coloredMatrixPanel2" expanded="false"	rendered="#{appBean.mblb.showResult}">
-						<f:facet name="header">
-							<ice:panelGroup>
-								<ice:outputText id="coloredMatrixPanelHeader2"
-									value="Tanimoto Similarity Matrix" />
-							</ice:panelGroup>
-						</f:facet>
-
-					<ice:panelGroup styleClass="exampleBox columnsTableContainer">
-						<div style="width:1400px; overflow:auto;">
-						<!-- dataTable with columns component -->
-						<ice:dataTable id="dataTbl2" var="item" rendered="#{appBean.mfb.showResult}"
-							value="#{appBean.colorMatrixAfter.rowDataModel}"
-							columnClasses="columnsColumn" rows="20" style="padding:0;">
-				
-							<ice:column>
-								<f:facet name="header">MetFrag Compounds</f:facet>
-								<ice:panelGroup style="text-align: center; white-space: nowrap;" panelTooltip="candidateTooltip">
-									<ice:outputLink id="linkOut" target="_blank"
-										value="#{appBean.secondOrder[item].url}">
-										<ice:outputText id="candidate"
-											value="#{appBean.secondOrder[item].id}"/>
-									</ice:outputLink>
-								</ice:panelGroup>
-								<ice:panelTooltip id="candidateTooltip">
+									<ice:panelTooltip id="candidateTooltip">
 										<f:facet name="header">
-											<ice:outputText value="#{appBean.secondOrder[item].name}"/>
+											<ice:outputText value="#{appBean.mfb.results[item].name}"/>
 										</f:facet>
 										<f:facet name="body">
-											<ice:graphicImage alt="compound image" url="#{appBean.secondOrder[item].imagePath}"/>
+											<ice:graphicImage alt="compound image" url="#{appBean.mfb.results[item].imagePath}"/>
 										</f:facet>
 									</ice:panelTooltip>
-							</ice:column>
-
-							<ice:columns id="columnDataModel2"
-								value="#{appBean.colorMatrixAfter.columnDataModel}" var="column">
-								<f:facet name="header">
-									<ice:panelGroup>
-										<ice:outputLink id="linkOut"
-											value="#{appBean.colorMatrixAfter.columnDataModel.rowData.url}"
-											target="_blank">
-											<ice:outputText id="rowData"
-												value="#{appBean.colorMatrixAfter.columnDataModel.rowData.id}"
-												nospan="true" />
-										</ice:outputLink>
+								</ice:column>
+	
+								<ice:columns id="columnDataModel"
+									value="#{appBean.colorMatrix.columnDataModel}" var="column">
+									<f:facet name="header">
+										<ice:panelGroup style="text-align: center; white-space: nowrap;">
+											<ice:outputLink id="linkOut"
+												value="#{appBean.colorMatrix.columnDataModel.rowData.url}"
+												target="_blank">
+												<ice:outputText id="rowData"
+													value="#{appBean.colorMatrix.columnDataModel.rowData.id}"
+													nospan="true" />
+											</ice:outputLink>
+										</ice:panelGroup>
+									</f:facet>
+									<!-- display the table cell values-->
+									<ice:panelGroup style="text-align: center; white-space: nowrap;">
+										<ice:outputText id="cellValue"
+											value="#{appBean.colorMatrix.cellValue.valueShort}"
+											style="background-color:#{appBean.colorMatrix.cellValue.color}; padding: 2px;" />
 									</ice:panelGroup>
+								</ice:columns>
+							</ice:dataTable>
+							</div>
+							<ice:dataPaginator id="scroll_1_tan" for="dataTbl" fastStep="10"
+								pageCountVar="pageCount" pageIndexVar="pageIndex"
+								paginator="true" paginatorMaxPages="9"
+								rendered="#{appBean.mblb.showResult}">
+	
+								<f:facet name="first">
+									<ice:graphicImage url="css/xp/css-images/arrow-first.gif"
+										style="border:none;" />
 								</f:facet>
-								<!-- display the table cell values-->
-								<ice:panelGroup style="text-align: center; white-space: nowrap;">
-									<ice:outputText id="cellValue"
-										value="#{appBean.colorMatrixAfter.cellValue.valueShort}"
-										style="background-color:#{appBean.colorMatrixAfter.cellValue.color}; padding: 2px;" />
-								</ice:panelGroup>
-							</ice:columns>
-						</ice:dataTable>
-
-						<ice:dataPaginator id="scroll_2_tan" for="dataTbl2" fastStep="10"
-							pageCountVar="pageCount" pageIndexVar="pageIndex"
-							paginator="true" paginatorMaxPages="9"
-							rendered="#{appBean.mblb.showResult}">
-							<f:facet name="first">
-								<ice:graphicImage url="css/xp/css-images/arrow-first.gif"
-									style="border:none;" />
-							</f:facet>
-							<f:facet name="last">
-								<ice:graphicImage url="css/xp/css-images/arrow-last.gif"
-									style="border:none;" />
-							</f:facet>
-							<f:facet name="previous">
-								<ice:graphicImage url="css/xp/css-images/arrow-previous.gif"
-									style="border:none;" />
-							</f:facet>
-							<f:facet name="next">
-								<ice:graphicImage url="css/xp/css-images/arrow-next.gif"
-									style="border:none;" />
-							</f:facet>
-							<f:facet name="fastforward">
-								<ice:graphicImage url="css/xp/css-images/arrow-ff.gif"
-									style="border:none;" />
-							</f:facet>
-							<f:facet name="fastrewind">
-								<ice:graphicImage url="css/xp/css-images/arrow-fr.gif"
-									style="border:none;" />
-							</f:facet>
-						</ice:dataPaginator>
-
-					</div>
-					</ice:panelGroup>
-					</ice:panelCollapsible>
-					
+	
+								<f:facet name="last">
+									<ice:graphicImage url="css/xp/css-images/arrow-last.gif"
+										style="border:none;" />
+								</f:facet>
+	
+								<f:facet name="previous">
+									<ice:graphicImage url="css/xp/css-images/arrow-previous.gif"
+										style="border:none;" />
+								</f:facet>
+	
+								<f:facet name="next">
+									<ice:graphicImage url="css/xp/css-images/arrow-next.gif"
+										style="border:none;" />
+								</f:facet>
+	
+								<f:facet name="fastforward">
+									<ice:graphicImage url="css/xp/css-images/arrow-ff.gif"
+										style="border:none;" />
+								</f:facet>
+	
+								<f:facet name="fastrewind">
+									<ice:graphicImage url="css/xp/css-images/arrow-fr.gif"
+										style="border:none;" />
+								</f:facet>
+	
+							</ice:dataPaginator>
+			    		</ice:panelGroup>
+			    		
+			    		<!-- newly computed MetFusion Tanimoto similarity matrix -->
+			    		<ice:panelGroup id="newSimMatrix">
+								<div style="width:1400px; overflow:auto;">
+								<!-- dataTable with columns component -->
+								<ice:dataTable id="dataTbl2" var="item" rendered="#{appBean.mfb.showResult}"
+									value="#{appBean.colorMatrixAfter.rowDataModel}"
+									columnClasses="columnsColumn" rows="20" style="padding:0;">
+						
+									<ice:column>
+										<f:facet name="header">MetFrag\MassBank Compounds</f:facet>
+										<ice:panelGroup style="text-align: center; white-space: nowrap;" panelTooltip="candidateTooltip">
+											<ice:outputLink id="linkOut" target="_blank"
+												value="#{appBean.secondOrder[item].url}">
+												<ice:outputText id="candidate"
+													value="#{appBean.secondOrder[item].id}"/>
+											</ice:outputLink>
+										</ice:panelGroup>
+										<ice:panelTooltip id="candidateTooltip">
+												<f:facet name="header">
+													<ice:outputText value="#{appBean.secondOrder[item].name}"/>
+												</f:facet>
+												<f:facet name="body">
+													<ice:graphicImage alt="compound image" url="#{appBean.secondOrder[item].imagePath}"/>
+												</f:facet>
+											</ice:panelTooltip>
+									</ice:column>
+		
+									<ice:columns id="columnDataModel2"
+										value="#{appBean.colorMatrixAfter.columnDataModel}" var="column">
+										<f:facet name="header">
+											<ice:panelGroup>
+												<ice:outputLink id="linkOut"
+													value="#{appBean.colorMatrixAfter.columnDataModel.rowData.url}"
+													target="_blank">
+													<ice:outputText id="rowData"
+														value="#{appBean.colorMatrixAfter.columnDataModel.rowData.id}"
+														nospan="true" />
+												</ice:outputLink>
+											</ice:panelGroup>
+										</f:facet>
+										<!-- display the table cell values-->
+										<ice:panelGroup style="text-align: center; white-space: nowrap;">
+											<ice:outputText id="cellValue"
+												value="#{appBean.colorMatrixAfter.cellValue.valueShort}"
+												style="background-color:#{appBean.colorMatrixAfter.cellValue.color}; padding: 2px;" />
+										</ice:panelGroup>
+									</ice:columns>
+								</ice:dataTable>
+								</div>
+								<ice:dataPaginator id="scroll_2_tan" for="dataTbl2" fastStep="10"
+									pageCountVar="pageCount" pageIndexVar="pageIndex"
+									paginator="true" paginatorMaxPages="9"
+									rendered="#{appBean.mblb.showResult}">
+									<f:facet name="first">
+										<ice:graphicImage url="css/xp/css-images/arrow-first.gif"
+											style="border:none;" />
+									</f:facet>
+									<f:facet name="last">
+										<ice:graphicImage url="css/xp/css-images/arrow-last.gif"
+											style="border:none;" />
+									</f:facet>
+									<f:facet name="previous">
+										<ice:graphicImage url="css/xp/css-images/arrow-previous.gif"
+											style="border:none;" />
+									</f:facet>
+									<f:facet name="next">
+										<ice:graphicImage url="css/xp/css-images/arrow-next.gif"
+											style="border:none;" />
+									</f:facet>
+									<f:facet name="fastforward">
+										<ice:graphicImage url="css/xp/css-images/arrow-ff.gif"
+											style="border:none;" />
+									</f:facet>
+									<f:facet name="fastrewind">
+										<ice:graphicImage url="css/xp/css-images/arrow-fr.gif"
+											style="border:none;" />
+									</f:facet>
+								</ice:dataPaginator>
+			    		</ice:panelGroup>
+			    	</ice:panelStack>
 			    </ice:panelTab>
 			    
 			    <ice:panelTab label="Error/Log" rendered="#{!(appBean.errorMessage.length() == 0)}">
