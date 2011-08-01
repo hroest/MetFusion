@@ -33,6 +33,7 @@ import javax.servlet.http.HttpSession;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
 import jxl.write.Label;
+import jxl.write.Number;
 import jxl.write.WritableCell;
 import jxl.write.WritableCellFormat;
 import jxl.write.WritableFont;
@@ -40,6 +41,7 @@ import jxl.write.WritableImage;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
+import jxl.write.biff.RowsExceededException;
 
 import org.apache.commons.math.linear.RealMatrix;
 import org.icefaces.application.PortableRenderer;
@@ -133,6 +135,7 @@ public class MetFusionBean implements Serializable {
 	private boolean showClusterResults;
 	
 	private String selectedTab = "0";
+	private String selectedMatrixPanel = "origSimMatrix";
 	
 	/**
 	 * peaklist of input spectrum, containing pairwise mz and intensity values
@@ -221,10 +224,10 @@ public class MetFusionBean implements Serializable {
 		System.out.println("Massbank tempPath -> " + mblb.getSessionPath() + "\tMetFrag tempPath -> " + mfb.getSessionPath());
 		String tempDir = sep + "temp" + sep + sessionString + sep;
 		
-        ELResolver el = fc.getApplication().getELResolver();
-        ELContext elc = fc.getELContext();
+        //ELResolver el = fc.getApplication().getELResolver();
+        //ELContext elc = fc.getELContext();
         ServletContext sc = (ServletContext) fc.getExternalContext().getContext();
-        System.out.println(sc.getContextPath());
+        System.out.println("Servlet context path -> " + sc.getContextPath());
         
         int mode = Integer.parseInt(mblb.getSelectedIon());
 		if(mode == 0) // MassBank uses "both" ionizations
@@ -417,7 +420,8 @@ public class MetFusionBean implements Serializable {
 		List<Result> redraw = new ArrayList<Result>();
 		for (int i = 0; i < resultingOrder.size(); i++) {
 			ResultExt r = resultingOrder.get(i);
-			redraw.add(new Result(r.getPort(), r.getId(), r.getName(), r.getResultScore(), r.getMol(), r.getUrl(), r.getImagePath()));
+			redraw.add(new Result(r.getPort(), r.getId(), r.getName(), r.getResultScore(), r.getMol(), r.getUrl(), 
+					r.getImagePath(), r.getSumFormula(), r.getExactMass()));
 		}
 		
 		/**
@@ -474,8 +478,8 @@ public class MetFusionBean implements Serializable {
 			setShowClusterResults(true);
 			selectedResult = "cluster";
 		}
-		else 
-			selectedResult = "list";	// show MetFusion list instead of cluster results
+		else selectedResult = "cluster";
+			//selectedResult = "list";	// show MetFusion list instead of cluster results
 		
 //		SimilarityMetFusion.computeScores(newOrder, newRankThresh);
 //		SimilarityMetFusion.computeScores(secondOrder, newRankWeight);
@@ -606,42 +610,177 @@ public class MetFusionBean implements Serializable {
 		}
 //		String mimeType = "application/vnd.ms-excel";
 		
+		// write labels
+		WritableFont arial12font = new WritableFont(WritableFont.ARIAL, 12);
+		WritableCellFormat arial12format = new WritableCellFormat(arial12font);
+		try {
+			arial12font.setBoldStyle(WritableFont.BOLD);
+		} catch (WriteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// font for text
+		WritableFont arial10font = new WritableFont(WritableFont.ARIAL, 10);
+		WritableCellFormat arial10format = new WritableCellFormat(arial10font);
+		int currentSheet = 0;
+		WritableImage wi = null;
+		
 		if(secondOrder.size() > 0) {
 			// set sheet name (output port) and position
-			sheet = workbook.createSheet("MetFusion Results", 0);//, outputs.indexOf(port));
+			sheet = workbook.createSheet("MetFusion Results", currentSheet);//, outputs.indexOf(port));
+			currentSheet++;
+			WritableCell headerRank = new Label(0, 0, "Rank", arial12format);
+			WritableCell headerID = new Label(1, 0, "ID", arial12format);
+			WritableCell headerName = new Label(2, 0, "Compound Name", arial12format);
+			WritableCell headerOrigScore = new Label(3, 0, "Original Score", arial12format);
+			WritableCell headerNewScore = new Label(4, 0, "MetFusion Score", arial12format);
+			WritableCell headerStructure = new Label(5, 0, "Structure", arial12format);
+			try
+			{
+				sheet.addCell(headerRank);
+				sheet.addCell(headerID);
+				sheet.addCell(headerName);
+				sheet.addCell(headerOrigScore);
+				sheet.addCell(headerNewScore);
+				sheet.addCell(headerStructure);
+			} catch (WriteException e) {
+				System.out.println("Could not write Excel sheet headers!");
+				e.printStackTrace();
+			}
 			
+			int currentRow = 1;
+			int currentCol = 0;
+			int counter = 0;
 			// write MetFusion results
 			for (ResultExt result : secondOrder) {
-				// set header for sheet, name it after output port name 
-				try {
-					WritableFont arial10font = new WritableFont(WritableFont.ARIAL, 10);
-					WritableCellFormat arial10format = new WritableCellFormat(arial10font);
-					arial10font.setBoldStyle(WritableFont.BOLD);
-					Label label = new Label(0, 0, "MetFusion", arial10format);
-					sheet.addCell(label);
-				} catch (WriteException we) {
-					we.printStackTrace();
+				currentRow = counter*4 + 1;
+				
+				// output is text
+				WritableCell cellRank = new Number(0, currentRow, result.getTiedRank(), arial10format);
+				WritableCell cellID = new Label(1, currentRow, result.getId(), arial10format);
+				WritableCell cellName = new Label(2, currentRow, result.getName(), arial10format);
+				WritableCell cellOrigScore = new Number(3, currentRow, result.getScoreShort(), arial10format);
+				WritableCell cellNewScore = new Number(4, currentRow, result.getResultScore(), arial10format);
+				wi = new WritableImage(5, currentRow, 1, 3, new File(appPath, result.getImagePath()));
+				
+				try
+				{
+					sheet.addCell(cellRank);
+					sheet.addCell(cellID);
+					sheet.addCell(cellName);
+					sheet.addCell(cellOrigScore);
+					sheet.addCell(cellNewScore);
+					sheet.addImage(wi);
+				} catch (WriteException e) {
+					System.out.println("Could not write excel cell");
+					e.printStackTrace();
 				}
+				
+				counter++;
 			}
 		}
 			
 		if(mblb.getResults().size() > 0) {
 			// set sheet name (output port) and position
-			sheet = workbook.createSheet("MassBank Results", 1);
+			sheet = workbook.createSheet("MassBank Results", currentSheet);
+			currentSheet++;
+			WritableCell headerRank = new Label(0, 0, "Rank", arial12format);
+			WritableCell headerID = new Label(1, 0, "ID", arial12format);
+			WritableCell headerName = new Label(2, 0, "Compound Name", arial12format);
+			WritableCell headerOrigScore = new Label(3, 0, "Original Score", arial12format);
+			WritableCell headerStructure = new Label(4, 0, "Structure", arial12format);
+			try
+			{
+				sheet.addCell(headerRank);
+				sheet.addCell(headerID);
+				sheet.addCell(headerName);
+				sheet.addCell(headerOrigScore);
+				sheet.addCell(headerStructure);
+			} catch (WriteException e) {
+				System.out.println("Could not write Excel sheet headers!");
+				e.printStackTrace();
+			}
+			
+			int currentRow = 1;
+			int currentCol = 0;
+			int counter = 0;
 			
 			// write MassBank results
 			for (Result result : mblb.getResults()) {
+				currentRow = counter*4 + 1;
 				
+				// output is text
+				WritableCell cellRank = new Number(0, currentRow, result.getTiedRank(), arial10format);
+				WritableCell cellID = new Label(1, currentRow, result.getId(), arial10format);
+				WritableCell cellName = new Label(2, currentRow, result.getName(), arial10format);
+				WritableCell cellOrigScore = new Number(3, currentRow, result.getScoreShort(), arial10format);
+				wi = new WritableImage(4, currentRow, 1, 3, new File(appPath, result.getImagePath()));
+				
+				try
+				{
+					sheet.addCell(cellRank);
+					sheet.addCell(cellID);
+					sheet.addCell(cellName);
+					sheet.addCell(cellOrigScore);
+					sheet.addImage(wi);
+				} catch (WriteException e) {
+					System.out.println("Could not write excel cell");
+					e.printStackTrace();
+				}
+				
+				counter++;
 			}
 		}
 		
 		if(mfb.getResults().size() > 0) {
 			// set sheet name (output port) and position
-			sheet = workbook.createSheet("MetFrag Results", 2);
+			sheet = workbook.createSheet("MetFrag Results", currentSheet);
+			currentSheet++;
+			WritableCell headerRank = new Label(0, 0, "Rank", arial12format);
+			WritableCell headerID = new Label(1, 0, "ID", arial12format);
+			WritableCell headerName = new Label(2, 0, "Compound Name", arial12format);
+			WritableCell headerOrigScore = new Label(3, 0, "Original Score", arial12format);
+			WritableCell headerStructure = new Label(4, 0, "Structure", arial12format);
+			try
+			{
+				sheet.addCell(headerRank);
+				sheet.addCell(headerID);
+				sheet.addCell(headerName);
+				sheet.addCell(headerOrigScore);
+				sheet.addCell(headerStructure);
+			} catch (WriteException e) {
+				System.out.println("Could not write Excel sheet headers!");
+				e.printStackTrace();
+			}
 			
+			int currentRow = 1;
+			int currentCol = 0;
+			int counter = 0;
 			// write MetFrag results
 			for (Result result : mfb.getResults()) {
+				currentRow = counter*4 + 1;
 				
+				// output is text
+				WritableCell cellRank = new Number(0, currentRow, result.getTiedRank(), arial10format);
+				WritableCell cellID = new Label(1, currentRow, result.getId(), arial10format);
+				WritableCell cellName = new Label(2, currentRow, result.getName(), arial10format);
+				WritableCell cellOrigScore = new Number(3, currentRow, result.getScoreShort(), arial10format);
+				wi = new WritableImage(4, currentRow, 1, 3, new File(appPath, result.getImagePath()));
+				
+				try
+				{
+					sheet.addCell(cellRank);
+					sheet.addCell(cellID);
+					sheet.addCell(cellName);
+					sheet.addCell(cellOrigScore);
+					sheet.addImage(wi);
+				} catch (WriteException e) {
+					System.out.println("Could not write excel cell");
+					e.printStackTrace();
+				}
+				
+				counter++;
 			}
 		}
 		
@@ -941,6 +1080,14 @@ public class MetFusionBean implements Serializable {
 	
 	public XLSOutputHandler getExporter() {
 		return exporter;
+	}
+
+	public void setSelectedMatrixPanel(String selectedMatrixPanel) {
+		this.selectedMatrixPanel = selectedMatrixPanel;
+	}
+
+	public String getSelectedMatrixPanel() {
+		return selectedMatrixPanel;
 	}
 
 }

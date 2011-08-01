@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,8 +31,10 @@ import javax.servlet.http.HttpSession;
 
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPISoapProxy;
@@ -149,6 +152,7 @@ public class MetFragBean implements Runnable, Serializable {
 	 * variable describing the mode of ionization
 	 * 1 - positive mode
 	 * -1 - negative mode
+	 * 0 - [M+]+ mode for GC-MS
 	 */
 	private int mode = 1;			// ionization mode
 	
@@ -305,6 +309,8 @@ public class MetFragBean implements Runnable, Serializable {
 			System.err.println("Error while encoding input spectrum for URL use!");
 		}
 		
+		// short decimal format for score and/or exact mass
+		DecimalFormat threeDForm = new DecimalFormat("#.###");
 		
 		try {
 			String database = getSelectedDB();
@@ -348,6 +354,14 @@ public class MetFragBean implements Runnable, Serializable {
 			for (MetFragResult mfr : result) {
 				if(mfr.getStructure() != null) {
 					IAtomContainer container = mfr.getStructure();
+					
+					// compute molecular formula
+					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
+					String formula = MolecularFormulaManipulator.getHTML(iformula);
+					// compute molecular mass
+					double emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
+					emass = Double.valueOf(threeDForm.format(emass));	// shorten exact mass to 3 decimal places
+					
 					/**
 					 *  hydrogen handling
 					 */
@@ -412,7 +426,8 @@ public class MetFragBean implements Runnable, Serializable {
 					
 					
 					//results.add(new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename, landingURL));
-					results.add(new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename, landingURL));
+					results.add(new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename,
+							landingURL, formula, emass));
 					//results.add(new Result("MetFrag", mfr.getCandidateID(), mfr.getCandidateID(), mfr.getScore(), container, url, ""));
 					
 					// write 

@@ -172,7 +172,7 @@ public class SpectrumConverter implements Converter {
 	public String getAsString(FacesContext context, UIComponent component, Object value) {
 		if(value == null)
 			return "";
-		System.out.println("getAsString -> " + value.toString());
+		//System.out.println("getAsString -> " + value.toString());
 		return value.toString();
 	}
 

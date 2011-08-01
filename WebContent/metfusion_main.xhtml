@@ -80,27 +80,12 @@
 		    					than expected/normal. Either proceed or try again later. You may also want to check 
 		    					<a href="http://www.massbank.jp/">MassBank.jp</a> for further details.
 		    				</ice:panelGroup>
-		    				
-<!--		    				<ice:panelGroup>-->
-<!--		    					<ice:selectManyCheckbox value="#{appBean.mblb.selectedInstruments}">-->
-<!--		    					<ice:panelSeries value="#{appBean.mblb.instGroups.keySet()}" var="key">-->
-<!--		    						#{key}-->
-<!--		    						<ice:panelSeries value="#{appBean.mblb.instGroups[key]}" var="inst">-->
-<!--		    							#{inst}-->
-<!--		    							<f:selectItem itemLabel="#{inst}" itemValue="#{inst}"-->
-<!--											value="#{appBean.mblb.groupInstruments}"/>-->
-<!--		    						</ice:panelSeries>-->
-<!--		    					</ice:panelSeries>-->
-<!--		    					</ice:selectManyCheckbox>-->
-<!--		    				</ice:panelGroup>-->
-							<ui:repeat var="key" value="#{appBean.mblb.instGroups.keySet()}">
-								#{key}
-							</ui:repeat>
 							
-							<ice:panelGroup>
+							<ice:panelGroup style="margin-left: 10px; margin-right: 10px;">
 								<ice:panelGrid columns="2" columnClasses="gridSelectItems">
 									<ice:outputLabel value="Instruments:"></ice:outputLabel>
-									<ice:panelGrid columns="3" style="text-align: left; padding-left: 10px;" columnClasses="gridSelectItems">
+									<ice:panelGrid columns="3" columnClasses="gridSelectItems" id="instruments"
+										style="text-align: left; margin-left: 100px; border: 1px dotted silver;">
 										<ice:panelGroup>
 											<ice:outputLabel value="EI"/>
 											<ice:selectBooleanCheckbox label="EI" value="EI" style="margin-left: 5px;"
@@ -133,7 +118,7 @@
 								</ice:panelGrid>
 							</ice:panelGroup>
 							<ice:panelGroup effect="#{appBean.effectOutputText}">
-								<ice:message id="errInstruments" for="instruments"></ice:message>
+								<ice:messages id="errMsgs"/>
 							</ice:panelGroup>
 							
 				    	</ice:panelGroup>

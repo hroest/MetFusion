@@ -16,6 +16,7 @@ import java.util.Set;
 
 import javax.el.ELContext;
 import javax.el.ELResolver;
+import javax.faces.application.FacesMessage;
 import javax.faces.bean.ApplicationScoped;
 import javax.faces.bean.CustomScoped;
 import javax.faces.bean.ManagedBean;
@@ -174,7 +175,10 @@ public class MassBankLookupBean implements Runnable, Serializable {
 					//System.out.println(s);
 					sb.append(s).append(",");
 					
-					instruments[i] = "";	// add instrument to list for corresponding group
+					// add instrument to list for corresponding group
+					if(s.contains(ESI))
+						instruments[i] = s;		// preselect all ESI instruments
+					else instruments[i] = "";	// deselect all remaining instruments (EI, Others)
 				}
 	        	instTest.add(si);
 	        	selectedGroupInstruments.add(instruments);
@@ -191,19 +195,19 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	        	this.instruments.put(next, items);
             }
             
-            String temp = sb.toString();
-            if(temp.endsWith(","))
-                    temp = temp.substring(0, temp.length());
-            String[] split = sb.toString().split(",");
-            this.insts = new SelectItem[sb.toString().split(",").length];
-            this.selectedInstruments = new String[split.length];	//split;
-            for (int i = 0; i < this.insts.length; i++) {
-           		this.insts[i] = new SelectItem(split[i], split[i]);
-            	
-                // let only be ESI instruments be preselected
-                if(split[i].contains(ESI))
-                	this.selectedInstruments[i] = split[i];
-            }
+//            String temp = sb.toString();
+//            if(temp.endsWith(","))
+//            	temp = temp.substring(0, temp.length());
+//            String[] split = sb.toString().split(",");
+//            this.insts = new SelectItem[sb.toString().split(",").length];
+//            this.selectedInstruments = new String[split.length];	//split;
+//            for (int i = 0; i < this.insts.length; i++) {
+//           		this.insts[i] = new SelectItem(split[i], split[i]);
+//            	
+//                // let only be ESI instruments be preselected
+//                if(split[i].contains(ESI))
+//                	this.selectedInstruments[i] = split[i];
+//            }
 
             // check MassBank availability - check if all instrument groups are present - EI, ESI, Other
             if(instGroup.keySet().size() < NUM_INST_GROUPS)
@@ -222,19 +226,39 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		this.selectedInstruments = newInstruments;
 	}
 	
-	public void collectInstruments() {
-		String[] current = getSelectedInstruments();
-		for (int i = 0; i < current.length; i++) {
-			System.out.println("current -> " + current[i]);
-		}
+	private void collectInstruments() {
+//		String[] current = getSelectedInstruments();
+//		for (int i = 0; i < current.length; i++) {
+//			System.out.println("current -> " + current[i]);
+//		}
 		
+		List<String> tempInstruments = new ArrayList<String>();
 		List<String[]> currentSelected = getSelectedGroupInstruments();
 		for (int i = 0; i < currentSelected.size(); i++) {
 			String[] temp = currentSelected.get(i);
 			for (int j = 0; j < temp.length; j++) {
 				System.out.println("currentSelected -> " + temp[j]);
+				if(temp[j] != null && !temp[j].isEmpty())
+					tempInstruments.add(temp[j]);
 			}
 		}
+		
+		String[] collected = new String[tempInstruments.size()];
+		for (int i = 0; i < collected.length; i++) {
+			collected[i] = tempInstruments.get(i);
+		}
+		
+		if(collected == null || collected.length == 0) {
+        	String errMessage = "Error - no instruments were selected!";
+            System.err.println(errMessage);
+            FacesContext fc = FacesContext.getCurrentInstance();
+            FacesMessage curentMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, errMessage, errMessage);
+            fc.addMessage("inputForm:instruments", curentMessage);
+            
+            return;
+        }
+		
+		setSelectedInstruments(collected);
 	}
 	
 	public void toggleInstrumentsEI(ValueChangeEvent event) {
@@ -253,6 +277,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 			}
 		}
 		selectedGroupInstruments.set(0, newInstruments);
+		collectInstruments();
 	}
 	
 	public void toggleInstrumentsESI(ValueChangeEvent event) {
@@ -290,6 +315,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 			}
 		}
 		selectedGroupInstruments.set(2, newInstruments);
+		collectInstruments();
 	}
 
 	public void changeInstrumentGroups(ValueChangeEvent event) {
