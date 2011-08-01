@@ -32,6 +32,8 @@ public class ResultExt extends Result {
 		super(r.getPort(), r.getId(), r.getName(), r.getScore(), r.getMol());
 		setUrl(r.getUrl());
 		setImagePath(r.getImagePath());
+		setSumFormula(r.getSumFormula());
+		setExactMass(r.getExactMass());
 	}
 	
 	public ResultExt(String port, String id, String name, double score,
@@ -46,7 +48,8 @@ public class ResultExt extends Result {
 		this.setPosAfter(after);
 		setUrl(r.getUrl());
 		setImagePath(r.getImagePath());
-		
+		this.setSumFormula(r.getSumFormula());
+		this.setExactMass(r.getExactMass());
 		flagValue();
 	}
 	
@@ -55,6 +58,7 @@ public class ResultExt extends Result {
 		this.tiedRank = tiedRank;
 		setUrl(r.getUrl());
 		setImagePath(r.getImagePath());
+		
 	}
 	
 	public ResultExt(Result r, int before, int after, double resultScore) {

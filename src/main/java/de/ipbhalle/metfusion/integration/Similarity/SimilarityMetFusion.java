@@ -130,44 +130,41 @@ public class SimilarityMetFusion {
 			List<SimilarityGroup> clusteredCpds = tanimoto.clusterCandididates(candidateGroup, 0.95f);
 			List<SimilarityGroup> groupedCandidates = tanimoto.getCleanedClusters(clusteredCpds);
 		
-			//for (SimilarityGroup similarityGroup : groupedCandidates) {	
-				
-				
-				for (SimilarityGroup similarityGroup : groupedCandidates) {
-				    //cluster
-				    if(similarityGroup.getSimilarCompounds().size() > 1)
-				    {
-				    	ResultExtGroupBean filesRecordGroup = new ResultExtGroupBean(
-								GROUP_INDENT_STYLE_CLASS, GROUP_ROW_STYLE_CLASS,
-								styleBean, EXPAND_IMAGE, CONTRACT_IMAGE,
-								resultRowGroupedBeans, false);
-						//String baseCand = similarityGroup.getCandidateTocompare();
-						ResultExt parent = mapPositions.get(similarityGroup.getCandidateTocompare());
-						addToResultsList(parent, filesRecordGroup);
+			for (SimilarityGroup similarityGroup : groupedCandidates) {
+			    //cluster
+			    if(similarityGroup.getSimilarCompounds().size() > 1)
+			    {
+			    	ResultExtGroupBean filesRecordGroup = new ResultExtGroupBean(
+							GROUP_INDENT_STYLE_CLASS, GROUP_ROW_STYLE_CLASS,
+							styleBean, EXPAND_IMAGE, CONTRACT_IMAGE,
+							resultRowGroupedBeans, false);
+					//String baseCand = similarityGroup.getCandidateTocompare();
+					ResultExt parent = mapPositions.get(similarityGroup.getCandidateTocompare());
+					addToResultsList(parent, filesRecordGroup);
 
-				     for (int k = 0; k < similarityGroup.getSimilarCompounds().size(); k++) {
-						if(similarityGroup.getCandidateTocompare().equals(similarityGroup.getSimilarCompounds().get(k).getCompoundID()))
-							continue;
-				    	 ResultExtGroupBean childFilesGroup = new ResultExtGroupBean(CHILD_INDENT_STYLE_CLASS, CHILD_ROW_STYLE_CLASS);
-				    	 ResultExt child = mapPositions.get(similarityGroup.getSimilarCompounds().get(k).getCompoundID());
-				    	 addToResultsList(child, childFilesGroup);
-				    	 filesRecordGroup.addChildFilesGroupRecord(childFilesGroup);
-				     }
-				    }
-				    //single
-				    else
-				    {
-				    	ResultExtGroupBean filesRecordGroup = new ResultExtGroupBean(
-								"", "", styleBean, SPACER_IMAGE, SPACER_IMAGE,
-								resultRowGroupedBeans, false);
-						
-						// retrieve current result and store it in cluster list
-						ResultExt single = mapPositions.get(similarityGroup.getCandidateTocompare());
-						if(!(single == null))
-							addToResultsList(single, filesRecordGroup);
-				    }
-				   }
+			     for (int k = 0; k < similarityGroup.getSimilarCompounds().size(); k++) {
+					if(similarityGroup.getCandidateTocompare().equals(similarityGroup.getSimilarCompounds().get(k).getCompoundID()))
+						continue;
+			    	 ResultExtGroupBean childFilesGroup = new ResultExtGroupBean(CHILD_INDENT_STYLE_CLASS, CHILD_ROW_STYLE_CLASS);
+			    	 ResultExt child = mapPositions.get(similarityGroup.getSimilarCompounds().get(k).getCompoundID());
+			    	 addToResultsList(child, childFilesGroup);
+			    	 filesRecordGroup.addChildFilesGroupRecord(childFilesGroup);
+			     }
+			    }
+			    //single
+			    else
+			    {
+			    	ResultExtGroupBean filesRecordGroup = new ResultExtGroupBean(
+							"", "", styleBean, SPACER_IMAGE, SPACER_IMAGE,
+							resultRowGroupedBeans, false);
+					
+					// retrieve current result and store it in cluster list
+					ResultExt single = mapPositions.get(similarityGroup.getCandidateTocompare());
+					if(!(single == null))
+						addToResultsList(single, filesRecordGroup);
+			    }
 			}
+		}
 		return resultRowGroupedBeans;
 	}
 
@@ -433,6 +430,8 @@ public class SimilarityMetFusion {
 		group.setUrl(r.getUrl());
 		group.setImagePath(r.getImagePath());
 		group.setLandingURL(r.getLandingURL());
+		group.setSumFormula(r.getSumFormula());
+		group.setExactMass(r.getExactMass());
 	}
 
 	public void setClusterGroups(List<ResultExtGroup> clusterGroups) {

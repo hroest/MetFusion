@@ -6,6 +6,7 @@
 package de.ipbhalle.metfusion.wrapper;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,8 +18,12 @@ import javax.faces.model.ListDataModel;
 import org.apache.commons.math.linear.RealMatrix;
 
 
-public class ColorcodedMatrix implements Runnable{
+public class ColorcodedMatrix implements Runnable, Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private RealMatrix origMatrix;
 	private ColorNode[][] colorMatrix;
 	
