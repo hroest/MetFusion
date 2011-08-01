@@ -58,24 +58,87 @@
 								<ice:panelGroup effect="#{appBean.effectOutputText}">
 		    						<ice:message id="errallIon" for="allIon"></ice:message>
 		    					</ice:panelGroup>
-		    					
-		    					<ice:outputLabel value="Instruments:"></ice:outputLabel>
-		    					<ice:panelGroup style="width: 240px; height: 80px; overflow: auto; border: 1px solid silver;">
-									<ice:selectManyCheckbox value="#{appBean.mblb.selectedInstruments}" layout="pageDirection" id="instruments"
-											partialSubmit="true" required="true">
-										<f:selectItems itemLabel="#{n}" itemValue="#{n}" var="n" 
-											value="#{appBean.mblb.groupInstruments}"/>
-<!--										<f:validator validatorId="de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator"/>-->
-									</ice:selectManyCheckbox>
-								</ice:panelGroup>
-								<ice:panelGroup effect="#{appBean.effectOutputText}">
-									<ice:message id="errInstruments" for="instruments"></ice:message>
-								</ice:panelGroup>
 		    				</ice:panelGrid>
 		    				
+<!--		    					<ice:outputLabel value="Instruments:"></ice:outputLabel>-->
+<!--		    					<ice:panelGroup style="width: 240px; height: 80px; overflow: auto; border: 1px solid silver;">-->
+<!--									<ice:selectManyCheckbox value="#{appBean.mblb.selectedInstruments}" layout="pageDirection" id="instruments"-->
+<!--											partialSubmit="true" required="true">-->
+<!--										<f:selectItems itemLabel="#{n}" itemValue="#{n}" var="n" -->
+<!--											value="#{appBean.mblb.groupInstruments}"/>-->
+<!--										<f:validator validatorId="de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator"/>-->
+<!--									</ice:selectManyCheckbox>-->
+<!--								</ice:panelGroup>-->
+<!--								<ice:panelGroup effect="#{appBean.effectOutputText}">-->
+<!--									<ice:message id="errInstruments" for="instruments"></ice:message>-->
+<!--								</ice:panelGroup>-->
+<!--		    				</ice:panelGrid>-->
+		    				
+		    				<ice:panelGroup id="msgMassBank" style="border: 1px solid DarkRed; background-color: MistyRose; margin: 5px;"
+		    					rendered="#{appBean.mblb.brokenMassBank}">
+		    					Not all MassBank servers could be reached! Current queries will possible yield less results
+		    					than expected/normal. Either proceed or try again later. You may also want to check 
+		    					<a href="http://www.massbank.jp/">MassBank.jp</a> for further details.
+		    				</ice:panelGroup>
+		    				
+<!--		    				<ice:panelGroup>-->
+<!--		    					<ice:selectManyCheckbox value="#{appBean.mblb.selectedInstruments}">-->
+<!--		    					<ice:panelSeries value="#{appBean.mblb.instGroups.keySet()}" var="key">-->
+<!--		    						#{key}-->
+<!--		    						<ice:panelSeries value="#{appBean.mblb.instGroups[key]}" var="inst">-->
+<!--		    							#{inst}-->
+<!--		    							<f:selectItem itemLabel="#{inst}" itemValue="#{inst}"-->
+<!--											value="#{appBean.mblb.groupInstruments}"/>-->
+<!--		    						</ice:panelSeries>-->
+<!--		    					</ice:panelSeries>-->
+<!--		    					</ice:selectManyCheckbox>-->
+<!--		    				</ice:panelGroup>-->
+							<ui:repeat var="key" value="#{appBean.mblb.instGroups.keySet()}">
+								#{key}
+							</ui:repeat>
+							
+							<ice:panelGroup>
+								<ice:panelGrid columns="2" columnClasses="gridSelectItems">
+									<ice:outputLabel value="Instruments:"></ice:outputLabel>
+									<ice:panelGrid columns="3" style="text-align: left; padding-left: 10px;" columnClasses="gridSelectItems">
+										<ice:panelGroup>
+											<ice:outputLabel value="EI"/>
+											<ice:selectBooleanCheckbox label="EI" value="EI" style="margin-left: 5px;"
+												valueChangeListener="#{appBean.mblb.toggleInstrumentsEI}"/>
+										</ice:panelGroup>
+										<ice:panelGroup>
+											<ice:outputLabel value="ESI"/>
+											<ice:selectBooleanCheckbox label="ESI" value="ESI" style="margin-left: 5px;"
+												valueChangeListener="#{appBean.mblb.toggleInstrumentsESI}"/>
+										</ice:panelGroup>
+										<ice:panelGroup>
+											<ice:outputLabel value="Other"/>
+											<ice:selectBooleanCheckbox label="Other" value="Other" style="margin-left: 5px;"
+												valueChangeListener="#{appBean.mblb.toggleInstrumentsOther}"/>
+										</ice:panelGroup>
+	<!--									<ice:panelSeries value="#{appBean.mblb.instTest}" var="grp">-->
+	<!--									<ui:repeat var="" value="">-->
+										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[0]}">
+											<f:selectItems value="#{appBean.mblb.instTest[0]}"/>
+										</ice:selectManyCheckbox>
+	<!--									</ui:repeat>-->
+										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[1]}">
+											<f:selectItems value="#{appBean.mblb.instTest[1]}"/>
+										</ice:selectManyCheckbox>
+										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[2]}">
+											<f:selectItems value="#{appBean.mblb.instTest[2]}"/>
+										</ice:selectManyCheckbox>
+	<!--									</ice:panelSeries>-->
+									</ice:panelGrid>
+								</ice:panelGrid>
+							</ice:panelGroup>
+							<ice:panelGroup effect="#{appBean.effectOutputText}">
+								<ice:message id="errInstruments" for="instruments"></ice:message>
+							</ice:panelGroup>
+							
 				    	</ice:panelGroup>
 				    	<br/>
-				    	<ice:panelGroup style="margin-left: 10px; margin-right: 10px;">
+				    	<ice:panelGroup style="margin-left: 10px; margin-right: 10px; clear: both;">
 				    		<ice:outputLabel value="MetFrag Parameters" style="text-decoration: underline;"></ice:outputLabel>
 				    		<ice:outputText style="margin-left: 10px; color: YellowGreen;" value="Currently, only positive mode is supported!"/>
 				    		<br/>
@@ -167,7 +230,7 @@
 								</ice:inputTextarea>
 	    					</ice:panelGrid>
 	    					<ice:panelGroup effect="#{appBean.effectOutputText}">
-	    						<ice:message id="errallPeaks" for="allPeaks"></ice:message>
+	    						<ice:message id="errallPeaks" for="allPeaks" style="font-color: red;"></ice:message>
 							</ice:panelGroup>
 				    	</ice:panelGroup>
 			    	</div>
@@ -187,19 +250,19 @@
 						<f:selectItem itemLabel="Database List" itemValue="database" itemDisabled="#{!appBean.showResultsDatabase}"/>
 					</ice:selectOneRadio>
 					
+					<ice:panelGroup style="background-color: MintCream;">
+						<ice:outputText value="Export results into Excel file:"/>
+						<ice:outputResource id="outputResource" resource="#{appBean.outputResource}"
+							label="Save results in Excel document." mimeType="application/vnd.ms-excel"
+							fileName="#{appBean.outputResource.resourceName}" image="/images/icons/xls.png"/>
+    				</ice:panelGroup>
+      						
 					<ice:panelStack selectedPanel="#{appBean.selectedResult}">
 						<ice:panelGroup id="cluster">
 <!--							<ice:dataExporter for="tableCluster" label="Click to download Excel file." type="excel"-->
 <!--								popupBlockerLabel="Popup Blocker detected - click here to resume download..."-->
 <!--                				clickToCreateFileText="Click to create Excel file " image="/images/icons/xls.png"-->
 <!--                				outputTypeHandler="#{appBean.exporter}" id="exporterClusterTable" renderLabelAsButton="true"/>-->
-							
-							<ice:panelGroup style="background-color: MintCream;">
-<!--								<ice:graphicImage alt="excel icon" url="/images/icons/xls.png"></ice:graphicImage>-->
-								<ice:outputResource id="outputResource" resource="#{appBean.outputResource}"
-									label="Save results in Excel document." mimeType="application/vnd.ms-excel"
-									fileName="#{appBean.outputResource.resourceName}" image="/images/icons/xls.png"/>
-      						</ice:panelGroup>
 							
 							<ice:dataTable id="tableCluster" value="#{appBean.tanimotoClusters}" rendered="#{appBean.showClusterResults}" 
 								var="entry" rows="20">
@@ -230,6 +293,12 @@
 								<ice:column>
 									<f:facet name="header">Compound Name</f:facet>
 									#{entry.name}
+								</ice:column>
+								<ice:column>
+									<f:facet name="header">Exact Mass</f:facet>
+									<ice:outputText value="#{entry.sumFormula}" escape="false"></ice:outputText>
+									<br/><br/>
+									#{entry.exactMass}
 								</ice:column>
 								<ice:column>
 									<f:facet name="header">Structure</f:facet>
@@ -319,13 +388,19 @@
 								</ice:column>
 								<ice:column>
 									<f:facet name="header">Record ID</f:facet>
-									<ice:outputLink id="linkOut" value="#{entry.url}" target="_blank">
-										#{entry.id}
+									<ice:outputLink id="linkOut" value="#{entry.url}" target="_blank" style="text-decoration: underline;">
+										<ice:outputText id="rowData" value="#{entry.id}" nospan="true"/>
 									</ice:outputLink>
 								</ice:column>
 								<ice:column>
 									<f:facet name="header">Compound Name</f:facet>
 									#{entry.name}
+								</ice:column>
+								<ice:column>
+									<f:facet name="header">Exact Mass</f:facet>
+									<ice:outputText value="#{entry.sumFormula}" escape="false"></ice:outputText>
+									<br/><br/>
+									#{entry.exactMass}
 								</ice:column>
 								<ice:column>
 									<f:facet name="header">Structure</f:facet>
@@ -396,13 +471,19 @@
 								</ice:column>
 								<ice:column>
 									<f:facet name="header">Record ID</f:facet>
-									<ice:outputLink id="linkOut" target="_blank" value="#{entry.url}">
-										#{entry.id}
+									<ice:outputLink id="linkOut" value="#{entry.url}" target="_blank" style="text-decoration: underline;">
+										<ice:outputText id="rowData" value="#{entry.id}" nospan="true"/>
 									</ice:outputLink>
 								</ice:column>
 								<ice:column>
 									<f:facet name="header">Compound Name</f:facet>
 									#{entry.name}
+								</ice:column>
+								<ice:column>
+									<f:facet name="header">Exact Mass</f:facet>
+									<ice:outputText value="#{entry.sumFormula}" escape="false"></ice:outputText>
+									<br/><br/>
+									#{entry.exactMass}
 								</ice:column>
 								<ice:column>
 									<f:facet name="header">Structure</f:facet>
@@ -494,7 +575,17 @@
 											<ice:outputText value="#{appBean.mfb.results[item].name}"/>
 										</f:facet>
 										<f:facet name="body">
-											<ice:graphicImage alt="compound image" url="#{appBean.mfb.results[item].imagePath}"/>
+											<ice:panelGrid columns="2">
+												<ice:graphicImage alt="compound image" url="#{appBean.mfb.results[item].imagePath}"/>
+												<ice:panelGroup style="margin-left: 5px; border: 1px solid silver; padding: 5px;">
+													<ice:panelGrid columns="2">
+														<ice:outputLabel value="Tied Rank:"/>
+														<ice:outputText value="#{appBean.mfb.results[item].tiedRank}"/>
+														<ice:outputLabel value="MetFusion Score:"/>
+														<ice:outputText value="#{appBean.mfb.results[item].score}"/>
+													</ice:panelGrid>
+												</ice:panelGroup>
+											</ice:panelGrid>
 										</f:facet>
 									</ice:panelTooltip>
 								</ice:column>
@@ -581,7 +672,17 @@
 													<ice:outputText value="#{appBean.secondOrder[item].name}"/>
 												</f:facet>
 												<f:facet name="body">
-													<ice:graphicImage alt="compound image" url="#{appBean.secondOrder[item].imagePath}"/>
+													<ice:panelGrid columns="2">
+														<ice:graphicImage alt="compound image" url="#{appBean.secondOrder[item].imagePath}"/>
+														<ice:panelGroup style="margin-left: 5px; border: 1px solid silver; padding: 5px;">
+															<ice:panelGrid columns="2">
+																<ice:outputLabel value="Tied Rank:"/>
+																<ice:outputText value="#{appBean.mfb.results[item].tiedRank}"/>
+																<ice:outputLabel value="MetFusion Score:"/>
+																<ice:outputText value="#{appBean.mfb.results[item].score}"/>
+															</ice:panelGrid>
+														</ice:panelGroup>
+													</ice:panelGrid>
 												</f:facet>
 											</ice:panelTooltip>
 									</ice:column>
