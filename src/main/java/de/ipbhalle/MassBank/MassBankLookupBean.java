@@ -23,6 +23,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
+import javax.faces.event.ActionListener;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 import javax.faces.model.SelectItemGroup;
@@ -30,12 +31,15 @@ import javax.print.attribute.standard.MediaSize.Other;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
+import org.icefaces.component.checkboxbutton.CheckboxButton;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+
+import com.icesoft.faces.component.SelectBooleanCheckboxTag;
 
 import de.ipbhalle.metfrag.tools.renderer.StructureToFile;
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
@@ -83,6 +87,12 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	private static final String ESI = "ESI";
 	private static final String OTHER = "Others";
 	private Map<String, List<String>> instGroups;
+	private static final String SESSIONMAPKEYINSTRUMENTS = "instruments";
+	private static final String SELECT = "Select";
+	private static final String DESELECT = "Deselect";
+	private String linkGroupEI = SELECT + EI;
+	private String linkGroupESI = DESELECT + ESI;
+	private String linkGroupOTHER = SELECT + OTHER;
 	
 	private String selectedIon = "1";
 	private SelectItem[] ionisations = {new SelectItem("1", "positive"), new SelectItem("-1", "negative"), new SelectItem("0", "both")};
@@ -125,8 +135,8 @@ public class MassBankLookupBean implements Runnable, Serializable {
     private String currentRecord = "";
     
 	public MassBankLookupBean() {
-		//this(massbankJP);
-		this("http://msbi.ipb-halle.de/MassBank/");
+		this(massbankJP);
+		//this("http://msbi.ipb-halle.de/MassBank/");
 		t = new Thread(this, "massbank");
 		
 		//FacesContext fc = FacesContext.getCurrentInstance();
@@ -163,16 +173,17 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	        	String next = it.next();
 	        	//sig[counter] = new SelectItemGroup(next);
 	        	SelectItemGroup sigcur = new SelectItemGroup(next);
-	        	//System.out.println("next -> " + next);
 	        	List<String> items = instGroup.get(next);	// retrieve instruments from current instrument group
 	        	String[] instruments = new String[items.size()];
+	        	
+	        	// add ESI instruments as default selected group to sessionmap
+	        	if(next.equals(ESI))
+	        		FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put(SESSIONMAPKEYINSTRUMENTS, items);
 	        	
 	        	SelectItem[] si = new SelectItem[items.size()];
 	        	for (int i = 0; i < si.length; i++) {
 	        		String s = items.get(i);
 					si[i] = new SelectItem(s, s);
-					
-					//System.out.println(s);
 					sb.append(s).append(",");
 					
 					// add instrument to list for corresponding group
@@ -224,41 +235,115 @@ public class MassBankLookupBean implements Runnable, Serializable {
 			System.out.println(newInstruments[i]);
 		}
 		this.selectedInstruments = newInstruments;
+		//FacesContext.getCurrentInstance().renderResponse();
+		//collectInstruments();
 	}
 	
-	private void collectInstruments() {
-//		String[] current = getSelectedInstruments();
-//		for (int i = 0; i < current.length; i++) {
-//			System.out.println("current -> " + current[i]);
-//		}
-		
+	public void collectInstruments() {
 		List<String> tempInstruments = new ArrayList<String>();
 		List<String[]> currentSelected = getSelectedGroupInstruments();
 		for (int i = 0; i < currentSelected.size(); i++) {
 			String[] temp = currentSelected.get(i);
 			for (int j = 0; j < temp.length; j++) {
 				System.out.println("currentSelected -> " + temp[j]);
-				if(temp[j] != null && !temp[j].isEmpty())
+				if(!temp[j].isEmpty())
 					tempInstruments.add(temp[j]);
 			}
 		}
 		
+//		if(this.selectedInstruments != null && this.selectedInstruments.length > 0) {
+//			for (int i = 0; i < this.selectedInstruments.length; i++) {
+//				if(!tempInstruments.contains(selectedInstruments[i])) {
+//					tempInstruments.add(selectedInstruments[i]);
+//					System.out.println("added item [" + selectedInstruments[i] + "] from selectedInstruments!");
+//				}
+//			}
+//		}
+		
 		String[] collected = new String[tempInstruments.size()];
 		for (int i = 0; i < collected.length; i++) {
 			collected[i] = tempInstruments.get(i);
+			System.out.println("collected [" + i + "] -> " + collected[i]);
 		}
 		
-		if(collected == null || collected.length == 0) {
+		System.out.println("collected.length -> " + collected.length);
+		if(collected.length == 0) {
         	String errMessage = "Error - no instruments were selected!";
             System.err.println(errMessage);
             FacesContext fc = FacesContext.getCurrentInstance();
             FacesMessage curentMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, errMessage, errMessage);
-            fc.addMessage("inputForm:instruments", curentMessage);
+            fc.addMessage("inputForm:errMsgs", curentMessage);
+            setSelectedInstruments(collected);
             
             return;
         }
 		
 		setSelectedInstruments(collected);
+		//FacesContext.getCurrentInstance().renderResponse();
+	}
+	
+	/**
+	 * Wrapper method to create commandLink text value 
+	 * matching the corresponding state of an instrument
+	 * group. The resulting value is either <b>Select groupname</b>
+	 * or <b>Deselect groupname</b>.
+	 * 
+	 * @param group - the name of the group
+	 * @param checked - the boolean indicating if a group should be
+	 * selected <code>true</code> or not <code>false</code>.
+	 * @return a String in the form of either <b>Select groupname</b>
+	 * or <b>Deselect groupname</b>.
+	 */
+	private String generateLinkText(String group, boolean checked) {
+		if(checked)
+			return SELECT + " "  + group;
+		else return DESELECT + " " + group;
+	}
+	
+	public void toggleIG(ActionEvent event) {
+		FacesContext context = FacesContext.getCurrentInstance();
+		Map<String, String> requestMap = context.getExternalContext().getRequestParameterMap();
+		String group = requestMap.get("group").toString();
+		System.out.println("group -> " + group);
+		
+		int slot = 0;
+		boolean check = false;
+		
+		if(group.equals(EI)) {
+			slot = 0;
+			check = !this.useEIOnly;	// switch from off to on as EI was not preselected before
+			this.useEIOnly = check;
+			this.linkGroupEI = generateLinkText(group, !check);
+		}
+		else if(group.equals(ESI)) {
+			slot = 1;
+			check = !this.useESIOnly;	// switch from on to off as ESI was preselected before
+			this.useESIOnly = check;
+			this.linkGroupESI = generateLinkText(group, !check);
+		}
+		else if(group.equals(OTHER)) {
+			slot = 2;
+			check = !this.useOtherOnly;	// switch from off to on as Other was not preselected before
+			this.useOtherOnly = check;
+			this.linkGroupOTHER = generateLinkText(group, !check);
+		}
+		else {
+			System.err.println("Could not find matching Instrument Group!");
+			return;
+		}
+		//FacesContext.getCurrentInstance().renderResponse();
+		
+		System.out.println("check -> " + check);
+		List<String> instruments = instGroups.get(group);
+		String[] newInstruments = new String[instruments.size()];
+		for (int i = 0; i < newInstruments.length; i++) {
+			if(check)								// let only be group instruments be preselected
+				newInstruments[i] = instruments.get(i);
+			else newInstruments[i] = "";		// let only be group instruments be deselected
+		}
+		
+		selectedGroupInstruments.set(slot, newInstruments);
+		collectInstruments();
 	}
 	
 	public void toggleInstrumentsEI(ValueChangeEvent event) {
@@ -282,6 +367,9 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	
 	public void toggleInstrumentsESI(ValueChangeEvent event) {
 		boolean newVal = (Boolean) event.getNewValue();
+		String group = (String) event.getComponent().getAttributes().get("group");
+		System.out.println("group -> " + group);
+		
 		List<String> instruments = instGroups.get(ESI);
 		String[] newInstruments = new String[instruments.size()];
 		
@@ -318,7 +406,9 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		collectInstruments();
 	}
 
-	public void changeInstrumentGroups(ValueChangeEvent event) {
+	public void changeInstrumentGroupEI(ValueChangeEvent event) {
+		String param = (String) event.getComponent().getAttributes().get("group");
+		System.out.println("group -> " + param);
 		String group = (String) event.getComponent().getAttributes().get("EI");
 		System.out.println("group -> " + group);
 	}
@@ -1010,6 +1100,46 @@ public class MassBankLookupBean implements Runnable, Serializable {
 
 	public List<String[]> getSelectedGroupInstruments() {
 		return selectedGroupInstruments;
+	}
+
+	public static String getEi() {
+		return EI;
+	}
+
+	public static String getEsi() {
+		return ESI;
+	}
+
+	public static String getOther() {
+		return OTHER;
+	}
+
+	public static String getSessionmapkeyinstruments() {
+		return SESSIONMAPKEYINSTRUMENTS;
+	}
+
+	public void setLinkGroupEI(String linkGroupEI) {
+		this.linkGroupEI = linkGroupEI;
+	}
+
+	public String getLinkGroupEI() {
+		return linkGroupEI;
+	}
+
+	public void setLinkGroupESI(String linkGroupESI) {
+		this.linkGroupESI = linkGroupESI;
+	}
+
+	public String getLinkGroupESI() {
+		return linkGroupESI;
+	}
+
+	public void setLinkGroupOTHER(String linkGroupOTHER) {
+		this.linkGroupOTHER = linkGroupOTHER;
+	}
+
+	public String getLinkGroupOTHER() {
+		return linkGroupOTHER;
 	}
 
 }
