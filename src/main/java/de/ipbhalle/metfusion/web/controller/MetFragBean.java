@@ -25,6 +25,7 @@ import javax.faces.component.UIComponent;
 import javax.faces.component.UIInput;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
+import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
@@ -67,11 +68,6 @@ public class MetFragBean implements Runnable, Serializable {
 	private static final String DEFAULT_IMAGE_CACHE = "/vol/metfrag/images/";
 	
 	/**
-	 * define selected upstream DB - defaults to pubchem
-	 */
-	private String selectedDB = "pubchem";
-	
-	/**
 	 * identifier for KEGG
 	 */
 	private final String dbKEGG = "kegg";
@@ -83,6 +79,12 @@ public class MetFragBean implements Runnable, Serializable {
 	 * identifier for ChemSpider
 	 */
 	private final String dbCHEMSPIDER = "chemspider";
+	
+	/**
+	 * define selected upstream DB - defaults to pubchem
+	 */
+	private String selectedDB = dbKEGG; 
+		//"pubchem";
 	
 	/**
 	 * SelectItem options for upstream DB
@@ -230,9 +232,18 @@ public class MetFragBean implements Runnable, Serializable {
 	
 	private final String landingPage = "http://msbi.ipb-halle.de/MetFragBeta/LandingPage.jspx?";
 	
+	private List<SelectItem> adductList;
+	private double selectedAdduct;
+	private double parentIon;
+	
+	
 	public MetFragBean() {
 		t = new Thread(this, "metfrag");
 		fillLinkMap();
+		fillAdductList();
+		this.parentIon = this.exactMass;
+		this.selectedAdduct = (Double) this.adductList.get(0).getValue();	// set to neutral adduct
+		this.exactMass = this.selectedAdduct + this.parentIon;
 		
 		//FacesContext fc = FacesContext.getCurrentInstance();
 //		ELResolver el = fc.getApplication().getELResolver();
@@ -246,6 +257,20 @@ public class MetFragBean implements Runnable, Serializable {
 		if(formula == null || formula.isEmpty())
 			return String.format("peaks=%1$s&database=%2$s&databaseID=%3$s&mass=%4$f", peaks, database, id, mass);
 		else return String.format("peaks=%1$s&database=%2$s&databaseID=%3$s&mass=%4$f&formula=%5$s", peaks, database, id, mass, formula);
+	}
+	
+	private void fillAdductList() {
+		this.adductList = new ArrayList<SelectItem>();
+		adductList.add(new SelectItem(0d, "Neutral"));
+		adductList.add(new SelectItem(0.00054858d, "M+"));
+		adductList.add(new SelectItem(-1.007276455d, "[M+H+]"));
+		adductList.add(new SelectItem(-22.98921912d, "[M+Na]+"));
+		adductList.add(new SelectItem(-38.96315882d, "[M+K]+"));
+		adductList.add(new SelectItem(-0.00054858d, "M-"));
+		adductList.add(new SelectItem(1.007276455d, "[M-H]-"));
+		adductList.add(new SelectItem(22.98921912d, "[M-Na]-"));
+		adductList.add(new SelectItem(38.96315882d, "[M-K]-"));
+		
 	}
 	
 	private void fillLinkMap() {
@@ -268,6 +293,20 @@ public class MetFragBean implements Runnable, Serializable {
 				System.err.println("No link currently available for [" + db + "].");
 			}
 		}
+	}
+	
+	public void changeAdduct(ValueChangeEvent event) {
+		double adduct = (Double) event.getNewValue();
+		setSelectedAdduct(adduct);
+		
+		this.exactMass = getSelectedAdduct() + getParentIon();
+	}
+	
+	public void changeParentIon(ValueChangeEvent event) {
+		double parent = (Double) event.getNewValue();
+		setParentIon(parent);
+		
+		this.exactMass = getSelectedAdduct() + getParentIon();
 	}
 	
 	public void submit(ActionEvent event) {
@@ -667,6 +706,30 @@ public class MetFragBean implements Runnable, Serializable {
 
 	public String getSessionID() {
 		return sessionID;
+	}
+
+	public void setAdductList(List<SelectItem> adductList) {
+		this.adductList = adductList;
+	}
+
+	public List<SelectItem> getAdductList() {
+		return adductList;
+	}
+
+	public double getSelectedAdduct() {
+		return selectedAdduct;
+	}
+
+	public void setSelectedAdduct(double selectedAdduct) {
+		this.selectedAdduct = selectedAdduct;
+	}
+
+	public double getParentIon() {
+		return parentIon;
+	}
+
+	public void setParentIon(double parentIon) {
+		this.parentIon = parentIon;
 	}
 
 }
