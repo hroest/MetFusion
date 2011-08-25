@@ -4,6 +4,11 @@
 
 package de.ipbhalle.metfusion.web.controller.validation;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.el.ELContext;
+import javax.el.ELResolver;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
@@ -11,6 +16,8 @@ import javax.faces.convert.ConverterException;
 import javax.faces.validator.FacesValidator;
 import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
+
+import de.ipbhalle.MassBank.MassBankLookupBean;
 
 /**
  * Validator class for selected instruments in JSF page.
@@ -24,33 +31,55 @@ import javax.faces.validator.ValidatorException;
  * @author mgerlich
  *
  */
-@FacesValidator("de.ipbhalle.MetFlow.web.controller.validation.InstrumentValidator")
+@FacesValidator("de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator")
 public class InstrumentValidator implements Validator {
 
 	public InstrumentValidator() {
 		// TODO Auto-generated constructor stub
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void validate(FacesContext context, UIComponent component,
 			Object value) throws ValidatorException {
 		System.out.println("Instrumentvalidator");
+		
+		List<String> instruments = new ArrayList<String>();
+		Object obj = FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get(MassBankLookupBean.getSessionmapkeyinstruments());
+		if(obj != null && (obj instanceof List)) {
+			/**
+			 * this cast is unchecked
+			 */
+			List<String> old = (List<String>) obj;
+			for (String s : old) {
+				System.out.println("old -> " + s);
+				instruments.add(s);
+			}
+		}
+		
 		FacesMessage msg = new FacesMessage("No instruments selected.", 
 		"At least one instrument is required.");
 		msg.setSeverity(FacesMessage.SEVERITY_ERROR);
 		
 		if(value == null)
-			throw new ConverterException(msg);
+			//throw new ConverterException(msg);
+			throw new ValidatorException(msg);
 		
 		if(value instanceof String[]) {		// value of MassBankLookupBean.selectedInstruments
 			String[] temp = (String[]) value;
 			for (int i = 0; i < temp.length; i++) {
 				System.out.println("temp["+i+"] -> " + temp[i]);
+				instruments.add(temp[i]);
 			}
 			System.out.println("temp# -> " + temp.length);
 			//System.out.println("temp == null -> " + temp == null);
 			if(temp.length == 0)
 				throw new ValidatorException(msg);
+		}
+		
+		FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put(MassBankLookupBean.getSessionmapkeyinstruments(), instruments);
+		for (String s : instruments) {
+			System.out.println("new -> " + s);
 		}
 	}
 }

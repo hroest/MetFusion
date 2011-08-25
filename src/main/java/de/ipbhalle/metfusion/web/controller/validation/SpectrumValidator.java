@@ -16,7 +16,7 @@ import javax.faces.validator.ValidatorException;
 
 import com.icesoft.faces.context.effects.JavascriptContext;
 
-@FacesValidator("de.ipbhalle.MetFlow.web.controller.validation.SpectrumValidator")
+@FacesValidator("de.ipbhalle.metfusion.web.controller.validation.SpectrumValidator")
 public class SpectrumValidator implements Validator {
 	private static final String PEAKLIST_PATTERN = "([0-9]*[\\.,]?[0-9]+\\s*){2,3}"; 
 	

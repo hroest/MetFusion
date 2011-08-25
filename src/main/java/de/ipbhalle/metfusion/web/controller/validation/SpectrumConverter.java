@@ -78,7 +78,7 @@ public class SpectrumConverter implements Converter {
 			peaklist = peaklist.replaceAll(";", "\n");
 		// one peak per line
 		
-		System.out.println("peaklist -> \n" + peaklist);
+		//System.out.println("peaklist -> \n" + peaklist);
 		//StringBuilder sb = new StringBuilder();
 		peaklist = peaklist.replaceAll("[ \t\\x0B\f\r]+", DEFAULT_WHITESPACE);
 		
