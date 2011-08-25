@@ -19,7 +19,11 @@
 	<icecore:singleSubmit />	<!-- ICEfaces 2 option for partial submit of form/input values for storing/validation -->
 
 		<div id="header">
-			<ice:outputConnectionStatus displayHourglassWhenActive="true" showPopupOnDisconnect="true"></ice:outputConnectionStatus>
+<!--			<ui:include src="/WEB-INF/inc-content/header.xhtml"></ui:include>-->
+		</div>
+
+		<div id="top_connect">
+			<ice:outputConnectionStatus displayHourglassWhenActive="true" showPopupOnDisconnect="true"/>
 		</div>
 
 		<div id="content">
@@ -31,15 +35,38 @@
 		    				<ice:outputLabel value="MassBank Parameters" style="text-decoration: underline;"></ice:outputLabel>
 		    				<br/>
 		    				<ice:panelGrid columns="3" style="margin-left: 10px; margin-right: 10px;">
-		    					<ice:outputLabel value="Number of Results:"></ice:outputLabel>
-		    					<ice:inputText id="mbResult" value="#{appBean.mblb.limit}" required="true" requiredMessage="Please enter a number between 1 and 500.">
+		    					<ice:panelGroup id="lblMBRslt" panelTooltip="lblMBRsltTooltip">
+		    						<ice:outputLabel value="Number of Results:"></ice:outputLabel>
+		    						<ice:panelTooltip id="lblMBRsltTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Number of Results"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Specify the maximum number of results.
+		    								Allowed values are in the range of 1 to 500."></ice:outputText>
+		    							</f:facet>
+		    						</ice:panelTooltip>
+		    					</ice:panelGroup>
+		    					<ice:inputText id="mbResult" value="#{appBean.mblb.limit}" required="true" 
+		    						requiredMessage="Please enter a number between 1 and 500.">
 		    						<f:validateLongRange minimum="1" maximum="500"></f:validateLongRange>
 		    					</ice:inputText>
 		    					<ice:panelGroup effect="#{appBean.effectOutputText}">
 		    						<ice:message id="errmbResult" for="mbResult"></ice:message>
 		    					</ice:panelGroup>
 		    					
-		    					<ice:outputLabel value="Cutoff threshold of relative intensities:"></ice:outputLabel>
+		    					<ice:panelGroup id="lblMBCtff" panelTooltip="lblMBCtffTooltip">
+		    						<ice:outputLabel value="Cutoff threshold of relative intensities:"></ice:outputLabel>
+		    						<ice:panelTooltip id="lblMBCtffTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Cutoff threshold of relative intensities"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Defines the cutoff for small relative intensities.
+		    								Allowed values lie in the range of 0 to 500."></ice:outputText>
+		    							</f:facet>
+		    						</ice:panelTooltip>
+		    					</ice:panelGroup>
 		    					<ice:inputText id="mbThresh" value="#{appBean.mblb.cutoff}" required="true" requiredMessage="Please enter a number between 0 and 500."
 		    						validatorMessage="Please enter a number between 0 and 500.">
 		    						<f:validateLongRange minimum="0" maximum="500"></f:validateLongRange>
@@ -48,7 +75,18 @@
 		    						<ice:message id="errmbThresh" for="mbThresh"></ice:message>
 		    					</ice:panelGroup>
 		    					
-		    					<ice:outputLabel value="Ionization Mode:"></ice:outputLabel>
+		    					<ice:panelGroup id="lblMBIonMode" panelTooltip="lblMBIonModeTooltip">
+		    						<ice:outputLabel value="Ionization Mode:"></ice:outputLabel>
+		    						<ice:panelTooltip id="lblMBIonModeTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Ionization Mode"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Defines the ionization mode for the query spectrum.
+		    								Allowed values are positive mode, negative mode and both modes."></ice:outputText>
+		    							</f:facet>
+		    						</ice:panelTooltip>
+		    					</ice:panelGroup>
 		    					<ice:panelGroup id="massbankIon">
 									<ice:selectOneMenu id="allIon" value="#{appBean.mblb.selectedIon}" partialSubmit="true" required="true">
 										<f:selectItems itemLabel="#{n}" itemValue="#{n}" var="n" 
@@ -60,22 +98,8 @@
 		    					</ice:panelGroup>
 		    				</ice:panelGrid>
 		    				
-<!--		    					<ice:outputLabel value="Instruments:"></ice:outputLabel>-->
-<!--		    					<ice:panelGroup style="width: 240px; height: 80px; overflow: auto; border: 1px solid silver;">-->
-<!--									<ice:selectManyCheckbox value="#{appBean.mblb.selectedInstruments}" layout="pageDirection" id="instruments"-->
-<!--											partialSubmit="true" required="true">-->
-<!--										<f:selectItems itemLabel="#{n}" itemValue="#{n}" var="n" -->
-<!--											value="#{appBean.mblb.groupInstruments}"/>-->
-<!--										<f:validator validatorId="de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator"/>-->
-<!--									</ice:selectManyCheckbox>-->
-<!--								</ice:panelGroup>-->
-<!--								<ice:panelGroup effect="#{appBean.effectOutputText}">-->
-<!--									<ice:message id="errInstruments" for="instruments"></ice:message>-->
-<!--								</ice:panelGroup>-->
-<!--		    				</ice:panelGrid>-->
-		    				
-		    				<ice:panelGroup id="msgMassBank" style="border: 1px solid DarkRed; background-color: MistyRose; margin: 5px;"
-		    					rendered="#{appBean.mblb.brokenMassBank}">
+		    				<ice:panelGroup id="msgMassBank" rendered="#{appBean.mblb.brokenMassBank}"
+		    					style="border: 1px solid DarkRed; background-color: MistyRose; margin: 5px;">
 		    					Not all MassBank servers could be reached! Current queries will possible yield less results
 		    					than expected/normal. Either proceed or try again later. You may also want to check 
 		    					<a href="http://www.massbank.jp/">MassBank.jp</a> for further details.
@@ -83,42 +107,88 @@
 							
 							<ice:panelGroup style="margin-left: 10px; margin-right: 10px;">
 								<ice:panelGrid columns="2" columnClasses="gridSelectItems">
-									<ice:outputLabel value="Instruments:"></ice:outputLabel>
+									<ice:panelGroup id="lblMBInstruments" panelTooltip="lblMBInstrumentsTooltip">
+										<ice:outputLabel value="Instruments:"></ice:outputLabel>
+										<ice:panelTooltip id="lblMBInstrumentsTooltip">
+			    							<f:facet name="header">
+			    								<ice:outputText value="Instruments"></ice:outputText>
+			    							</f:facet>
+			    							<f:facet name="body">
+			    								<ice:outputText value="Select the instruments or groups used for lookup of the
+			    								query spectrum. At least one selected instrument is required! Instruments are
+			    								separated into groups EI, ESI and Other."></ice:outputText>
+			    							</f:facet>
+		    							</ice:panelTooltip>
+									</ice:panelGroup>
 									<ice:panelGrid columns="3" columnClasses="gridSelectItems" id="instruments"
-										style="text-align: left; margin-left: 100px; border: 1px dotted silver;">
+										style="text-align: left; margin-left: 187px; border: 1px dotted silver;">
 										<ice:panelGroup>
-											<ice:outputLabel value="EI"/>
-											<ice:selectBooleanCheckbox label="EI" value="EI" style="margin-left: 5px;"
-												valueChangeListener="#{appBean.mblb.toggleInstrumentsEI}"/>
+<!--											<ice:outputLabel value="EI"/>-->
+<!--											<ice:selectBooleanCheckbox label="EI" value="#{appBean.mblb.useEIOnly}" style="margin-left: 5px;"-->
+<!--												valueChangeListener="#{appBean.mblb.toggleInstrumentsEI}">-->
+<!--												<f:param name="group" value="EI"/>-->
+<!--											</ice:selectBooleanCheckbox>-->
+											<ice:commandLink value="#{appBean.mblb.linkGroupEI}" actionListener="#{appBean.mblb.toggleInstrumentGroup}"
+												style="color: LimeGreen; text-decoration: underline;" immediate="false">
+												<!-- provide a parameter for the actionListener to differentiate the groups -->
+												<f:param value="#{appBean.mblb.getEi()}" name="group"/>
+											</ice:commandLink>
 										</ice:panelGroup>
 										<ice:panelGroup>
-											<ice:outputLabel value="ESI"/>
-											<ice:selectBooleanCheckbox label="ESI" value="ESI" style="margin-left: 5px;"
-												valueChangeListener="#{appBean.mblb.toggleInstrumentsESI}"/>
+<!--											<ice:outputLabel value="ESI"/>-->
+<!--											<ice:selectBooleanCheckbox label="ESI" value="#{appBean.mblb.useESIOnly}" style="margin-left: 5px;"-->
+<!--												valueChangeListener="#{appBean.mblb.toggleInstrumentsESI}">-->
+<!--												<f:param name="group" value="ESI"/>-->
+<!--											</ice:selectBooleanCheckbox>-->
+											<ice:commandLink value="#{appBean.mblb.linkGroupESI}" actionListener="#{appBean.mblb.toggleInstrumentGroup}"
+												style="color: LimeGreen; text-decoration: underline;" immediate="false">
+												<!-- provide a parameter for the actionListener to differentiate the groups -->
+												<f:param value="#{appBean.mblb.getEsi()}" name="group"/>
+											</ice:commandLink>
 										</ice:panelGroup>
 										<ice:panelGroup>
-											<ice:outputLabel value="Other"/>
-											<ice:selectBooleanCheckbox label="Other" value="Other" style="margin-left: 5px;"
-												valueChangeListener="#{appBean.mblb.toggleInstrumentsOther}"/>
+<!--											<ice:outputLabel value="Other"/>-->
+<!--											<ice:selectBooleanCheckbox label="Other" value="#{appBean.mblb.useOtherOnly}" style="margin-left: 5px;">-->
+<!--												valueChangeListener="#{appBean.mblb.toggleInstrumentsOther}">-->
+<!--												<f:param name="group" value="Other"/>-->
+<!--											</ice:selectBooleanCheckbox>-->
+											<ice:commandLink value="#{appBean.mblb.linkGroupOTHER}" actionListener="#{appBean.mblb.toggleInstrumentGroup}"
+												style="color: LimeGreen; text-decoration: underline;" immediate="false">
+												<!-- provide a parameter for the actionListener to differentiate the groups -->
+												<f:param value="#{appBean.mblb.getOther()}" name="group"/>
+											</ice:commandLink>
 										</ice:panelGroup>
-	<!--									<ice:panelSeries value="#{appBean.mblb.instTest}" var="grp">-->
-	<!--									<ui:repeat var="" value="">-->
-										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[0]}">
+										
+										<!-- Select instruments of group EI -->
+										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[0]}"
+											valueChangeListener="#{appBean.mblb.changeInstruments}" immediate="true">
+<!--											validator="de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator">-->
 											<f:selectItems value="#{appBean.mblb.instTest[0]}"/>
+											<f:attribute name="attrGroup" value="#{appBean.mblb.getEi()}"/>
 										</ice:selectManyCheckbox>
-	<!--									</ui:repeat>-->
-										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[1]}">
+										
+										<!-- Select instruments of group ESI -->
+										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[1]}"
+											valueChangeListener="#{appBean.mblb.changeInstruments}" immediate="true">
+<!--											validator="de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator">-->
 											<f:selectItems value="#{appBean.mblb.instTest[1]}"/>
+											<f:attribute name="attrGroup" value="#{appBean.mblb.getEsi()}"/>
 										</ice:selectManyCheckbox>
-										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[2]}">
+										
+										<!-- Select instruments of group Other -->
+										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[2]}"
+											valueChangeListener="#{appBean.mblb.changeInstruments}" immediate="true">
+<!--											validator="de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator">-->
 											<f:selectItems value="#{appBean.mblb.instTest[2]}"/>
+											<f:attribute name="attrGroup" value="#{appBean.mblb.getOther()}"/>
 										</ice:selectManyCheckbox>
-	<!--									</ice:panelSeries>-->
 									</ice:panelGrid>
 								</ice:panelGrid>
 							</ice:panelGroup>
+							
 							<ice:panelGroup effect="#{appBean.effectOutputText}">
-								<ice:messages id="errMsgs"/>
+								<ice:message id="errMsgInst" for="instruments"/>
+								<ice:messages id="errMsgs" style="background-color: Orange;"/>
 							</ice:panelGroup>
 							
 				    	</ice:panelGroup>
@@ -128,7 +198,18 @@
 				    		<ice:outputText style="margin-left: 10px; color: YellowGreen;" value="Currently, only positive mode is supported!"/>
 				    		<br/>
 				    		<ice:panelGrid columns="3" columnClasses="labels, text, errors" style="margin-left: 10px; margin-right: 10px;">
-								<ice:outputLabel for="metfragDatabases" value="Upstream DB:"></ice:outputLabel>
+				    			<ice:panelGroup id="lblMFDatabase" panelTooltip="lblMFDatabaseTooltip">
+									<ice:outputLabel for="metfragDatabases" value="Upstream DB:"></ice:outputLabel>
+									<ice:panelTooltip id="lblMFDatabaseTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Upstream Database"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Select the compound database to query. A choice is required!
+		    								Possible choices include KEGG, PubChem and ChemSpider."></ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+								</ice:panelGroup>
 								<ice:selectOneRadio value="#{appBean.mfb.selectedDB}" id="metfragDatabases"
 										partialSubmit="true" required="true">
 									<f:selectItems itemLabel="#{n.label}" itemValue="#{n.value}" var="n" 
@@ -138,19 +219,53 @@
 									<ice:message id="errmetfragDatabases" for="metfragDatabases"></ice:message>
 								</ice:panelGroup>
 								
-								<ice:outputLabel for="dbID" value="Database IDs:"></ice:outputLabel>
+								<ice:panelGroup id="lblMFDBID" panelTooltip="lblMFDBIDTooltip">
+									<ice:outputLabel for="dbID" value="Database IDs:"></ice:outputLabel>
+									<ice:panelTooltip id="lblMFDBIDTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Database IDs"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Optionally provide known comma-separated list of 
+		    									database identifiers for the selected compound database. 
+		    									Only provided identifiers are used for the query! "></ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+								</ice:panelGroup>
 								<ice:inputText id="dbID" value="#{appBean.mfb.databaseID}"></ice:inputText>
 								<ice:panelGroup effect="#{appBean.effectOutputText}">
 									<ice:message id="errdbID" for="dbID"></ice:message>
 								</ice:panelGroup>
 								
-								<ice:outputLabel for="sumFormula" value="Molecular Formula:"></ice:outputLabel>
+								<ice:panelGroup id="lblMFSumFormula" panelTooltip="lblMFSumFormulaTooltip">
+									<ice:outputLabel for="sumFormula" value="Molecular Formula:"></ice:outputLabel>
+									<ice:panelTooltip id="lblMFSumFormulaTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Molecular Formula"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Optionally provide one known molecular formula.
+		    									An example would be C6H12O6."></ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+								</ice:panelGroup>
 								<ice:inputText id="sumFormula" value="#{appBean.mfb.molecularFormula}"></ice:inputText>
 								<ice:panelGroup effect="#{appBean.effectOutputText}">
 									<ice:message id="errsumFormula" for="sumFormula"></ice:message>
 								</ice:panelGroup>
 								
-								<ice:outputLabel for="candLimit" value="Limit # of structures:"></ice:outputLabel>
+								<ice:panelGroup id="lblMFLimit" panelTooltip="lblMFLimitTooltip">
+									<ice:outputLabel for="candLimit" value="Limit # of Structures:"></ice:outputLabel>
+									<ice:panelTooltip id="lblMFLimitTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Limit # of Structures"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Required maximum value of candidates. The limit
+		    									ranges from 1 to 10000."></ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+								</ice:panelGroup>
 								<ice:inputText id="candLimit" value="#{appBean.mfb.limit}" validatorMessage="Please enter a number between 1 and 10000.">
 									<f:validateLongRange minimum="1" maximum="10000" for="candLimit"></f:validateLongRange>
 								</ice:inputText>
@@ -158,16 +273,67 @@
 									<ice:message id="errcandLimit" for="candLimit"></ice:message>
 								</ice:panelGroup>
 								
-								<ice:outputLabel for="exactMass" value="Exact Mass:" style=""></ice:outputLabel>
+								<ice:panelGroup id="lblMFParentIon" panelTooltip="lblMFParentIonTooltip">
+									<ice:outputLabel for="parentIon" value="Parent Ion:" style=""></ice:outputLabel>
+									<ice:panelTooltip id="lblMFParentIonTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Parent Ion"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Calculated mass of the parent ion. First provide the mass of the ion, 
+		    									then select which type of ion it is in order to calculate the corresponding exact mass."></ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+								</ice:panelGroup>
+								<ice:panelGroup>
+									<ice:inputText id="parentIon" value="#{appBean.mfb.parentIon}" partialSubmit="true" required="true"									
+										validatorMessage="Value is not between 10 and 10000.0" valueChangeListener="#{appBean.mfb.changeParentIon}">
+										<f:validateDoubleRange minimum="10.0" maximum="10000.0"/>
+									</ice:inputText>
+									<ice:selectOneMenu id="selectAdduct" valueChangeListener="#{appBean.mfb.changeAdduct}"
+										value="#{appBean.mfb.selectedAdduct}">
+										<f:selectItems value="#{appBean.mfb.adductList}" var="adduct"
+											itemLabel="#{adduct.label}" itemValue="#{adduct.value}"/>
+									</ice:selectOneMenu>
+								</ice:panelGroup>
+								<ice:panelGroup effect="#{appBean.effectOutputText}">
+									<ice:message id="errparentIon" for="parentIon"></ice:message>
+								</ice:panelGroup>
+								
+								<ice:panelGroup id="lblMFExactMass" panelTooltip="lblMFExactMassTooltip">
+									<ice:outputLabel for="exactMass" value="Exact Mass:" style=""></ice:outputLabel>
+									<ice:panelTooltip id="lblMFExactMassTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Exact Mass"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Required exact mass for candidate of interest. For metabolomic scope,
+		    									it ranges from 1 to 10000."></ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+								</ice:panelGroup>
 								<ice:inputText id="exactMass" value="#{appBean.mfb.exactMass}" partialSubmit="true" required="true"
-									validatorMessage="Value is not between 10 and 10000.0">
+									validatorMessage="Value is not between 10 and 10000.0" disabled="true" effect="#{appBean.effectOutputText}">
 									<f:validateDoubleRange minimum="10.0" maximum="10000.0"></f:validateDoubleRange>
 								</ice:inputText>
 								<ice:panelGroup effect="#{appBean.effectOutputText}">
 									<ice:message id="errexactMass" for="exactMass"></ice:message>
 								</ice:panelGroup>
 								
-								<ice:outputLabel for="searchppm" value="Search PPM:"></ice:outputLabel>
+								<ice:panelGroup id="lblMFSeachPPM" panelTooltip="lblMFSeachPPMTooltip">
+									<ice:outputLabel for="searchppm" value="Search PPM:"></ice:outputLabel>
+									<ice:panelTooltip id="lblMFSeachPPMTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Search PPM"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Required deviation for exact mass lookup. 
+		    								Usually, this value should not exceed 30 ppm as this would lead to much more candidates.
+		    								The allowed range is between 0.0 and 100. This value depends on the mass 
+		    								accuracy of the used MS device."></ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+								</ice:panelGroup>
 								<ice:inputText id="searchppm" value="#{appBean.mfb.searchppm}" partialSubmit="true" required="true"
 									validatorMessage="Value is not between 0 and 100.0">
 									<f:validateDoubleRange minimum="0.0" maximum="100.0" for="searchppm"/>
@@ -176,7 +342,19 @@
 									<ice:message id="errsearchppm" for="searchppm"></ice:message>
 								</ice:panelGroup>
 								
-								<ice:outputLabel for="mzabs" value="mz abs:"></ice:outputLabel>
+								<ice:panelGroup id="lblMFMZabs" panelTooltip="lblMFMZabsTooltip">
+									<ice:outputLabel for="mzabs" value="mz abs:"></ice:outputLabel>
+									<ice:panelTooltip id="lblMFMZabsTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="mz abs"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Required absolute deviation of fragment peaks that should be matched. 
+		    								Usually, this value should be fairly small (less than 1). The allowed range is between 0.0 and 100.">
+		    								</ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+								</ice:panelGroup>
 								<ice:inputText id="mzabs" value="#{appBean.mfb.mzabs}" partialSubmit="true" required="true"
 									validatorMessage="Value is not between 0 and 100.0">
 									<f:validateDoubleRange minimum="0.0" maximum="100.0" for="mzabs"/>
@@ -185,7 +363,20 @@
 									<ice:message id="errmzabs" for="mzabs"></ice:message>
 								</ice:panelGroup>
 								
-								<ice:outputLabel for="mzppm" value="mz ppm:"></ice:outputLabel>
+								<ice:panelGroup id="lblMFMZppm" panelTooltip="lblMFMZppmTooltip">
+									<ice:outputLabel for="mzppm" value="mz ppm:"></ice:outputLabel>
+									<ice:panelTooltip id="lblMFMZppmTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="mz ppm"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Required relative deviation of fragment peaks that should be matched. 
+		    								Usually, this value should be fairly small (less than 30). The allowed range is between 0.0 and 100.
+		    								This value depends on the mass accuracy of the used MS device.">
+		    								</ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+								</ice:panelGroup>
 								<ice:inputText id="mzppm" value="#{appBean.mfb.mzppm}" partialSubmit="true" required="true"
 									validatorMessage="Value is not between 0 and 100.0">
 									<f:validateDoubleRange minimum="0.0" maximum="100.0" for="mzppm"/>
@@ -203,14 +394,38 @@
 				    		<ice:outputLabel value="MetFusion Parameters" style="text-decoration: underline;"></ice:outputLabel>
 				    		<br/>
 				    		<ice:panelGrid columns="2" style="margin-left: 10px; margin-right: 10px;">
-					    		<ice:outputLabel for="SlctClstr" value="Tanimoto Clustering:" style="line-height:200%"></ice:outputLabel>
-								<ice:selectBooleanCheckbox id="SlctClstr" partialSubmit="true" value="#{appBean.useClustering}"/>
+				    			<ice:panelGroup id="lblMetFusionCluster" panelTooltip="lblMetFusionClusterTooltip">
+					    			<ice:outputLabel for="SlctClstr" value="Tanimoto Clustering:" style="line-height:200%"></ice:outputLabel>
+					    			<ice:panelTooltip id="lblMetFusionClusterTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Tanimoto Clustering"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="deprecated - Optionally choose if clustering should be 
+		    									applied to results. As only clustered results are provided, this is redundant.">
+		    								</ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+					    		</ice:panelGroup>
+								<ice:selectBooleanCheckbox id="SlctClstr" partialSubmit="true" value="#{appBean.useClustering}" disabled="true"/>
 		    					
-		    					<ice:outputLabel value="Peaks:"></ice:outputLabel>
+		    					<ice:panelGroup id="lblMetFusionPeaks" panelTooltip="lblMetFusionPeaksTooltip">
+		    						<ice:outputLabel value="Peaks:"></ice:outputLabel>
+		    						<ice:panelTooltip id="lblMetFusionPeaksTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Peaks"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Each peak and its intensity (separated by space/tab) one line: 
+		    								[m/z] [intensity] e.g.: 119.051 467.616.">
+		    								</ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+		    					</ice:panelGroup>
 		    					<ice:inputTextarea id="allPeaks" value="#{appBean.inputSpectrum}"
 				                               cols="20" rows="7" partialSubmit="true" required="true"
-				                               style="width:280px;height:240px;overflow: auto;">
-				            		<f:validator validatorId="de.ipbhalle.metfusion.web.controller.validation.SpectrumValidator"/>
+				                               style="width:280px;height:240px;overflow: auto;" immediate="false">
+				            		<f:validator validatorId="spectrumValidator"/>
 									<f:converter converterId="de.ipbhalle.metfusion.web.controller.validation.SpectrumConverter"/>
 								</ice:inputTextarea>
 	    					</ice:panelGrid>
@@ -221,11 +436,126 @@
 			    	</div>
 			    </div>
 			    	
+			    	<!-- application control start and reset -->
 			    	<div id="command" style="clear: both; float: left;">
-				    	<ice:commandButton id="start" value="Start" actionListener="#{appBean.runBoth}"></ice:commandButton>
+				    	<ice:commandButton id="start" value="Start" action="#{appBean.runBoth}"></ice:commandButton>
+<!--				   actionListener="#{appBean.runBoth}" 	-->
 				    	<ice:commandButton id="reset" value="Reset" actionListener="#{appBean.reset}"></ice:commandButton>
 				    	<ice:message id="emptyResults" for="start"/>
 			    	</div>
+			    	
+			    	<!-- feedback admin login and editing -->
+			    	<div id="feedbackAdmin">
+						<ice:commandLink id="openFeedbackAdminForm" value="Feedback Admin" action="#{feedbackBean.openFeedbackAdminPopup}" 
+							immediate="false" style="float: right; text-decoration: underline; color: silver;"/>	
+						<ice:panelPopup id="popupAdminFeedback" modal="false" rendered="#{feedbackBean.feedbackAdminRendered}"
+							autoCentre="true">
+							<f:facet name="header">
+								<ice:outputText value="MetFusion Feedback Admin"/>
+								<ice:commandButton image="images/close.png" action="#{feedbackBean.closeFeedbackAdminPopup}" 
+									immediate="false" style="float: right;"/>
+							</f:facet>
+							
+							<f:facet name="body">
+								<!-- this single outer panelGroup is required in order to render the content properly -->
+								<ice:panelGroup>
+								<ice:panelGroup id="feedbackAdminLogin" rendered="#{!feedbackBean.authorized}">
+									<ice:panelGrid columns="2">
+										<ice:outputLabel id="labelFeedbackAdminUser" value="Username:" for="textFeedbackAdminUser"/>
+										<ice:inputText id="textFeedbackAdminUser" value="#{feedbackBean.providedName}"/>
+
+										<ice:outputLabel id="labelFeedbackAdminPass" value="Password:" for="textFeedbackAdminPass"/>
+										<ice:inputSecret id="textFeedbackAdminPass" value="#{feedbackBean.providedPass}" action="#{feedbackBean.loginAdmin}"/>
+
+										<ice:commandButton id="buttonFeedbackAdminLogin" value="Login" action="#{feedbackBean.loginAdmin}"/>
+										<ice:outputText id="errorFeedbackAdminLogin" value="#{feedbackBean.loginError}" style="color: red;"/>
+									</ice:panelGrid>
+								</ice:panelGroup>
+								
+								<ice:panelGroup id="feedbackAdminData" rendered="#{feedbackBean.authorized}">
+									<ice:dataTable id="feedbackTable" value="#{feedbackBean.feedbackEntries}" var="entry"
+										rendered="#{feedbackBean.authorized}" rows="10">
+										<ice:column>
+											<f:facet name="header">
+												Date
+											</f:facet>
+											#{entry.date}
+										</ice:column>
+										<ice:column>
+											<f:facet name="header">
+												Contact
+											</f:facet>
+											#{entry.name}
+											<br/>
+											#{entry.email}
+										</ice:column>
+										<ice:column>
+											<f:facet name="header">
+												Comment
+											</f:facet>
+											#{entry.comment}
+										</ice:column>
+										<ice:column>
+											<f:facet name="header">
+												Answered
+											</f:facet>
+											#{entry.answered}
+										</ice:column>
+										<ice:column>
+											<f:facet name="header">
+												Fixed
+											</f:facet>
+											#{entry.fixed}
+										</ice:column>
+										<ice:column>
+											<f:facet name="header">
+												Actions
+											</f:facet>
+											<ice:commandLink value="Show Values" style="text-decoration: underline;"
+												actionListener="#{feedbackBean.feedbackRowSelectionListener}">
+												<f:attribute name="currentFeedbackEntry" value="#{entry}"/>
+											</ice:commandLink>
+										</ice:column>
+									</ice:dataTable>
+									
+									<ice:dataPaginator id="feedbackTablePaginator" for="feedbackTable" fastStep="10"
+						                         pageCountVar="pageCount" pageIndexVar="pageIndex" paginator="true" 
+						                         paginatorMaxPages="9" rendered="#{feedbackBean.authorized}">
+										<f:facet name="first" >
+						                         <ice:graphicImage url="css/xp/css-images/arrow-first.gif" style="border:none;"/>
+						                </f:facet>
+						 
+						                <f:facet name="last">
+						                        <ice:graphicImage url="css/xp/css-images/arrow-last.gif" style="border:none;" />
+						                </f:facet>
+						 
+						                <f:facet name="previous">
+						                        <ice:graphicImage url="css/xp/css-images/arrow-previous.gif" style="border:none;" />
+						                </f:facet>
+						 
+						                <f:facet name="next">
+						                        <ice:graphicImage url="css/xp/css-images/arrow-next.gif" style="border:none;" />
+						                </f:facet>
+						 
+						                <f:facet name="fastforward">
+						                        <ice:graphicImage url="css/xp/css-images/arrow-ff.gif" style="border:none;" />
+						                </f:facet>
+						 
+						                <f:facet name="fastrewind">
+						                        <ice:graphicImage url="css/xp/css-images/arrow-fr.gif" style="border:none;" />
+						                </f:facet>
+									</ice:dataPaginator>
+									
+									<ice:commandButton value="Logout" action="#{feedbackBean.closeFeedbackAdminPopup}"/>
+									<ice:outputText value="#{feedbackBean.adminNote}" style="color: LimeGreen; float: right;"
+										rendered="#{feedbackBean.renderAdminNote}"/>
+									<ice:outputText value="#{feedbackBean.adminNote}" style="color: red; float: right;"
+										rendered="#{!feedbackBean.renderAdminNote}"/>
+								</ice:panelGroup>
+								</ice:panelGroup>
+							</f:facet>
+						</ice:panelPopup>
+					</div>
 			    </ice:panelTab>
 			    
 			    <ice:panelTab label="Query Results" rendered="#{appBean.showTable}">
@@ -235,39 +565,35 @@
 						<f:selectItem itemLabel="Database List" itemValue="database" itemDisabled="#{!appBean.showResultsDatabase}"/>
 					</ice:selectOneRadio>
 					
-					<ice:panelGroup style="background-color: MintCream;">
+					<ice:panelGroup style="background-color: MintCream;" rendered="#{appBean.createdResource}">
 						<ice:outputText value="Export results into Excel file:"/>
 						<ice:outputResource id="outputResource" resource="#{appBean.outputResource}"
 							label="Save results in Excel document." mimeType="application/vnd.ms-excel"
-							fileName="#{appBean.outputResource.resourceName}" image="/images/icons/xls.png"/>
+							fileName="#{appBean.outputResource.resourceName}" image="/images/icons/xls.png" rendered="#{appBean.createdResource}"/>
     				</ice:panelGroup>
       						
 					<ice:panelStack selectedPanel="#{appBean.selectedResult}">
 						<ice:panelGroup id="cluster">
-<!--							<ice:dataExporter for="tableCluster" label="Click to download Excel file." type="excel"-->
-<!--								popupBlockerLabel="Popup Blocker detected - click here to resume download..."-->
-<!--                				clickToCreateFileText="Click to create Excel file " image="/images/icons/xls.png"-->
-<!--                				outputTypeHandler="#{appBean.exporter}" id="exporterClusterTable" renderLabelAsButton="true"/>-->
-							
 							<ice:dataTable id="tableCluster" value="#{appBean.tanimotoClusters}" rendered="#{appBean.showClusterResults}" 
 								var="entry" rows="20">
 								<f:facet name="header">
 									<ice:outputLabel value="MetFusion - Tanimoto Clustering Ranking" />
 								</f:facet>
-								 <!-- contract/expand column -->
-			                  <ice:column >
-			                      <ice:panelGroup styleClass="#{entry.indentStyleClass}">
-			                          <!-- Render the expand/contract if there is an image -->
-			                          <ice:commandLink actionListener="#{entry.toggleSubGroupAction}">
-			                              <ice:graphicImage id="expandContractImage" value="#{entry.expandContractImage}"
-			                                                style="border: 0px solid;"/>
-			                          </ice:commandLink>
-			                      </ice:panelGroup>
-			                  </ice:column>
+								<!-- contract/expand column -->
+								<ice:column>
+									<ice:panelGroup styleClass="#{entry.indentStyleClass}">
+										<!-- Render the expand/contract if there is an image -->
+										<ice:commandLink actionListener="#{entry.toggleSubGroupAction}">
+											<ice:graphicImage id="expandContractImage"
+												value="#{entry.expandContractImage}"
+												style="border: 0px solid;" />
+										</ice:commandLink>
+									</ice:panelGroup>
+								</ice:column>
 								<ice:column>
 									<f:facet name="header">Port Name</f:facet>
-									#{entry.port}
-								</ice:column>
+										#{entry.port}
+									</ice:column>
 								<ice:column>
 									<f:facet name="header">Record ID</f:facet>
 									<ice:outputLink id="linkOut" value="#{entry.url}" target="_blank" style="text-decoration: underline;">
@@ -300,7 +626,7 @@
 									<ice:outputText value="#{entry.resultScore}">
 										<f:convertNumber maxFractionDigits="3"/>
 									</ice:outputText>
-									<ice:graphicImage alt="Position change" url="#{entry.flag}" style="margin-left:3px; float: right;"/>
+<!--									<ice:graphicImage alt="Position change" url="#{entry.flag}" style="margin-left:3px; float: right;"/>-->
 								</ice:column>
 								<ice:column>
 									<f:facet name="header">Fragments</f:facet>
@@ -317,27 +643,27 @@
 						                         paginator="true" paginatorMaxPages="9" rendered="#{appBean.showClusterResults}" >
 						 
 						                <f:facet name="first" >
-						                         <ice:graphicImage url="css/xp/css-images/arrow-first.gif" style="border:none;"/>
+						                         <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-first.gif" style="border:none;"/>
 						                </f:facet>
 						 
 						                <f:facet name="last">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-last.gif" style="border:none;" />
+						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-last.gif" style="border:none;" />
 						                </f:facet>
 						 
 						                <f:facet name="previous">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-previous.gif" style="border:none;" />
+						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-previous.gif" style="border:none;" />
 						                </f:facet>
 						 
 						                <f:facet name="next">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-next.gif" style="border:none;" />
+						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-next.gif" style="border:none;" />
 						                </f:facet>
 						 
 						                <f:facet name="fastforward">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-ff.gif" style="border:none;" />
+						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-ff.gif" style="border:none;" />
 						                </f:facet>
 						 
 						                <f:facet name="fastrewind">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-fr.gif" style="border:none;" />
+						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-fr.gif" style="border:none;" />
 						                </f:facet>
 						 
 						        </ice:dataPaginator>
@@ -534,7 +860,7 @@
 			                        itemLabel="Original Similarity Matrix"/>
 			                <f:selectItem
 			                        itemValue="newSimMatrix"
-			                        itemLabel="MetFusion computed Similarity Matrix"/>
+			                        itemLabel="Reranked Similarity Matrix"/>
 			            </ice:selectOneRadio>
 			    	</ice:panelGroup>
 			    	
@@ -564,10 +890,10 @@
 												<ice:graphicImage alt="compound image" url="#{appBean.mfb.results[item].imagePath}"/>
 												<ice:panelGroup style="margin-left: 5px; border: 1px solid silver; padding: 5px;">
 													<ice:panelGrid columns="2">
-														<ice:outputLabel value="Tied Rank:"/>
-														<ice:outputText value="#{appBean.mfb.results[item].tiedRank}"/>
-														<ice:outputLabel value="MetFusion Score:"/>
-														<ice:outputText value="#{appBean.mfb.results[item].score}"/>
+														<ice:outputLabel id="lblMtrxRankOld" for="txtMtrxRankOld" value="Tied Rank:"/>
+														<ice:outputText id="txtMtrxRankOld" value="#{appBean.mfb.results[item].tiedRank}"/>
+														<ice:outputLabel id="lblMtrxScoreOld" for="txtMtrxScoreOld" value="MetFusion Score:"/>
+														<ice:outputText id="txtMtrxScoreOld" value="#{appBean.mfb.results[item].score}"/>
 													</ice:panelGrid>
 												</ice:panelGroup>
 											</ice:panelGrid>
@@ -661,10 +987,10 @@
 														<ice:graphicImage alt="compound image" url="#{appBean.secondOrder[item].imagePath}"/>
 														<ice:panelGroup style="margin-left: 5px; border: 1px solid silver; padding: 5px;">
 															<ice:panelGrid columns="2">
-																<ice:outputLabel value="Tied Rank:"/>
-																<ice:outputText value="#{appBean.mfb.results[item].tiedRank}"/>
-																<ice:outputLabel value="MetFusion Score:"/>
-																<ice:outputText value="#{appBean.mfb.results[item].score}"/>
+																<ice:outputLabel id="lblMtrxRankNew" for="txtMtrxRankNew" value="Tied Rank:"/>
+																<ice:outputText id="txtMtrxRankNew" value="#{appBean.secondOrder[item].tiedRank}"/>
+																<ice:outputLabel id="lblMtrxScoreNew" for="txtMtrxScoreNew" value="MetFusion Score:"/>
+																<ice:outputText id="txtMtrxScoreNew" value="#{appBean.secondOrder[item].score}"/>
 															</ice:panelGrid>
 														</ice:panelGroup>
 													</ice:panelGrid>
@@ -767,7 +1093,27 @@
 			    				</ice:panelGroup>
 			    			</f:facet>
 			    			<ice:panelGroup id="pnlGrpManual">
-										    			
+								<b>MetFusion</b> has three different parameter groups, one for MassBank, MetFrag and MetFusion itself.
+								<dl>
+									<dt>MassBank:</dt>
+									<dd>These parameters reflect the <em>MassBank QuickSearch</em> with spectrum information.
+									You can choose if your spectrum should be compared against positive, negative or both 
+									<em>ionization modes</em>. Additionally, the <em>number of MassBank results</em> can be specified 
+									as well as a <em>cutoff for the relative intensities</em>. This option allows to ignore 
+									small intensities for spectrum comparison. Finally, the <em>instrument types</em> that were 
+									used to measure a reference spectrum can be chosen. These instruments are currently 
+									separated into EI, ESI and others groups.</dd>
+									<dt>MetFrag:</dt>
+									<dd>MetFrag requires an <em>upstream compound database</em> to look up candidate compounds. 
+									To do so, an <em>exact mass</em> of the compound of interest needs to be specified. Additonal 
+									tweaks to the mass search can be done via <em>search ppm</em>, <em>mz abs</em> and <em>mz ppp</em> 
+									parameters. Additionally, the <em>number of candidates</em> can be specified. Further known information 
+									about the compound like matching <em>database IDs</em> or the <em>molecular formular</em> can be specified 
+									in order to further narrow down the list of provided candidates.</dd>
+									<dt>MetFusion:</dt>
+									<dd>The MetFusion parameters include the needed spectrum information as <em>peaks</em> and the 
+									<em>Tanimoto clustering</em> approach.</dd>
+								</dl>		    			
 			    			</ice:panelGroup>
 			    		</ice:panelCollapsible>
 			    	</ice:panelGroup>
@@ -775,6 +1121,53 @@
 			    
 			</ice:panelTabSet>
 		</div>
+		
+		<div id="footer">
+<!--			<ui:include src="/WEB-INF/inc-content/footer.xhtml"></ui:include>-->
+		</div>
+		
+		<div id="feedback">
+			<ice:commandButton id="openFeedbackForm" image="images/Feedback.png" style="display:block; position:fixed; top:600px; right:-1px;"
+				action="#{feedbackBean.openFeedbackPopup}" immediate="false"/>
+			<ice:panelPopup id="popupFeedback" modal="false" rendered="#{feedbackBean.feedbackRendered}" autoCentre="true">
+				<f:facet name="header">
+					<ice:outputText value="MetFusion Feedback Form"></ice:outputText>
+					<ice:commandButton image="images/close.png" action="#{feedbackBean.closeFeedbackPopup}" 
+						immediate="false" style="float: right;"/>
+				</f:facet>
+				<f:facet name="body">
+					<h:panelGrid columns="2"> <!-- columnClasses="feedbackCol" -->
+						<ice:outputLabel for="feedbackName" value="Name" />
+						<ice:inputText id="feedbackName" value="#{feedbackBean.name}"/>
+						
+						<ice:outputLabel for="feedbackEmail" value="Email" />
+						<ice:inputText id="feedbackEmail" value="#{feedbackBean.email}">
+<!--							required="true">-->
+<!--							<f:validator validatorId="emailValidator"/>-->
+						</ice:inputText>
+						
+						<ice:outputLabel for="feedbackComment" value="Comment" />
+						<ice:inputTextarea id="feedbackComment" value="#{feedbackBean.comment}" rows="10"
+							style="width: 300px;" validator="#{feedbackBean.validateFeedback}">
+<!--							validator="#{feedbackBean.validateFeedback}"/>-->
+<!--							<f:validator validatorId="feedbackValidator"></f:validator>-->
+						</ice:inputTextarea>
+							
+						<ice:outputLabel for="feedbackAllowStorage" value="Allow storage of settings" />
+						<ice:selectBooleanCheckbox value="#{feedbackBean.allowStorage}" id="feedbackAllowStorage"
+							requiredMessage="You have to allow storage of the current parameter settings in order to submit feedback! (opt-in)"/>
+							
+						<ice:commandButton id="submitFeedback" actionListener="#{feedbackBean.submit}" value="Send" 
+							disabled="#{feedbackBean.hitOnce}"/>
+						<ice:panelGroup style="float: right;">
+							<ice:outputText style="color: red;" value="#{feedbackBean.error}" rendered="#{!feedbackBean.renderNote}"/>
+							<ice:outputText style="color: LimeGreen;" value="#{feedbackBean.note}" rendered="#{feedbackBean.renderNote}"/>
+						</ice:panelGroup>
+					</h:panelGrid>
+				</f:facet>
+			</ice:panelPopup>
+		</div>
+		
 	</h:form>
 </h:body>
 <h:outputStylesheet library="org.icefaces.component.skins" name="rime.css"></h:outputStylesheet>
