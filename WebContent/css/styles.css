@@ -6,3 +6,27 @@
 .gridSelectItems {
  vertical-align: top;	
 }
+
+#feedback a { 
+	display:block; 
+	position:fixed; 
+	top:600px; right:-1px; 
+	background:none; 
+/*	padding:7px 5px;*/
+/* border:1px solid #030;*/
+ border-left-color:#060;
+ border-top-color:#090;
+}
+
+#feedback a:hover {
+/*	background:#030;*/
+/*	border:1px solid #030;*/
+}
+
+#top_connect {
+	float: right;
+    margin-top: -5px;
+    padding: 0px;
+    display: inline;
+    position: relative;
+}
