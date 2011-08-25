@@ -65,6 +65,7 @@ public class ResultExt extends Result {
 		this(r, before, after);
 		this.resultScore = resultScore;
 		this.landingURL = r.landingURL;
+		super.tiedRank = after;
 	}
 	
 	public ResultExt(Result r, int before, int after, double resultScore, 

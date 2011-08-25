@@ -183,6 +183,16 @@ public class Result {
 	public Result(Result r, int tiedRank) {
 		this(r.getPort(), r.getId(), r.getName(), r.getScore(), r.getMol(), r.getUrl(), r.getImagePath());
 		this.tiedRank = tiedRank;
+		this.bitset = r.getBitset();
+	}
+	
+	public Result(ResultExt r) {
+		this(r.getPort(), r.getId(), r.getName(), r.getScore(), r.getMol(), r.getUrl(), r.getImagePath());
+		this.tiedRank = r.getTiedRank();
+		this.sumFormula = r.getSumFormula();
+		this.scoreShort = r.getScoreShort();
+		this.exactMass = r.getExactMass();
+		this.bitset = r.getBitset();
 	}
 	
 	/**
