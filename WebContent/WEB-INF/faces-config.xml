@@ -10,8 +10,26 @@
 		<converter-class>de.ipbhalle.metfusion.web.controller.validation.SpectrumConverter</converter-class>
 	</converter>
 	<validator>
-		<validator-id>de.ipbhalle.metfusion.web.controller.validation.SpectrumValidator</validator-id>
+		<description>Validator that checks if input spectrum matches requirements.</description>
+		<display-name>spectrumValidator</display-name>
+		<validator-id>spectrumValidator</validator-id>
 		<validator-class>de.ipbhalle.metfusion.web.controller.validation.SpectrumValidator</validator-class>
+	</validator>
+	<validator>
+		<description>Validator that guarentees that at least one instrument is checked.</description>
+		<display-name>instrumentValidator</display-name>
+		<validator-id>instrumentValidator</validator-id>
+		<validator-class>de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator</validator-class>
+	</validator>
+	<validator>
+		<description></description>
+		<display-name>emailValidator</display-name>
+		<validator-id>emailValidator</validator-id>
+		<validator-class>de.ipbhalle.metfusion.web.controller.validation.EmailValidator</validator-class>
+	</validator>
+	<validator>
+		<validator-id>feedbackValidator</validator-id>
+		<validator-class>de.ipbhalle.metfusion.web.controller.FeedbackBean</validator-class>
 	</validator>
 
 </faces-config>
