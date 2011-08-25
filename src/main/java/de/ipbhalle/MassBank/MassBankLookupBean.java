@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ import javax.faces.bean.ApplicationScoped;
 import javax.faces.bean.CustomScoped;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
+import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ActionListener;
@@ -35,6 +37,7 @@ import org.icefaces.component.checkboxbutton.CheckboxButton;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -90,9 +93,10 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	private static final String SESSIONMAPKEYINSTRUMENTS = "instruments";
 	private static final String SELECT = "Select";
 	private static final String DESELECT = "Deselect";
-	private String linkGroupEI = SELECT + EI;
-	private String linkGroupESI = DESELECT + ESI;
-	private String linkGroupOTHER = SELECT + OTHER;
+	private String linkGroupEI = SELECT + " " + EI;
+	private String linkGroupESI = DESELECT + " " + ESI;
+	private String linkGroupOTHER = SELECT + " " + OTHER;
+	private Map<String, String> instrumentToGroup;
 	
 	private String selectedIon = "1";
 	private SelectItem[] ionisations = {new SelectItem("1", "positive"), new SelectItem("-1", "negative"), new SelectItem("0", "both")};
@@ -167,6 +171,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
             //SelectItemGroup[] sig = new SelectItemGroup[instGroup.keySet().size()];
             List<SelectItemGroup> sig = new ArrayList<SelectItemGroup>();
             this.selectedGroupInstruments = new ArrayList<String[]>();
+            this.instrumentToGroup = new HashMap<String, String>();
             
             // iterate over instrument groups
             while(it.hasNext()) {
@@ -190,6 +195,9 @@ public class MassBankLookupBean implements Runnable, Serializable {
 					if(s.contains(ESI))
 						instruments[i] = s;		// preselect all ESI instruments
 					else instruments[i] = "";	// deselect all remaining instruments (EI, Others)
+					
+					// add instrument and corresponding group information
+					instrumentToGroup.put(s, next);
 				}
 	        	instTest.add(si);
 	        	selectedGroupInstruments.add(instruments);
@@ -229,12 +237,123 @@ public class MassBankLookupBean implements Runnable, Serializable {
             t = new Thread(this, "massbank");
 	}
 
+	public void loadInstruments(String[] instruments) {
+		List<String[]> selected = new ArrayList<String[]>();
+		Set<String> groups = instGroups.keySet();
+		for (Iterator<String> it = groups.iterator(); it.hasNext();) {
+			String grp = it.next();
+			selected.add(new String[instGroups.get(grp).size()]);
+		}
+		
+		Map<String, List<String>> loaded = new HashMap<String, List<String>>();
+		for (int i = 0; i < instruments.length; i++) {
+			String group = instrumentToGroup.get(instruments[i]);
+			if(!loaded.containsKey(group)) {
+				List<String> list = new ArrayList<String>();
+				list.add(instruments[i]);
+				loaded.put(group, list);
+			}
+			else {
+				List<String> list = loaded.get(group);
+				list.add(instruments[i]);
+				loaded.put(group, list);
+			}
+		}
+		
+		Set<String> keys = loaded.keySet();
+		for (Iterator<String> it = keys.iterator(); it.hasNext();) {
+			String key = it.next();
+			List<String> insts = loaded.get(key);
+			int slot = 0;
+			if(key.equals(EI)) {
+				slot = 0;
+			}
+			else if(key.equals(ESI)) {
+				slot = 1;
+			}
+			else if(key.equals(OTHER)) {
+				slot = 2;
+			}
+			else {
+				System.err.println("loadInstruments - Could not find matching Instrument Group!");
+				return;
+			}
+			
+			String[] newInstruments = selected.get(slot);
+			for (int i = 0; i < insts.size(); i++) {
+				newInstruments[i] = insts.get(i);
+			}
+			selectedGroupInstruments.set(slot, newInstruments);
+		}
+	}
+	
 	public void changeInstruments(ValueChangeEvent event) {
+		UIComponent source = event.getComponent();
+		Map<String, Object> attr = source.getAttributes();
+		String group = (String) attr.get("attrGroup");
+		System.out.println("attribute group -> " + group);
+		
+		int numSelected = 0;
+		List<String[]> currentSelected = getSelectedGroupInstruments();
+		List<String> remaining = new ArrayList<String>();
+		for (int i = 0; i < currentSelected.size(); i++) {
+			String[] temp = currentSelected.get(i);
+			for (int j = 0; j < temp.length; j++) {
+				System.out.println("currentSelected -> " + temp[j]);
+				if(temp[j] != null && !temp[j].isEmpty()) {
+					remaining.add(temp[j]);
+					numSelected++;
+				}
+			}
+		}
+		
+		String[] old = (String[]) event.getOldValue();
+		for (int i = 0; i < old.length; i++) {
+			System.out.println("old -> " + old[i]);
+		}
 		String[] newInstruments = (String[]) event.getNewValue();
 		for (int i = 0; i < newInstruments.length; i++) {
-			System.out.println(newInstruments[i]);
+			System.out.println("newInstruments -> " + newInstruments[i]);
 		}
-		this.selectedInstruments = newInstruments;
+		String lastInst = "";
+		if(remaining.size() == 1 && newInstruments.length == 0) {
+			numSelected = 0;	// reset selected instruments to 0 as the last instrument was deselected
+			lastInst = remaining.get(remaining.size() - 1);
+		}
+		
+		int slot = 0;
+		String grp = "";
+		if(group.equals(EI)) {
+			slot = 0;
+			grp = EI;
+		}
+		else if(group.equals(ESI)) {
+			slot = 1;
+			grp = ESI;
+		}
+		else if(group.equals(OTHER)) {
+			slot = 2;
+			grp = OTHER;
+		}
+		else {
+			System.err.println("Could not find matching Instrument Group!");
+			return;
+		}
+		
+		if(numSelected == 0 && newInstruments.length == 0) {	// no instrument was selected!
+			System.out.println("no instruments selected!!!");
+			newInstruments = new String[1];
+			System.out.println("grp -> " + grp);
+			int idx = instGroups.get(grp).indexOf(lastInst);
+			newInstruments[0] = instGroups.get(grp).get(idx);	// FORCE selection of at least one instrument!
+		}
+		else if(newInstruments.length > 0) {
+			System.out.println("new instrument(s) selected!!!");
+			System.out.println("grp -> " + grp);
+		}
+
+		selectedGroupInstruments.set(slot, newInstruments);
+		setSelectedInstruments(newInstruments);
 		//FacesContext.getCurrentInstance().renderResponse();
 		//collectInstruments();
 	}
@@ -251,15 +370,6 @@ public class MassBankLookupBean implements Runnable, Serializable {
 			}
 		}
 		
-//		if(this.selectedInstruments != null && this.selectedInstruments.length > 0) {
-//			for (int i = 0; i < this.selectedInstruments.length; i++) {
-//				if(!tempInstruments.contains(selectedInstruments[i])) {
-//					tempInstruments.add(selectedInstruments[i]);
-//					System.out.println("added item [" + selectedInstruments[i] + "] from selectedInstruments!");
-//				}
-//			}
-//		}
-		
 		String[] collected = new String[tempInstruments.size()];
 		for (int i = 0; i < collected.length; i++) {
 			collected[i] = tempInstruments.get(i);
@@ -268,14 +378,17 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		
 		System.out.println("collected.length -> " + collected.length);
 		if(collected.length == 0) {
+			collected = new String[1];
+			collected[0] = instGroups.get(EI).get(0);
         	String errMessage = "Error - no instruments were selected!";
             System.err.println(errMessage);
-            FacesContext fc = FacesContext.getCurrentInstance();
-            FacesMessage curentMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, errMessage, errMessage);
-            fc.addMessage("inputForm:errMsgs", curentMessage);
-            setSelectedInstruments(collected);
-            
-            return;
+            selectedGroupInstruments.set(0, collected);
+//            FacesContext fc = FacesContext.getCurrentInstance();
+//            FacesMessage curentMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, errMessage, errMessage);
+//            fc.addMessage("inputForm:errMsgs", curentMessage);
+//            setSelectedInstruments(collected);
+//            
+//            return;
         }
 		
 		setSelectedInstruments(collected);
@@ -300,7 +413,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		else return DESELECT + " " + group;
 	}
 	
-	public void toggleIG(ActionEvent event) {
+	public void toggleInstrumentGroup(ActionEvent event) {
 		FacesContext context = FacesContext.getCurrentInstance();
 		Map<String, String> requestMap = context.getExternalContext().getRequestParameterMap();
 		String group = requestMap.get("group").toString();
@@ -344,73 +457,6 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		
 		selectedGroupInstruments.set(slot, newInstruments);
 		collectInstruments();
-	}
-	
-	public void toggleInstrumentsEI(ValueChangeEvent event) {
-		boolean newVal = (Boolean) event.getNewValue();
-		List<String> instruments = instGroups.get(EI);
-		String[] newInstruments = new String[instruments.size()];
-		
-		if(newVal) {	// let only be EI instruments be preselected
-			for (int i = 0; i < newInstruments.length; i++) {
-				newInstruments[i] = instruments.get(i);
-			}
-		}
-		else {	// let only be EI instruments be deselected
-			for (int i = 0; i < newInstruments.length; i++) {
-				newInstruments[i] = "";
-			}
-		}
-		selectedGroupInstruments.set(0, newInstruments);
-		collectInstruments();
-	}
-	
-	public void toggleInstrumentsESI(ValueChangeEvent event) {
-		boolean newVal = (Boolean) event.getNewValue();
-		String group = (String) event.getComponent().getAttributes().get("group");
-		System.out.println("group -> " + group);
-		
-		List<String> instruments = instGroups.get(ESI);
-		String[] newInstruments = new String[instruments.size()];
-		
-		if(newVal) {	// let only be EI instruments be preselected
-			for (int i = 0; i < newInstruments.length; i++) {
-				newInstruments[i] = instruments.get(i);
-			}
-		}
-		else {	// let only be EI instruments be deselected
-			for (int i = 0; i < newInstruments.length; i++) {
-				newInstruments[i] = "";
-			}
-		}
-		selectedGroupInstruments.set(1, newInstruments);
-		collectInstruments();
-	}
-
-	public void toggleInstrumentsOther(ValueChangeEvent event) {
-		boolean newVal = (Boolean) event.getNewValue();
-		List<String> instruments = instGroups.get(OTHER);
-		String[] newInstruments = new String[instruments.size()];
-		
-		if(newVal) {	// let only be EI instruments be preselected
-			for (int i = 0; i < newInstruments.length; i++) {
-				newInstruments[i] = instruments.get(i);
-			}
-		}
-		else {	// let only be EI instruments be deselected
-			for (int i = 0; i < newInstruments.length; i++) {
-				newInstruments[i] = "";
-			}
-		}
-		selectedGroupInstruments.set(2, newInstruments);
-		collectInstruments();
-	}
-
-	public void changeInstrumentGroupEI(ValueChangeEvent event) {
-		String param = (String) event.getComponent().getAttributes().get("group");
-		System.out.println("group -> " + param);
-		String group = (String) event.getComponent().getAttributes().get("EI");
-		System.out.println("group -> " + group);
 	}
 	
 	@Override
@@ -634,7 +680,8 @@ public class MassBankLookupBean implements Runnable, Serializable {
             String id = "";
             double score = 0.0d;
             String site = "";
-
+            String sumFormula = "";
+            
             int limitCounter = 0;
             //for (String s : queryResults) {
             for(int i = 0; i < queryResults.size(); i++) {
@@ -657,6 +704,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
                     // site
                     name = split[0].substring(0, split[0].indexOf(";"));
                     id = split[1].trim();
+                    sumFormula = split[3].trim();
                     score = Double.parseDouble(split[4].substring(split[4].indexOf(".")));
                     site = split[5];
 
@@ -749,10 +797,15 @@ public class MassBankLookupBean implements Runnable, Serializable {
                     	
                     	// compute molecular formula
     					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
+    					if(iformula == null)	// fallback to MassBank sum formula
+    						iformula = MolecularFormulaManipulator.getMolecularFormula(sumFormula, NoNotificationChemObjectBuilder.getInstance());
     					String formula = MolecularFormulaManipulator.getHTML(iformula);
     					// compute molecular mass
-    					double emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
-                    	
+    					double emass = 0.0d;
+    					if(!formula.contains("R"))	// compute exact mass from formula only if NO residues "R" are present
+    						emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
+    					else emass = MassBankUtilities.retrieveExactMass(id, site);
+    					
                     	/**
                     	 * TODO: auskommentiert für Gridengine Evaluationsläufe
                     	 */
@@ -1140,6 +1193,14 @@ public class MassBankLookupBean implements Runnable, Serializable {
 
 	public String getLinkGroupOTHER() {
 		return linkGroupOTHER;
+	}
+
+	public void setInstrumentToGroup(Map<String, String> instrumentToGroup) {
+		this.instrumentToGroup = instrumentToGroup;
+	}
+
+	public Map<String, String> getInstrumentToGroup() {
+		return instrumentToGroup;
 	}
 
 }
