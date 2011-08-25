@@ -112,7 +112,7 @@ public class TanimotoIntegrationWeighted extends Integration {
 			//newList.add(new ResultExt(similarity.getCandidates().get((rank_new[i] - 1)), (rank_new[i] - 1), i, resultScores[(rank_new[i] - 1)]));
 			ScoreRankPair srp = resultRanking.poll();
 			Result r = candidates.get(srp.getIndex());
-			//System.out.println("r.url -> " + r.getUrl() + "  r.image -> " + r.getImagePath());
+			//System.out.println("ScoreRankPair tiedRank -> " + srp.getRank() + " score -> " + srp.getScore() + "  index -> " + srp.getIndex());
 			newList.add(new ResultExt(r, r.getTiedRank(), srp.getRank(), resultScores[srp.getIndex()]));
 		}
 		
