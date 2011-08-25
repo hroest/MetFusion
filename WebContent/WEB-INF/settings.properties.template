@@ -1,0 +1,19 @@
+# database connection settings for Feedback
+db=database connection
+driver=jdbc driver
+user=database user
+password=password of database user
+
+# admin settings
+adminUser=username for admin
+adminPass=password for admin
+
+# server and storage settings for fragmenter and spectral library
+serverURL=massbank server URL
+databaseCache=directory path for database storage 
+fragmenterCache=directory path for fragmenter storage
+
+# mail settings
+mailServer=mail server 
+mailFrom=email adress of sender
+mailTo=email adress of recipient
