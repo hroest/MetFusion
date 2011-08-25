@@ -797,6 +797,58 @@ public class MassBankUtilities {
 		return dbs;
 	}
 	
+	public static double retrieveExactMass(String id, String site) {
+		double emass = 0.0d;
+		
+		String prefix = "";
+		if(id.matches("[A-Z]{3}[0-9]{5}"))
+			prefix = id.substring(0, 3);
+		else prefix = id.substring(0, 2);
+		
+		File dir = new File(cacheMassBank);
+		String[] institutes = dir.list();
+		File f = null;
+		boolean found = false;
+		for (int i = 0; i < institutes.length; i++) {
+			if(institutes[i].startsWith(prefix)) {
+				f = new File(dir, institutes[i] + "/records/" + id + ".txt");
+				found = true;
+				break;
+			}
+		}
+
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(f));
+		} catch (FileNotFoundException e) {
+			System.err.println("File " + f.getAbsolutePath() + " not found!");
+			e.printStackTrace();
+			return emass; // cancel reading of file and return empty hashmap
+		}
+		String line = "";
+		try {
+			while ((line = br.readLine()) != null) {
+				if (line.startsWith("CH$EXACT_MASS:")) {
+					emass = Double.parseDouble(line.substring(line.indexOf(":") + 1).trim());
+				}
+			}
+		} catch (NumberFormatException e) {
+			System.err.println("Error converting String mass to double mass!");
+			System.err.println("line -> " + line);
+			return 0d;	// return zero mass
+		}
+		catch (IOException e) {
+			// e.printStackTrace();
+		}
+		try {
+			br.close();
+		} catch (IOException e) {
+			// e.printStackTrace();
+		}
+		
+		return emass;
+	}
+	
 	/**
 	 * Write container to file.
 	 * 
