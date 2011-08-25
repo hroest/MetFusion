@@ -27,6 +27,7 @@ import javax.faces.bean.SessionScoped;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
+import javax.faces.validator.ValidatorException;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
@@ -168,9 +169,10 @@ public class MetFusionBean implements Serializable {
 	/** output resource for all workflow results, will be stored in xls file */
     private Resource outputResource;
     private XLSOutputHandler exporter;
+    private boolean createdResource = false;
     
-    
-	public MetFusionBean() {
+
+    public MetFusionBean() {
 		setMblb(new MassBankLookupBean());
 		setMfb(new MetFragBean());
 		
@@ -195,8 +197,12 @@ public class MetFusionBean implements Serializable {
 //		setMfb(mfb);
 	}
 	
-	public void runBoth(ActionEvent event) throws InterruptedException {
+    // ActionEvent event
+	public String runBoth() throws InterruptedException {
+		String navigate = "error";
+		
 		long time1 = System.currentTimeMillis();
+		mblb.collectInstruments();
 		System.out.println("clustering -> " + useClustering);
 		System.out.println("inputSpectrum -> ");
 		System.out.println(inputSpectrum);
@@ -240,12 +246,13 @@ public class MetFusionBean implements Serializable {
         if(insts == null || insts.length == 0) {
         	String errMessage = "Error - no instruments were selected!";
             System.err.println(errMessage);
-            FacesMessage curentMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, errMessage, errMessage);
-            fc.addMessage("inputForm:instruments", curentMessage);
+            FacesMessage currentMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, errMessage, errMessage);
+            fc.addMessage("inputForm:errMsgInst", currentMessage);
             
             setShowResultsDatabase(false);
             setShowTable(true);
-            return;
+            //return;
+            return navigate;
         }
         for (int i = 0; i < insts.length; i++) {
 			System.out.print(insts[i] + "  ");
@@ -287,7 +294,8 @@ public class MetFusionBean implements Serializable {
 		System.out.println("runBoth finished!!!");
 
         if(mblb.getResults() == null || mblb.getResults().size() == 0) {
-        	String errMessage = "EMPTY MassBank result! - Check settings.";
+        	//String errMessage = "EMPTY MassBank result! - Check settings.";
+        	String errMessage = "Peak(s) not found in MassBank - check the settings and try again.";
         	this.errorMessage = errMessage;
         	
             System.err.println(errMessage);
@@ -300,14 +308,16 @@ public class MetFusionBean implements Serializable {
             setShowClusterResults(false);
             setShowTable(true);
             setSelectedTab("1");	// output and matrix tab are not displayed, so error tab is next
-            return;
+            //return;
+            return navigate;
         }
         else if(mblb.getResults() != null) {
             System.out.println("# MassBank results: " + mblb.getResults().size());
             setShowResultsDatabase(true);
         }
         else {      // abort run and return
-            String errMessage = "EMPTY MassBank result! - Check settings.";
+            //String errMessage = "EMPTY MassBank result! - Check settings.";
+        	String errMessage = "Peak(s) not found in MassBank - check the settings and try again.";
             this.errorMessage = errMessage;
             
             System.err.println(errMessage);
@@ -320,7 +330,8 @@ public class MetFusionBean implements Serializable {
             setShowClusterResults(false);
             setShowTable(true);
             setSelectedTab("1");	// output and matrix tab are not displayed, so error tab is next
-            return;
+            //return;
+            return navigate;
         }
                 
         if(mfb.getResults() == null || mfb.getResults().size() == 0) {
@@ -337,7 +348,8 @@ public class MetFusionBean implements Serializable {
             setShowClusterResults(false);
             setShowTable(true);
             setSelectedTab("2");	// matrix tab are not displayed, so error tab is next
-            return;
+            //return;
+            return navigate;
         }
         else if(mfb.getResults() != null) {
         	System.out.println("# MetFrag results: " + mfb.getResults().size());
@@ -357,7 +369,8 @@ public class MetFusionBean implements Serializable {
             setShowClusterResults(false);
             setShowTable(true);
             setSelectedTab("2");	// matrix tab are not displayed, so error tab is next
-            return;
+            //return;
+            return navigate;
         }
                 
         
@@ -420,8 +433,9 @@ public class MetFusionBean implements Serializable {
 		List<Result> redraw = new ArrayList<Result>();
 		for (int i = 0; i < resultingOrder.size(); i++) {
 			ResultExt r = resultingOrder.get(i);
-			redraw.add(new Result(r.getPort(), r.getId(), r.getName(), r.getResultScore(), r.getMol(), r.getUrl(), 
-					r.getImagePath(), r.getSumFormula(), r.getExactMass()));
+			redraw.add(new Result(r));
+//			redraw.add(new Result(r.getPort(), r.getId(), r.getName(), r.getResultScore(), r.getMol(), r.getUrl(), 
+//					r.getImagePath(), r.getSumFormula(), r.getExactMass()));
 		}
 		
 		/**
@@ -505,6 +519,9 @@ public class MetFusionBean implements Serializable {
 		
 		long time2 = System.currentTimeMillis() - time1;
 		System.out.println("time spended -> " + time2 + " ms");
+		
+		navigate = "success";
+		return navigate;
 	}
 	
 	private void writeSVG() {
@@ -607,6 +624,8 @@ public class MetFusionBean implements Serializable {
 			workbook = Workbook.createWorkbook(f);
 		} catch (IOException e) {
 			e.printStackTrace();
+			createdResource = false;
+			return;
 		}
 //		String mimeType = "application/vnd.ms-excel";
 		
@@ -618,6 +637,8 @@ public class MetFusionBean implements Serializable {
 		} catch (WriteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			createdResource = false;
+			return;
 		}
 		
 		// font for text
@@ -647,6 +668,8 @@ public class MetFusionBean implements Serializable {
 			} catch (WriteException e) {
 				System.out.println("Could not write Excel sheet headers!");
 				e.printStackTrace();
+//				createdResource = false;
+//				return;
 			}
 			
 			int currentRow = 1;
@@ -675,10 +698,16 @@ public class MetFusionBean implements Serializable {
 				} catch (WriteException e) {
 					System.out.println("Could not write excel cell");
 					e.printStackTrace();
+//					createdResource = false;
+//					return;
 				}
 				
 				counter++;
 			}
+		}
+		else {
+//			createdResource = false;
+//			return;
 		}
 			
 		if(mblb.getResults().size() > 0) {
@@ -700,6 +729,8 @@ public class MetFusionBean implements Serializable {
 			} catch (WriteException e) {
 				System.out.println("Could not write Excel sheet headers!");
 				e.printStackTrace();
+//				createdResource = false;
+//				return;
 			}
 			
 			int currentRow = 1;
@@ -727,10 +758,16 @@ public class MetFusionBean implements Serializable {
 				} catch (WriteException e) {
 					System.out.println("Could not write excel cell");
 					e.printStackTrace();
+//					createdResource = false;
+//					return;
 				}
 				
 				counter++;
 			}
+		}
+		else {
+//			createdResource = false;
+//			return;
 		}
 		
 		if(mfb.getResults().size() > 0) {
@@ -778,10 +815,16 @@ public class MetFusionBean implements Serializable {
 				} catch (WriteException e) {
 					System.out.println("Could not write excel cell");
 					e.printStackTrace();
+//					createdResource = false;
+//					return;
 				}
 				
 				counter++;
 			}
+		}
+		else {
+//			createdResource = false;
+//			return;
 		}
 		
 		
@@ -835,8 +878,12 @@ public class MetFusionBean implements Serializable {
 			workbook.close();
 		} catch (WriteException ioe) {
 			ioe.printStackTrace();
+			createdResource = false;
+			return;
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
+			createdResource = false;
+			return;
 		}
 		
 //		OutputResource out = new OutputResource();
@@ -845,6 +892,7 @@ public class MetFusionBean implements Serializable {
 		// store the current Excel file as output resource
 		XLSResource xls = new XLSResource(ec, resourceName, folder);
 		setOutputResource(xls);
+		setCreatedResource(Boolean.TRUE);
 		
 		//this.exporter = new XLSOutputHandler(folder + resourceName);//, FacesContext.getCurrentInstance(), "Results");
 	}
@@ -885,6 +933,7 @@ public class MetFusionBean implements Serializable {
 		this.mfb.setResults(null);
 		setShowResultsFragmenter(false);
 		setShowResultsDatabase(false);
+		setShowTable(false);
 		
 		this.mfb.setShowResult(false);
 		setShowClusterResults(false);
@@ -1088,6 +1137,14 @@ public class MetFusionBean implements Serializable {
 
 	public String getSelectedMatrixPanel() {
 		return selectedMatrixPanel;
+	}
+
+	public void setCreatedResource(boolean createdResource) {
+		this.createdResource = createdResource;
+	}
+
+	public boolean isCreatedResource() {
+		return createdResource;
 	}
 
 }
