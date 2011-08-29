@@ -199,21 +199,30 @@ public class FeedbackBean implements Validator {
 	        con = DriverManager.getConnection(db, user, password);
 	        
 	        String sql = "INSERT INTO Feedback (Name, Email, Comment, Spectrum, massbankLimit, massbankThreshold, massbankIonization, "
-	        		+ "massbankInstruments, metfragExactMass, metfragDatabase, metfragIdentifier, metfragFormula, metfragLimit, metfragSearchPPM, "
-	        		+ "metfragMzabs, metfragMzppm, Date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now())";
+	        		+ "massbankInstruments, metfragExactMass, metfragParentIon, metfragAdduct, metfragDatabase, metfragIdentifier, "
+	        		+ "metfragFormula, metfragLimit, metfragSearchPPM, metfragMzabs, metfragMzppm, Date) "
+	        		+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now())";
 			
 	        PreparedStatement pst = con.prepareStatement(sql);
 	        
+	        int position = 1;
 	        /** feedback information about user*/
-	        pst.setString(1, this.name);
-	        pst.setString(2, this.email);
-	        pst.setString(3, this.comment);
+	        pst.setString(position, this.name);
+	        position++;
+	        pst.setString(position, this.email);
+	        position++;
+	        pst.setString(position, this.comment);
+	        position++;
 
 	        /** feedback information about MassBank settings*/
-	        pst.setString(4, appBean.getMblb().getInputSpectrum().replace("\n", escape));		// escape line feed
-	        pst.setInt(5, appBean.getMblb().getLimit());
-	        pst.setInt(6, appBean.getMblb().getCutoff());
-	        pst.setString(7, appBean.getMblb().getSelectedIon());
+	        pst.setString(position, appBean.getInputSpectrum().replace("\n", escape));		// escape line feed
+	        position++;
+	        pst.setInt(position, appBean.getMblb().getLimit());
+	        position++;
+	        pst.setInt(position, appBean.getMblb().getCutoff());
+	        position++;
+	        pst.setString(position, appBean.getMblb().getSelectedIon());
+	        position++;
 	        
 	        appBean.getMblb().collectInstruments();	// ensure instruments are collected even if no change took place
 	        String[] selectedInstruments = appBean.getMblb().getSelectedInstruments();
@@ -226,17 +235,30 @@ public class FeedbackBean implements Validator {
 	        String inst = sbInst.toString();
 	        if(inst.endsWith(escape))		// remove trailing escape
 	        	inst = inst.substring(0, inst.lastIndexOf(escape));
-	        pst.setString(8, inst);
+	        pst.setString(position, inst);
+	        position++;
 	        
 	        /** feedback information about MetFrag settings */
-	        pst.setDouble(9, appBean.getMfb().getExactMass());
-	        pst.setString(10, appBean.getMfb().getSelectedDB());
-	        pst.setString(11, appBean.getMfb().getDatabaseID());
-	        pst.setString(12, appBean.getMfb().getMolecularFormula());
-	        pst.setInt(13, appBean.getMfb().getLimit());
-	        pst.setDouble(14, appBean.getMfb().getSearchppm());
-	        pst.setDouble(15, appBean.getMfb().getMzabs());
-	        pst.setDouble(16, appBean.getMfb().getMzppm());
+	        pst.setDouble(position, appBean.getMfb().getExactMass());
+	        position++;
+	        pst.setDouble(position, appBean.getMfb().getParentIon());
+	        position++;
+	        pst.setDouble(position, appBean.getMfb().getSelectedAdduct());
+	        position++;
+	        pst.setString(position, appBean.getMfb().getSelectedDB());
+	        position++;
+	        pst.setString(position, appBean.getMfb().getDatabaseID());
+	        position++;
+	        pst.setString(position, appBean.getMfb().getMolecularFormula());
+	        position++;
+	        pst.setInt(position, appBean.getMfb().getLimit());
+	        position++;
+	        pst.setDouble(position, appBean.getMfb().getSearchppm());
+	        position++;
+	        pst.setDouble(position, appBean.getMfb().getMzabs());
+	        position++;
+	        pst.setDouble(position, appBean.getMfb().getMzppm());
+	        position++;
 			
 			pst.executeUpdate();
 			pst.close();
@@ -244,7 +266,7 @@ public class FeedbackBean implements Validator {
 			sb.append("Name:\t").append(this.name + "\n");
 			sb.append("Email:\t").append(this.email + "\n");
 			sb.append("Comment:\t").append(this.comment + "\n");
-			sb.append("Spectrum:\n").append(appBean.getMblb().getInputSpectrum() + "\n");	// newline after spectrum for proper view
+			sb.append("Spectrum:\n").append(appBean.getInputSpectrum() + "\n");	// newline after spectrum for proper view
 			sb.append("MassBank Limit:\t").append(appBean.getMblb().getLimit() + "\n");
 			sb.append("MassBank Threshold:\t").append(appBean.getMblb().getCutoff() + "\n");
 			sb.append("MassBank Ionization:\t").append(appBean.getMblb().getSelectedIon() + "\n");
@@ -254,6 +276,8 @@ public class FeedbackBean implements Validator {
 			sb.append("MetFrag Formula:\t").append(appBean.getMfb().getMolecularFormula() + "\n");
 			sb.append("MetFrag Limit:\t").append(appBean.getMfb().getLimit() + "\n");
 			sb.append("MetFrag Exact Mass:\t").append(appBean.getMfb().getExactMass() + "\n");
+			sb.append("MetFrag Parent Ion:\t").append(appBean.getMfb().getParentIon() + "\n");
+			sb.append("MetFrag Adduct:\t").append(appBean.getMfb().getSelectedAdduct() + "\n");
 			sb.append("MetFrag Search PPM:\t").append(appBean.getMfb().getSearchppm() + "\n");
 			sb.append("MetFrag m/z abs:\t").append(appBean.getMfb().getMzabs() + "\n");
 			sb.append("MetFRag m/z ppm:\t").append(appBean.getMfb().getMzppm() + "\n");
@@ -369,6 +393,8 @@ public class FeedbackBean implements Validator {
 	        	parameters.put("metfragSearchPPM", rs.getDouble("metfragSearchPPM"));
 	        	parameters.put("metfragMzabs", rs.getDouble("metfragMzabs"));
 	        	parameters.put("metfragMzppm", rs.getDouble("metfragMzppm"));
+	        	parameters.put("metfragParentIon", rs.getDouble("metfragParentIon"));
+	        	parameters.put("metfragAdduct", rs.getDouble("metfragAdduct"));
 	        	
 	        	feedbackEntries.add(new FeedbackEntry(_ID, _Name, _Email, _Comment, parameters, _answered, _fixed, _Date));
 	        }
@@ -432,18 +458,20 @@ public class FeedbackBean implements Validator {
 		appBean.getMblb().setCutoff((Integer) settings.get("massbankThreshold"));
 		appBean.getMblb().setSelectedIon((String) settings.get("massbankIonization"));
 		
-		/** TODO need to flush instruments to correct selectedInstrumentGroups */
+		// load instruments
 		String selected = (String) settings.get("massbankInstruments");
 		String[] selectedInstruments = selected.split(escape);
 		appBean.getMblb().setSelectedInstruments(selectedInstruments);
-		appBean.getMblb().loadInstruments(selectedInstruments);
-		//appBean.getMblb().collectInstruments();
-		
+		appBean.getMblb().loadInstruments(selectedInstruments);	// lush instruments to correct selectedInstrumentGroups
+
+		// load spectrum
 		String peaks = (String) settings.get("Spectrum");
 		peaks = peaks.replaceAll(escape, "\n");
-		appBean.getMblb().setInputSpectrum(peaks);
+		appBean.setInputSpectrum(peaks);
 		
 		// MetFrag settings
+		appBean.getMfb().setParentIon((Double) settings.get("metfragParentIon"));
+		appBean.getMfb().setSelectedAdduct((Double) settings.get("metfragAdduct"));
 		appBean.getMfb().setExactMass((Double) settings.get("metfragExactMass"));
 		appBean.getMfb().setSelectedDB((String) settings.get("metfragDatabase"));
 		appBean.getMfb().setDatabaseID((String) settings.get("metfragIdentifier"));
