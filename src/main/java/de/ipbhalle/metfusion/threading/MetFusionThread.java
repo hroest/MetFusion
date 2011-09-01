@@ -10,14 +10,23 @@ public class MetFusionThread implements Runnable {
 		// TODO Auto-generated constructor stub
 	}
 	
+	/**
+	 * execute MassBank and MetFrag retrieval threads
+	 */
 	public synchronized void guardedRetrieval() {
 		
 	}
 	
+	/**
+	 * execute matrix computation thread
+	 */
 	public synchronized void guardedMatrix() {
 		
 	}
 	
+	/**
+	 * execute image generation threads
+	 */
 	public synchronized void guardedImageGeneration() {
 		
 	}
