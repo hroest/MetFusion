@@ -7,27 +7,24 @@ package de.ipbhalle.metfusion.web.controller;
 
 import java.awt.Color;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.el.ELContext;
 import javax.el.ELResolver;
 import javax.faces.application.FacesMessage;
-import javax.faces.bean.ApplicationScoped;
-import javax.faces.bean.CustomScoped;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
-import javax.faces.validator.ValidatorException;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
@@ -42,9 +39,7 @@ import jxl.write.WritableImage;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
-import jxl.write.biff.RowsExceededException;
 
-import org.apache.commons.math.linear.RealMatrix;
 import org.icefaces.application.PortableRenderer;
 import org.icefaces.application.PushRenderer;
 import org.openscience.cdk.Molecule;
@@ -52,7 +47,6 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
-import com.icesoft.faces.component.outputresource.OutputResource;
 import com.icesoft.faces.context.Resource;
 import com.icesoft.faces.context.effects.Effect;
 import com.icesoft.faces.context.effects.Highlight;
@@ -60,11 +54,11 @@ import com.icesoft.faces.context.effects.Highlight;
 import de.ipbhalle.MassBank.MassBankLookupBean;
 import de.ipbhalle.metfrag.tools.renderer.StructureToFile;
 import de.ipbhalle.metfusion.integration.Similarity.SimilarityMetFusion;
-import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoIntegration;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoIntegrationWeighted;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoSimilarity;
 import de.ipbhalle.metfusion.threading.ColoredMatrixGeneratorThread;
 import de.ipbhalle.metfusion.threading.ImageGeneratorThread;
+import de.ipbhalle.metfusion.threading.MetFusionThread;
 import de.ipbhalle.metfusion.wrapper.ColorcodedMatrix;
 import de.ipbhalle.metfusion.wrapper.Result;
 import de.ipbhalle.metfusion.wrapper.ResultExt;
@@ -161,8 +155,10 @@ public class MetFusionBean implements Serializable {
 	private HttpSession session;
 	private String sessionString;	// = session.getId();
 	private ServletContext scontext;
+	private ExternalContext ec;
 	private final String sep = System.getProperty("file.separator");
 	private String webRoot;
+	private Locale locale;
 	
 	private String errorMessage = "";
 	
@@ -171,10 +167,33 @@ public class MetFusionBean implements Serializable {
     private XLSOutputHandler exporter;
     private boolean createdResource = false;
     
-
+    /** progress bar rendering */
+    private static final int PAUSE_AMOUNT_S = 1000; // milliseconds to pause between progress updates
+    private Thread updateThread;
+    private Thread updateThreadDatabase;	// updater thread for database lookup
+    private Thread updateThreadFragmenter;	// updater thread for fragmenter computation
+    private Thread updateThreadGlobal;		// global update thread for MetFusion
+    private boolean isRunning = false;
+    private PortableRenderer renderer;
+    private int percentProgress = 0;
+    private int percentProgressGlobal = 0;
+    private int percentProgressDatabase = 0;
+    private int percentProgressFragmenter = 0;
+    private static final String PUSH_GROUP = "all";
+    private MetFusionThread mfthread;
+    private String status;
+    private boolean enableStart = Boolean.TRUE;
+    
+    /** thread handling for parallel processing */
+    private int threads = 1;
+	private ExecutorService threadExecutor = null;
+    private int overallProgress = 0;	// progress for all intermediate steps
+    
+    private String navigate = "";
+    
     public MetFusionBean() {
-		setMblb(new MassBankLookupBean());
-		setMfb(new MetFragBean());
+//		setMblb(new MassBankLookupBean());
+//		setMfb(new MetFragBean());
 		
 		chartColors = new ArrayList<Color>();
 		chartColors.add(this.decode("#FF0000"));
@@ -186,21 +205,187 @@ public class MetFusionBean implements Serializable {
 		FacesContext fc = FacesContext.getCurrentInstance();
 //		ELResolver el = fc.getApplication().getELResolver();
 //        ELContext elc = fc.getELContext();
-		session = (HttpSession) fc.getExternalContext().getSession(false);
+		this.ec = fc.getExternalContext();
+		session = (HttpSession) ec.getSession(false);
 		this.sessionString = session.getId();
 		System.out.println("MetFusionBean sessionID -> " + sessionString);
-		
-		this.mfb.setSessionID(sessionString);
+		this.locale = fc.getViewRoot().getLocale();
+		//this.mfb.setSessionID(sessionString);
 //		MassBankLookupBean mblb = (MassBankLookupBean) el.getValue(elc, null, "massBankLookupBean");
 //		MetFragBean mfb = (MetFragBean) el.getValue(elc, null, "metFragBean");
 //		setMblb(mblb);
 //		setMfb(mfb);
-	}
-	
-    // ActionEvent event
-	public String runBoth() throws InterruptedException {
-		String navigate = "error";
 		
+		PushRenderer.addCurrentSession(PUSH_GROUP);
+   		renderer = PushRenderer.getPortableRenderer(fc);
+   		
+		// retrieve current session bean
+		ELContext elc = fc.getELContext();
+		ELResolver el = fc.getApplication().getELResolver();
+		/** retrieve session's database and fragmenter beans */
+		this.mblb = (MassBankLookupBean) el.getValue(elc, null, "databaseBean");
+		this.mfb = (MetFragBean) el.getValue(elc, null, "fragmenterBean");
+		this.mfb.setSessionID(sessionString);
+		
+		// set number of threads accordingly
+		Runtime runtime = Runtime.getRuntime();
+		this.threads = runtime.availableProcessors();
+		this.threadExecutor = Executors.newFixedThreadPool(threads);
+		System.out.println("threads -> " + threads);
+	}
+    
+    public String runThreadedVersion() {
+    	setEnableStart(Boolean.FALSE);
+    	mblb.collectInstruments();
+    	mblb.setInputSpectrum(inputSpectrum);
+    	mfb.setInputSpectrum(inputSpectrum);
+    	this.percentProgress = 0;
+    	this.percentProgressDatabase = 0;
+    	this.percentProgressFragmenter = 0;
+    	this.percentProgressGlobal = 0;
+    	setShowClusterResults(Boolean.FALSE);
+    	mblb.setSearchProgress(0);
+    	mfb.setProgress(0);
+    	
+		int mode = 0;
+		try {
+			mode = Integer.parseInt(mblb.getSelectedIon());
+		}
+		catch(NumberFormatException e) {
+			mode = 1;		// default to positive mode
+		}
+		
+//		if(mode == 0) // MassBank uses "both" ionizations
+//			mode = 1;	// switch to "positive" mode
+        mfb.setMode(mode);
+        
+        FacesContext fc = FacesContext.getCurrentInstance();
+		// set context environment
+		session = (HttpSession) fc.getExternalContext().getSession(false);
+		scontext = (ServletContext) fc.getExternalContext().getContext();
+		webRoot = scontext.getRealPath(sep);
+		String sessionPath = webRoot + sep + "temp" + sep + sessionString + sep;
+		System.out.println("tempPath -> " + sessionPath);
+		System.out.println("sessionID -> " + sessionString);
+		String tempDir = sep + "temp" + sep + sessionString + sep;
+		mfb.setSessionPath(sessionPath);
+		mblb.setSessionPath(sessionPath);
+		System.out.println("Massbank tempPath -> " + mblb.getSessionPath() + "\tMetFrag tempPath -> " + mfb.getSessionPath());
+		
+        System.out.println("runBoth started!!!");
+        String[] insts = mblb.getSelectedInstruments();
+        // check if instruments were selected
+        if(insts == null || insts.length == 0) {
+        	String errMessage = "Error - no instruments were selected!";
+            System.err.println(errMessage);
+            FacesMessage currentMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, errMessage, errMessage);
+            fc.addMessage("inputForm:errMsgInst", currentMessage);
+            
+            setShowResultsDatabase(false);
+            setShowTable(true);
+            //this.navigate = "errorInstrument";
+        }
+    	
+        ELResolver el = fc.getApplication().getELResolver();
+        ELContext elc = fc.getELContext();
+        StyleBean styleBean = (StyleBean) el.getValue(elc, null, "styleBean");
+        
+    	mfthread = new MetFusionThread(this, mblb, mfb, styleBean, tempDir);
+    	//new Thread(mft).start();
+    	
+    	// Create the database progress thread
+    	updateThreadDatabase = new Thread(new Runnable() {
+            public void run() {
+            	while(percentProgress <= 100) {
+	            	try {
+	    				Thread.sleep(PAUSE_AMOUNT_S);
+	    			} catch (InterruptedException e) {
+	    				System.err.println("Error while putting updateThread to sleep!");
+	    				e.printStackTrace();
+	    			}
+	    			
+	    			percentProgress = mblb.getSearchProgress();
+	    			percentProgressDatabase = percentProgress;
+	    			System.out.println("while running...");
+	    			System.out.println("percentProgress -> " + percentProgress);
+	    			
+	    			// send updated progress to outputProgress component
+	    			renderer.render(PUSH_GROUP);
+	    			
+	    			// break loop if reached 100%
+	    			if(percentProgress == 100)
+	    				break;
+	            }
+            }
+        }, "updateThreadDatabase");
+        
+        // create the fragmenter updater thread
+        updateThreadFragmenter = new Thread(new Runnable() {
+            public void run() {
+            	while(percentProgressFragmenter <= 100) {
+	            	try {
+	    				Thread.sleep(PAUSE_AMOUNT_S);
+	    			} catch (InterruptedException e) {
+	    				System.err.println("Error while putting updateThreadFragmenter to sleep!");
+	    				e.printStackTrace();
+	    			}
+	    			
+	    			percentProgressFragmenter = mfb.getProgress();
+	    			System.out.println("while running...");
+	    			System.out.println("percentProgressFragmenter -> " + percentProgressFragmenter);
+	    			
+	    			// send updated progress to outputProgress component
+	    			renderer.render(PUSH_GROUP);
+	    			
+	    			// break loop if reached 100%
+	    			if(percentProgressFragmenter == 100)
+	    				break;
+	            }
+            }
+        }, "updateThreadFragmenter");
+        
+        // create global updater thread
+        updateThreadGlobal = new Thread(new Runnable() {
+            public void run() {
+            	while(percentProgressGlobal <= 100) {
+	            	try {
+	    				Thread.sleep(PAUSE_AMOUNT_S);
+	    			} catch (InterruptedException e) {
+	    				System.err.println("Error while putting updateThreadGlobal to sleep!");
+	    				e.printStackTrace();
+	    			}
+	    			
+	    			percentProgressGlobal = mfthread.getProgress();
+	    			System.out.println("while running...");
+	    			System.out.println("percentProgressGlobal -> " + percentProgressGlobal);
+	    			
+	    			// send updated progress to outputProgress component
+	    			renderer.render(PUSH_GROUP);
+	    			
+	    			// break loop if reached 100%
+	    			if(percentProgressGlobal == 100 || isShowClusterResults())	{// break if overall progress is 100% or clustering is done (final step)
+	    				setEnableStart(Boolean.TRUE);
+	    				break;
+	    			}
+	            }
+            }
+        }, "updateThreadGlobal");
+        
+        threadExecutor = Executors.newFixedThreadPool(numThreads);
+        threadExecutor.execute(mfthread);
+        threadExecutor.execute(updateThreadDatabase);
+        threadExecutor.execute(updateThreadFragmenter);
+        threadExecutor.execute(updateThreadGlobal);
+        threadExecutor.shutdown();
+		
+        System.out.println("threaded end!");
+    	return "threaded";
+    }
+    
+    // ActionEvent event
+	public String runBoth() {
+		String navigate = "error";
+
 		long time1 = System.currentTimeMillis();
 		mblb.collectInstruments();
 		System.out.println("clustering -> " + useClustering);
@@ -209,7 +394,7 @@ public class MetFusionBean implements Serializable {
 		
 		// hide result tables
 		setShowTable(false);
-		mfb.setShowResult(false);
+		mblb.setShowResult(false);
 		mfb.setShowResult(false);
 		
 		// set peaklist
@@ -263,38 +448,23 @@ public class MetFusionBean implements Serializable {
 //		MetFragBean mfb = (MetFragBean) el.getValue(elc, null, "metFragBean");
 		
 		// start both threads in parallel
-        ExecutorService threadExecutor = null;
         threadExecutor = Executors.newFixedThreadPool(numThreads);
+        threadExecutor = Executors.newFixedThreadPool(threads);
         threadExecutor.execute(mblb);
         threadExecutor.execute(mfb);
         threadExecutor.shutdown();
         
         do {
-        	Thread.sleep(1000);
+        	try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
         }while(!threadExecutor.isTerminated());
-        
-        // start both threads
-//		mblb.start();
-//		mfb.start();
-		
-		System.out.println("massbank thread is alive -> " + mblb.getT().isAlive());
-		System.out.println("metfrag thread is alive -> " + mfb.getT().isAlive());
-		
-		// wait for threads to finish
-//		try {
-//			System.out.println("Waiting for threads to finish.");
-//			mblb.getT().join();
-//			mfb.getT().join();
-//		} catch (InterruptedException e) {
-//			System.out.println("Main thread Interrupted");
-//		}
-		
-		System.out.println("massbank thread is alive -> " + mblb.getT().isAlive());
-		System.out.println("metfrag thread is alive -> " + mfb.getT().isAlive());
 		System.out.println("runBoth finished!!!");
 
         if(mblb.getResults() == null || mblb.getResults().size() == 0) {
-        	//String errMessage = "EMPTY MassBank result! - Check settings.";
         	String errMessage = "Peak(s) not found in MassBank - check the settings and try again.";
         	this.errorMessage = errMessage;
         	
@@ -405,7 +575,11 @@ public class MetFusionBean implements Serializable {
         threadExecutor.shutdown();
         
         do {
-        	Thread.sleep(400);
+        	try {
+				Thread.sleep(400);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
         }while(!threadExecutor.isTerminated());
         
 		//integration.start();
@@ -449,7 +623,11 @@ public class MetFusionBean implements Serializable {
         threadExecutor.execute(cmtAfter);
         threadExecutor.shutdown();
         do {
-        	Thread.sleep(1000);
+        	try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
         }while(!threadExecutor.isTerminated());
         setColorMatrixAfter(cmtAfter.getCcm());
         
@@ -482,9 +660,14 @@ public class MetFusionBean implements Serializable {
 			//List<ResultExt> clusterThresh = SimilarityMetFusion.computeScores(newOrder);
 			SimilarityMetFusion sm = new SimilarityMetFusion();
 			//List<ResultExt> clusterWeight =	sm.computeScores(secondOrder);
-			
+
+			// resolve stylebean
+			ELResolver el = fc.getApplication().getELResolver();
+	        ELContext elc = fc.getELContext();
+	        StyleBean styleBean = (StyleBean) el.getValue(elc, null, "styleBean");
+	        
 			System.out.println("Started clustering");
-			List<ResultExtGroupBean> clusters = sm.computeScoresCluster(secondOrder);
+			List<ResultExtGroupBean> clusters = sm.computeScoresCluster(secondOrder, styleBean);
 			this.tanimotoClusters = clusters;
 			System.out.println("Finished clustering");
 			System.out.println("list size -> " + clusters.size());
@@ -533,7 +716,6 @@ public class MetFusionBean implements Serializable {
 //		try {
 //			fw = new FileWriter(new File("/home/mgerlich/Desktop/integration/massbank.txt"));
 //		} catch (IOException e1) {
-//			// TODO Auto-generated catch block
 //			e1.printStackTrace();
 //		}
 		
@@ -577,18 +759,19 @@ public class MetFusionBean implements Serializable {
 	
 	/** generates an output resource for the current workflow results, everything is stored inside a single Excel xls file
 	 *  where each workflow output ports is stored as a separate sheet  */
-	private void generateOutputResource() {
-		FacesContext fc = FacesContext.getCurrentInstance();
-		ExternalContext ec = fc.getExternalContext();
-		HttpSession session = (HttpSession) ec.getSession(false);
-		String sessionString = session.getId();
-		ServletContext sc = (ServletContext) ec.getContext();
-		String appPath = sc.getRealPath(".");
+	public void generateOutputResource() {
+//		FacesContext fc = FacesContext.getCurrentInstance();
+//		ExternalContext ec = fc.getExternalContext();
+//		HttpSession session = (HttpSession) ec.getSession(false);
+//		String sessionString = session.getId();
+//		ServletContext sc = (ServletContext) ec.getContext();
+//		String appPath = sc.getRealPath(".");
 		
 		//long time = new Date().getTime();
 		SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy_k-m-s");
 		String time = sdf.format(new Date());
-		String path = appPath + sep + "temp" + sep + sessionString + sep;
+//		String path = appPath + sep + "temp" + sep + sessionString + sep;
+		String path = webRoot + sep + "temp" + sep + sessionString + sep;
 		System.out.println("resource path -> " + path);
 		
 		File dir = new File(path);
@@ -611,7 +794,6 @@ public class MetFusionBean implements Serializable {
 				return;
 			}
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
@@ -619,7 +801,7 @@ public class MetFusionBean implements Serializable {
 		WritableSheet sheet = null;
 		WritableWorkbook workbook = null;
 		WorkbookSettings settings = new WorkbookSettings();
-		settings.setLocale(FacesContext.getCurrentInstance().getViewRoot().getLocale());
+		settings.setLocale(locale);
 		try {
 			workbook = Workbook.createWorkbook(f);
 		} catch (IOException e) {
@@ -635,7 +817,6 @@ public class MetFusionBean implements Serializable {
 		try {
 			arial12font.setBoldStyle(WritableFont.BOLD);
 		} catch (WriteException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			createdResource = false;
 			return;
@@ -672,12 +853,13 @@ public class MetFusionBean implements Serializable {
 //				return;
 			}
 			
-			int currentRow = 1;
-			int currentCol = 0;
+			int currentRow = 0;
+			//int currentCol = 0;
 			int counter = 0;
 			// write MetFusion results
 			for (ResultExt result : secondOrder) {
-				currentRow = counter*4 + 1;
+				//currentRow = counter*4 + 1;
+				currentRow++;
 				
 				// output is text
 				WritableCell cellRank = new Number(0, currentRow, result.getTiedRank(), arial10format);
@@ -685,7 +867,8 @@ public class MetFusionBean implements Serializable {
 				WritableCell cellName = new Label(2, currentRow, result.getName(), arial10format);
 				WritableCell cellOrigScore = new Number(3, currentRow, result.getScoreShort(), arial10format);
 				WritableCell cellNewScore = new Number(4, currentRow, result.getResultScore(), arial10format);
-				wi = new WritableImage(5, currentRow, 1, 3, new File(appPath, result.getImagePath()));
+				//wi = new WritableImage(5, currentRow, 1, 3, new File(appPath, result.getImagePath()));
+				wi = new WritableImage(5, currentRow, 1, 3, new File(webRoot, result.getImagePath()));
 				
 				try
 				{
@@ -733,20 +916,22 @@ public class MetFusionBean implements Serializable {
 //				return;
 			}
 			
-			int currentRow = 1;
-			int currentCol = 0;
+			int currentRow = 0;
+			//int currentCol = 0;
 			int counter = 0;
 			
 			// write MassBank results
 			for (Result result : mblb.getResults()) {
-				currentRow = counter*4 + 1;
+				//currentRow = counter*4 + 1;
+				currentRow++;
 				
 				// output is text
 				WritableCell cellRank = new Number(0, currentRow, result.getTiedRank(), arial10format);
 				WritableCell cellID = new Label(1, currentRow, result.getId(), arial10format);
 				WritableCell cellName = new Label(2, currentRow, result.getName(), arial10format);
 				WritableCell cellOrigScore = new Number(3, currentRow, result.getScoreShort(), arial10format);
-				wi = new WritableImage(4, currentRow, 1, 3, new File(appPath, result.getImagePath()));
+				//wi = new WritableImage(4, currentRow, 1, 3, new File(appPath, result.getImagePath()));
+				wi = new WritableImage(4, currentRow, 1, 3, new File(webRoot, result.getImagePath()));
 				
 				try
 				{
@@ -791,19 +976,21 @@ public class MetFusionBean implements Serializable {
 				e.printStackTrace();
 			}
 			
-			int currentRow = 1;
-			int currentCol = 0;
+			int currentRow = 0;
+			//int currentCol = 0;
 			int counter = 0;
 			// write MetFrag results
 			for (Result result : mfb.getResults()) {
-				currentRow = counter*4 + 1;
+				//currentRow = counter*4 + 1;
+				currentRow++;
 				
 				// output is text
 				WritableCell cellRank = new Number(0, currentRow, result.getTiedRank(), arial10format);
 				WritableCell cellID = new Label(1, currentRow, result.getId(), arial10format);
 				WritableCell cellName = new Label(2, currentRow, result.getName(), arial10format);
 				WritableCell cellOrigScore = new Number(3, currentRow, result.getScoreShort(), arial10format);
-				wi = new WritableImage(4, currentRow, 1, 3, new File(appPath, result.getImagePath()));
+				//wi = new WritableImage(4, currentRow, 1, 3, new File(appPath, result.getImagePath()));
+				wi = new WritableImage(4, currentRow, 1, 3, new File(webRoot, result.getImagePath()));
 				
 				try
 				{
@@ -1065,23 +1252,27 @@ public class MetFusionBean implements Serializable {
 		return tanimotoClusters;
 	}
 
-	/** Returns the text effect
-     * @return Effect EffectOutputText
-     */
-   public Effect getEffectOutputText() {
-	   effectOutputText = new Highlight("#FFA500");
-       effectOutputText.setFired(false);
-       
-       return effectOutputText;
-   }
+	/**
+	 * Returns the text effect
+	 * 
+	 * @return Effect EffectOutputText
+	 */
+	public Effect getEffectOutputText() {
+		effectOutputText = new Highlight("#FFA500");
+		effectOutputText.setFired(false);
 
-   /**
-     * Sets the output text effect
-     * @param Effect effectOutputText
-     */
-   public void setEffectOutputText(Effect effectOutputText) {
-       this.effectOutputText = (Highlight) effectOutputText;
-   }
+		return effectOutputText;
+	}
+
+	/**
+	 * Sets the output text effect
+	 * 
+	 * @param Effect
+	 *            effectOutputText
+	 */
+	public void setEffectOutputText(Effect effectOutputText) {
+		this.effectOutputText = (Highlight) effectOutputText;
+	}
 
 	public void setSelectedResult(String selectedResult) {
 		this.selectedResult = selectedResult;
@@ -1145,6 +1336,78 @@ public class MetFusionBean implements Serializable {
 
 	public boolean isCreatedResource() {
 		return createdResource;
+	}
+
+	public int getPercentProgress() {
+		return percentProgress;
+	}
+
+	public void setPercentProgress(int percentProgress) {
+		this.percentProgress = percentProgress;
+	}
+
+	public boolean isRunning() {
+		return isRunning;
+	}
+
+	public void setRunning(boolean isRunning) {
+		this.isRunning = isRunning;
+	}
+
+	public void setOverallProgress(int overallProgress) {
+		this.overallProgress = overallProgress;
+	}
+
+	public int getOverallProgress() {
+		return overallProgress;
+	}
+
+	public void setPercentProgressDatabase(int percentProgressDatabase) {
+		this.percentProgressDatabase = percentProgressDatabase;
+	}
+
+	public int getPercentProgressDatabase() {
+		return percentProgressDatabase;
+	}
+
+	public void setPercentProgressFragmenter(int percentProgressFragmenter) {
+		this.percentProgressFragmenter = percentProgressFragmenter;
+	}
+
+	public int getPercentProgressFragmenter() {
+		return percentProgressFragmenter;
+	}
+
+	public String getNavigate() {
+		return navigate;
+	}
+
+	public void setNavigate(String navigate) {
+		this.navigate = navigate;
+	}
+
+	public void setPercentProgressGlobal(int percentProgressGlobal) {
+		this.percentProgressGlobal = percentProgressGlobal;
+	}
+
+	public int getPercentProgressGlobal() {
+		return percentProgressGlobal;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setEnableStart(boolean enableStart) {
+		this.enableStart = enableStart;
+	}
+
+	public boolean isEnableStart() {
+		return enableStart;
 	}
 
 }
