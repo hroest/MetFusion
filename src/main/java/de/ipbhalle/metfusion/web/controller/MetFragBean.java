@@ -211,10 +211,16 @@ public class MetFragBean implements Runnable, Serializable {
 	 */
 	private List<Result> results;
 	
+	/** original list of MetFrag results */
+	private List<MetFragResult> mfResults;
+	
 	/**
 	 * the separate thread container for this class, allows parallel execution
 	 */
 	private Thread t;
+	
+	private int progress = 0;	
+	private boolean done = Boolean.FALSE;
 	
 //	private FacesContext fc = FacesContext.getCurrentInstance();
 //    private HttpSession session = (HttpSession) fc.getExternalContext().getSession(false);
@@ -238,7 +244,7 @@ public class MetFragBean implements Runnable, Serializable {
 	
 	
 	public MetFragBean() {
-		t = new Thread(this, "metfrag");
+		//t = new Thread(this, "metfrag");
 		fillLinkMap();
 		fillAdductList();
 		this.parentIon = this.exactMass;
@@ -310,6 +316,9 @@ public class MetFragBean implements Runnable, Serializable {
 	}
 	
 	public void submit(ActionEvent event) {
+		this.progress = 0;
+		this.done = Boolean.FALSE;
+		
 //		String peakString = "119.051 467.616\n123.044 370.662\n147.044 6078.145\n"
 //				+ "153.019 10000.0\n179.036 141.192\n189.058 176.358\n273.076 10000.000\n"
 //				+ "274.083 318.003";
@@ -381,6 +390,7 @@ public class MetFragBean implements Runnable, Serializable {
 					molecularFormula, exactMass, spectrum, useProxy, mzabs, mzppm, searchPPM, 
 					molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, hydrogenTest,
 					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password);
+			this.mfResults = result;
 			System.out.println("MetFrag result#: " + result.size() + "\n");
 			
 			this.results = new ArrayList<Result>();
@@ -389,6 +399,8 @@ public class MetFragBean implements Runnable, Serializable {
 			MassSpecAPISoapProxy chemSpiderProxy = null;
 			if(database.equals(dbCHEMSPIDER))
 				chemSpiderProxy = new MassSpecAPISoapProxy();
+			
+			int current = 0;
 			
 			for (MetFragResult mfr : result) {
 				if(mfr.getStructure() != null) {
@@ -472,14 +484,40 @@ public class MetFragBean implements Runnable, Serializable {
 					// write 
 //					File f = new File(molPath, mfr.getCandidateID() + ".mol");
 //					MassBankUtilities.writeContainer(f, container);
+					
+					// update search progress
+					updateSearchProgress(current);
+					current++;
 				}
 			}
+			current = mfResults.size();
+			updateSearchProgress(current);
+			done = Boolean.TRUE;
 			showResult = true;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			showResult = false;
 		}
+	}
+	
+	/**
+	 * Updates counter for progress bar.
+	 */
+	public void updateSearchProgress(int current) {
+		int maximum = this.mfResults.size();
+		int border = (limit >= maximum) ? maximum : limit;
+		float result = (((float) current / (float) border) * 100f);
+		this.progress = Math.round(result);
+		
+		System.out.println("Called updateSearchProgress MetFragBean -> " + progress);
+		// Ensure the new percent is within the valid 0-100 range
+        if (progress < 0) {
+        	progress = 0;
+        }
+        if (progress > 100) {
+        	progress = 100;
+        }
 	}
 	
 	@Override
@@ -730,6 +768,30 @@ public class MetFragBean implements Runnable, Serializable {
 
 	public void setParentIon(double parentIon) {
 		this.parentIon = parentIon;
+	}
+
+	public void setProgress(int progress) {
+		this.progress = progress;
+	}
+
+	public int getProgress() {
+		return progress;
+	}
+
+	public void setMfResults(List<MetFragResult> mfResults) {
+		this.mfResults = mfResults;
+	}
+
+	public List<MetFragResult> getMfResults() {
+		return mfResults;
+	}
+
+	public void setDone(boolean done) {
+		this.done = done;
+	}
+
+	public boolean isDone() {
+		return done;
 	}
 
 }
