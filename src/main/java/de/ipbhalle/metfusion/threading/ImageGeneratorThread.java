@@ -21,6 +21,7 @@ public class ImageGeneratorThread extends Thread {
 	private Map<String, String> idToPath;
 	private final String sep = System.getProperty("file.separator");
 	public final String DEFAULT_ENDING = ".png";
+	private boolean done = Boolean.FALSE;
 	
 //	public ImageGeneratorThread(List<? super ResultExt> compounds, String storagePath) {
 //		this.compounds = compounds;
@@ -75,6 +76,7 @@ public class ImageGeneratorThread extends Thread {
 	
 	@Override
 	public void run() {
+		this.done = Boolean.FALSE;
 		System.out.println("Start generating compound pictures!");
 		
 		StructureToFile stf = null;
@@ -121,11 +123,12 @@ public class ImageGeneratorThread extends Thread {
 			}
 			else {
 				System.err.println("Object not of required class!");
-				System.err.println("found [" + obj.getClass() + "], but need [de.ipbhalle.MetFlow.wrapper.Result] or extending class!");
+				System.err.println("found [" + obj.getClass() + "], but need [de.ipbhalle.metfusion.wrapper.Result] or extending class!");
 			}
 		}
 		
 		System.out.println("Finished generating compound pictures!");
+		this.done = Boolean.TRUE;
 	}
 	
 	public void setCompounds(List<? extends Result> compounds) {
@@ -158,6 +161,14 @@ public class ImageGeneratorThread extends Thread {
 
 	public void setIdToPath(Map<String, String> idToPath) {
 		this.idToPath = idToPath;
+	}
+
+	public void setDone(boolean done) {
+		this.done = done;
+	}
+
+	public boolean isDone() {
+		return done;
 	}
 	
 }
