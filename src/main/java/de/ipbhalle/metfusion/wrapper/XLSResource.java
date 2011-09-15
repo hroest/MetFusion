@@ -12,7 +12,6 @@ import java.io.Serializable;
 import java.util.Date;
 
 import javax.faces.context.ExternalContext;
-import javax.servlet.http.HttpSession;
 
 import com.icesoft.faces.context.Resource;
 

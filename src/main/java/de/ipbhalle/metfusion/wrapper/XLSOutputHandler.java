@@ -4,7 +4,6 @@
 
 package de.ipbhalle.metfusion.wrapper;
 
-import java.io.File;
 import java.io.IOException;
 
 import javax.faces.context.FacesContext;
@@ -16,13 +15,11 @@ import jxl.write.Number;
 import jxl.write.WritableCell;
 import jxl.write.WritableCellFormat;
 import jxl.write.WritableFont;
-import jxl.write.WritableImage;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
 
 import com.icesoft.faces.component.dataexporter.OutputTypeHandler;
-import com.icesoft.faces.util.CoreUtils;
 
 public class XLSOutputHandler extends OutputTypeHandler {
 	
