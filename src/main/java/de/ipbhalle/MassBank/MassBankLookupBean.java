@@ -6,7 +6,6 @@
 package de.ipbhalle.MassBank;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,23 +16,15 @@ import java.util.Set;
 
 import javax.el.ELContext;
 import javax.el.ELResolver;
-import javax.faces.application.FacesMessage;
-import javax.faces.bean.ApplicationScoped;
-import javax.faces.bean.CustomScoped;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
-import javax.faces.event.ActionListener;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 import javax.faces.model.SelectItemGroup;
-import javax.print.attribute.standard.MediaSize.Other;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpSession;
 
-import org.icefaces.component.checkboxbutton.CheckboxButton;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -42,9 +33,6 @@ import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-import com.icesoft.faces.component.SelectBooleanCheckboxTag;
-
-import de.ipbhalle.metfrag.tools.renderer.StructureToFile;
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
 import de.ipbhalle.metfusion.web.controller.MetFragBean;
 import de.ipbhalle.metfusion.wrapper.Result;
@@ -89,6 +77,11 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	private static final String EI = "EI";
 	private static final String ESI = "ESI";
 	private static final String OTHER = "Others";
+	 /** EI, ESI, Other */
+    public static final int NUM_INST_GROUPS = 3;
+    private boolean presentEI = Boolean.FALSE;
+    private boolean presentESI = Boolean.FALSE;
+    private boolean presentOther = Boolean.FALSE;
 	private Map<String, List<String>> instGroups;
 	private static final String SESSIONMAPKEYINSTRUMENTS = "instruments";
 	private static final String SELECT = "Select";
@@ -122,33 +115,33 @@ public class MassBankLookupBean implements Runnable, Serializable {
 //    private HttpSession session = (HttpSession) fc.getExternalContext().getSession(false);
 //    private String sessionString = session.getId();
 //    private ServletContext scontext = (ServletContext) fc.getExternalContext().getContext();
-    private final String sep = System.getProperty("file.separator");
+    //private final String sep = System.getProperty("file.separator");
 //    private String webRoot = scontext.getRealPath(sep);
     
     private String sessionPath;
     
     private boolean brokenMassBank = false;
     
-    /** EI, ESI, Other */
-    public static final int NUM_INST_GROUPS = 3;
-    
-    
     /**
      * nur für Auswertung gedacht!
      */
     private String currentRecord = "";
     
+    private int searchProgress = 0;
+    private int searchCounter = 0;
+    private boolean isRunning = false;
+//    private PortableRenderer renderer;
+    
+    private boolean done = Boolean.FALSE;
+    public synchronized void notifyDone() {
+    	done = Boolean.TRUE;
+    	notifyAll();
+    }
+    
 	public MassBankLookupBean() {
 		this(massbankJP);
 		//this("http://msbi.ipb-halle.de/MassBank/");
 		t = new Thread(this, "massbank");
-		
-		//FacesContext fc = FacesContext.getCurrentInstance();
-//		ELResolver el = fc.getApplication().getELResolver();
-//        ELContext elc = fc.getELContext();
-        //HttpSession session = (HttpSession) fc.getExternalContext().getSession(false);
-		//String sessionString = session.getId();
-		//System.out.println("MassBankLookupBean sessionID -> " + sessionString);
 	}
 	
 	public MassBankLookupBean(String serverUrl) {
@@ -184,6 +177,13 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	        	// add ESI instruments as default selected group to sessionmap
 	        	if(next.equals(ESI))
 	        		FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put(SESSIONMAPKEYINSTRUMENTS, items);
+	        	
+	        	if(next.equals(EI) && items.size() > 0)
+	        		presentEI = Boolean.TRUE;
+	        	if(next.equals(ESI) && items.size() > 0)
+	        		presentESI = Boolean.TRUE;
+	        	if(next.equals(OTHER) && items.size() > 0)
+	        		presentOther = Boolean.TRUE;
 	        	
 	        	SelectItem[] si = new SelectItem[items.size()];
 	        	for (int i = 0; i < si.length; i++) {
@@ -461,7 +461,87 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	
 	@Override
 	public void run() {
-            submit(null);
+		// submit(null);
+		setDone(Boolean.FALSE);
+		setRunning(Boolean.TRUE);
+		
+		searchProgress = 0;	// reset progress indicator
+		String typeName = MassBankCommon.CGI_TBL[MassBankCommon.CGI_TBL_NUM_TYPE][MassBankCommon.CGI_TBL_TYPE_SEARCH];
+		StringBuilder sb = new StringBuilder();
+		sb.append("&INST=");
+		if (selectedInstruments != null && selectedInstruments.length > 0) { // use
+																				// chosen
+																				// instruments
+			for (int i = 0; i < selectedInstruments.length; i++) {
+				sb.append(selectedInstruments[i]).append(",");
+			}
+		} else { // use all available instruments if none selected as none is
+					// prohibited
+			if (insts != null && insts.length > 0) {
+				for (int i = 0; i < insts.length; i++) {
+					sb.append(insts[i].getLabel()).append(",");
+				}
+			} else {
+				this.queryResults = new ArrayList<String>();
+				return;
+			}
+		}
+
+		String inst = sb.toString();
+		if (inst.endsWith(",")) // remove trailing comma
+			inst = inst.substring(0, inst.length() - 1);
+
+		// set ionization mode to positive if none selected
+		if (selectedIon == null || selectedIon.isEmpty()
+				|| selectedIon.length() == 0)
+			selectedIon = (String) ionisations[0].getValue();
+
+		/**
+		 * build up parameter string for MassBank search
+		 */
+		String ion = "&ION=" + selectedIon;
+		inst += ion;
+
+		// String paramPeak =
+		// "273.096,22@289.086,107@290.118,14@291.096,999@292.113,162@293.054,34@579.169,37@580.179,15";
+		String paramPeak = formatPeaks();
+		String param = "quick=true&CEILING=1000&WEIGHT=SQUARE&NORM=SQRT&START=1&TOLUNIT=unit"
+				+ "&CORTYPE=COSINE&FLOOR=0&NUMTHRESHOLD=3&CORTHRESHOLD=0.8&TOLERANCE=0.3"
+				+ "&CUTOFF=" + cutoff + "&NUM=0&VAL=" + paramPeak.toString();
+		param += inst;
+		System.out.println(param);
+		/**
+    		 * 
+    		 */
+
+		// retrieve result list
+		ArrayList<String> result = mbCommon.execMultiDispatcher(serverUrl,
+				typeName, param);
+
+		// only provide non-Hill records to result set
+		this.queryResults = new ArrayList<String>();
+		/**
+		 * add all spectra for evaluation to show correct working on complete
+		 * database
+		 */
+		queryResults.addAll(result);
+
+		// if there are no entries after filtering, add all filtered entries
+		// back
+		if (queryResults.size() == 0)
+			return;
+
+		this.originalResults = result;
+		this.unused = new ArrayList<Result>();
+
+		// this.queryResults = result;
+		this.showResult = true;
+		System.out.println(result.size() + "\n");
+
+		wrapResults();
+		
+		setRunning(false);
+		notifyDone();
 	}
 	
 	public void start() {
@@ -483,7 +563,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
         /**
          * 
          */
-        
+		searchProgress = 0;	// reset progress indicator
         String typeName = MassBankCommon.CGI_TBL[MassBankCommon.CGI_TBL_NUM_TYPE][MassBankCommon.CGI_TBL_TYPE_SEARCH];
         StringBuilder sb = new StringBuilder();
         sb.append("&INST=");
@@ -647,6 +727,27 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		this.originalResults = result;
 	}
 	
+	/**
+	 * Updates counter for progress bar.
+	 */
+	public void updateSearchProgress() {
+		int maximum = this.queryResults.size();
+		int border = (limit >= maximum) ? maximum : limit;
+		float result = (((float) searchCounter / (float) border) * 100f);
+		this.searchProgress = Math.round(result);
+		System.out.println("Called updateSearchProgress -> " + searchProgress);
+		
+		// Ensure the new percent is within the valid 0-100 range
+        if (searchProgress < 0) {
+        	searchProgress = 0;
+        }
+        if (searchProgress > 100) {
+        	searchProgress = 100;
+        }
+        
+//        renderer.render(PUSH_GROUP);
+	}
+	
 	private void wrapResults() {
 //		FacesContext fc = FacesContext.getCurrentInstance();
 //	    HttpSession session = (HttpSession) fc.getExternalContext().getSession(false);
@@ -688,11 +789,17 @@ public class MassBankLookupBean implements Runnable, Serializable {
                 String s = queryResults.get(i);
 //			int idx = results.indexOf(s);
 
+                this.searchCounter = limitCounter;
+                updateSearchProgress();	// update progress bar
+                
                 /**
                  *  create results only till the given limit
                  */
-                if(limitCounter == limit)
-                        break;
+                if(limitCounter == limit) {
+                	this.searchProgress = 100;
+                	//updateSearchProgress();	// update progress bar
+                	break;
+                }
 
                 String[] split = s.split("\t");
                 if(split.length == 6) {
@@ -1201,6 +1308,62 @@ public class MassBankLookupBean implements Runnable, Serializable {
 
 	public Map<String, String> getInstrumentToGroup() {
 		return instrumentToGroup;
+	}
+
+	public void setSearchProgress(int searchProgress) {
+		this.searchProgress = searchProgress;
+	}
+
+	public int getSearchProgress() {
+		return searchProgress;
+	}
+
+	public void setSearchCounter(int searchCounter) {
+		this.searchCounter = searchCounter;
+	}
+
+	public int getSearchCounter() {
+		return searchCounter;
+	}
+
+	public void setRunning(boolean isRunning) {
+		this.isRunning = isRunning;
+	}
+
+	public boolean isRunning() {
+		return isRunning;
+	}
+
+	public void setDone(boolean done) {
+		this.done = done;
+	}
+
+	public boolean isDone() {
+		return done;
+	}
+
+	public boolean isPresentEI() {
+		return presentEI;
+	}
+
+	public void setPresentEI(boolean presentEI) {
+		this.presentEI = presentEI;
+	}
+
+	public boolean isPresentESI() {
+		return presentESI;
+	}
+
+	public void setPresentESI(boolean presentESI) {
+		this.presentESI = presentESI;
+	}
+
+	public boolean isPresentOther() {
+		return presentOther;
+	}
+
+	public void setPresentOther(boolean presentOther) {
+		this.presentOther = presentOther;
 	}
 
 }
