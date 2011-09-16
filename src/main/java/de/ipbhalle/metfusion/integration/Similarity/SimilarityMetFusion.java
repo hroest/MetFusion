@@ -52,14 +52,14 @@ public class SimilarityMetFusion {
 		// TODO Auto-generated constructor stub
 	}
 
-	public List<ResultExtGroupBean> computeScoresCluster(List<ResultExt> results) {
+	public List<ResultExtGroupBean> computeScoresCluster(List<ResultExt> results, StyleBean styleBean) {
 		// initalize the list
 		resultRowGroupedBeans = new ArrayList<ResultExtGroupBean>();
 		
-		FacesContext fc = FacesContext.getCurrentInstance();
-        ELResolver el = fc.getApplication().getELResolver();
-        ELContext elc = fc.getELContext();
-        StyleBean styleBean = (StyleBean) el.getValue(elc, null, "styleBean");
+//		FacesContext fc = FacesContext.getCurrentInstance();
+//        ELResolver el = fc.getApplication().getELResolver();
+//        ELContext elc = fc.getELContext();
+//        StyleBean styleBean = (StyleBean) el.getValue(elc, null, "styleBean");
         
 		if(styleBean == null || !(styleBean instanceof StyleBean)) {
 			System.err.println("stylebean not found!");
