@@ -122,7 +122,7 @@
 									</ice:panelGroup>
 									<ice:panelGrid columns="3" columnClasses="gridSelectItems" id="instruments"
 										style="text-align: left; margin-left: 187px; border: 1px dotted silver;">
-										<ice:panelGroup>
+										<ice:panelGroup rendered="#{databaseBean.presentEI}">
 <!--											<ice:outputLabel value="EI"/>-->
 <!--											<ice:selectBooleanCheckbox label="EI" value="#{appBean.mblb.useEIOnly}" style="margin-left: 5px;"-->
 <!--												valueChangeListener="#{appBean.mblb.toggleInstrumentsEI}">-->
@@ -134,7 +134,7 @@
 												<f:param value="#{appBean.mblb.getEi()}" name="group"/>
 											</ice:commandLink>
 										</ice:panelGroup>
-										<ice:panelGroup>
+										<ice:panelGroup rendered="#{databaseBean.presentESI}">
 <!--											<ice:outputLabel value="ESI"/>-->
 <!--											<ice:selectBooleanCheckbox label="ESI" value="#{appBean.mblb.useESIOnly}" style="margin-left: 5px;"-->
 <!--												valueChangeListener="#{appBean.mblb.toggleInstrumentsESI}">-->
@@ -146,7 +146,7 @@
 												<f:param value="#{appBean.mblb.getEsi()}" name="group"/>
 											</ice:commandLink>
 										</ice:panelGroup>
-										<ice:panelGroup>
+										<ice:panelGroup rendered="#{databaseBean.presentOther}">
 <!--											<ice:outputLabel value="Other"/>-->
 <!--											<ice:selectBooleanCheckbox label="Other" value="#{appBean.mblb.useOtherOnly}" style="margin-left: 5px;">-->
 <!--												valueChangeListener="#{appBean.mblb.toggleInstrumentsOther}">-->
@@ -313,7 +313,8 @@
 	    							</ice:panelTooltip>
 								</ice:panelGroup>
 								<ice:inputText id="exactMass" value="#{appBean.mfb.exactMass}" partialSubmit="true" required="true"
-									validatorMessage="Value is not between 10 and 10000.0" disabled="true" effect="#{appBean.effectOutputText}">
+									validatorMessage="Value is not between 10 and 10000.0" disabled="true" style="color: ForestGreen;">
+<!--									effect="#{appBean.effectOutputText}"-->
 									<f:validateDoubleRange minimum="10.0" maximum="10000.0"></f:validateDoubleRange>
 								</ice:inputText>
 								<ice:panelGroup effect="#{appBean.effectOutputText}">
@@ -434,6 +435,25 @@
 							</ice:panelGroup>
 				    	</ice:panelGroup>
 			    	</div>
+			    	
+			    	<div style=" padding: 0 1em; border: 1px dotted silver; width: 30%; float: right; margin-top: 5px;">
+				    	<ice:panelGroup id="progressDatabase" effect="#{appBean.effect}" visible="false">
+							<ice:outputProgress id="progressDatabaseSearch" value="#{databaseBean.searchProgress}" 
+								label="MassBank retrieval: #{databaseBean.searchProgress}%"	labelComplete="MassBank retrieval done!"/>
+							<ice:outputProgress id="progressFragmenterSearch" value="#{fragmenterBean.progress}" 
+								label="MetFrag retrieval: #{fragmenterBean.progress}%" labelComplete="MetFrag retrieval done!"/>
+<!--							<ice:outputProgress id="progressDatabaseSearch2" value="#{appBean.percentProgressDatabase}" -->
+<!--								label="MassBank retrieval: #{appBean.percentProgressDatabase}%"	labelComplete="MassBank retrieval done!"/>-->
+<!--							<ice:outputProgress id="progressFragmenterSearch2" value="#{appBean.percentProgressFragmenter}" -->
+<!--								label="MetFrag retrieval: #{appBean.percentProgressFragmenter}%" labelComplete="MetFrag retrieval done!"/>-->
+						</ice:panelGroup>
+						<ice:panelGroup>
+							<ice:commandButton value="Start Threaded" action="#{appBean.runThreadedVersion}" disabled="#{!appBean.enableStart}"/>
+							<ice:outputProgress id="progressGlobal" value="#{appBean.percentProgressGlobal}" 
+								label="MetFusion Progress: #{appBean.status} - #{appBean.percentProgressGlobal}%" labelComplete="Global done!"/>
+							<ice:outputProgress indeterminate="true" label="running..." value="#{appBean.percentProgressGlobal}"/>
+						</ice:panelGroup>
+					</div>
 			    </div>
 			    	
 			    	<!-- application control start and reset -->
@@ -522,27 +542,22 @@
 						                         pageCountVar="pageCount" pageIndexVar="pageIndex" paginator="true" 
 						                         paginatorMaxPages="9" rendered="#{feedbackBean.authorized}">
 										<f:facet name="first" >
-						                         <ice:graphicImage url="css/xp/css-images/arrow-first.gif" style="border:none;"/>
+						                	<ice:graphicImage url="#{msgs.xpDataPaginatorFirst}" style="border:none;"/>
 						                </f:facet>
-						 
 						                <f:facet name="last">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-last.gif" style="border:none;" />
+						                	<ice:graphicImage url="#{msgs.xpDataPaginatorLast}" style="border:none;" />
 						                </f:facet>
-						 
 						                <f:facet name="previous">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-previous.gif" style="border:none;" />
+						                	<ice:graphicImage url="#{msgs.xpDataPaginatorPrevious}" style="border:none;" />
 						                </f:facet>
-						 
 						                <f:facet name="next">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-next.gif" style="border:none;" />
+						                	<ice:graphicImage url="#{msgs.xpDataPaginatorNext}" style="border:none;" />
 						                </f:facet>
-						 
 						                <f:facet name="fastforward">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-ff.gif" style="border:none;" />
+						                	<ice:graphicImage url="#{msgs.xpDataPaginatorFastforward}" style="border:none;" />
 						                </f:facet>
-						 
 						                <f:facet name="fastrewind">
-						                        <ice:graphicImage url="css/xp/css-images/arrow-fr.gif" style="border:none;" />
+						                	<ice:graphicImage url="#{msgs.xpDataPaginatorFastrewind}" style="border:none;" />
 						                </f:facet>
 									</ice:dataPaginator>
 									
@@ -641,31 +656,24 @@
 						        <ice:dataPaginator id="scroll_1_cluster" for="tableCluster" fastStep="10"
 						                         pageCountVar="pageCount" pageIndexVar="pageIndex"
 						                         paginator="true" paginatorMaxPages="9" rendered="#{appBean.showClusterResults}" >
-						 
 						                <f:facet name="first" >
-						                         <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-first.gif" style="border:none;"/>
+						                	<ice:graphicImage url="#{msgs.xpDataPaginatorFirst}" style="border:none;"/>
 						                </f:facet>
-						 
 						                <f:facet name="last">
-						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-last.gif" style="border:none;" />
+						                	<ice:graphicImage url="#{msgs.xpDataPaginatorLast}" style="border:none;" />
 						                </f:facet>
-						 
 						                <f:facet name="previous">
-						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-previous.gif" style="border:none;" />
+						                	<ice:graphicImage url="#{msgs.xpDataPaginatorPrevious}" style="border:none;" />
 						                </f:facet>
-						 
 						                <f:facet name="next">
-						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-next.gif" style="border:none;" />
+						                	<ice:graphicImage url="#{msgs.xpDataPaginatorNext}" style="border:none;" />
 						                </f:facet>
-						 
 						                <f:facet name="fastforward">
-						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-ff.gif" style="border:none;" />
+						                	<ice:graphicImage url="#{msgs.xpDataPaginatorFastforward}" style="border:none;" />
 						                </f:facet>
-						 
 						                <f:facet name="fastrewind">
-						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-fr.gif" style="border:none;" />
+						                	<ice:graphicImage url="#{msgs.xpDataPaginatorFastrewind}" style="border:none;" />
 						                </f:facet>
-						 
 						        </ice:dataPaginator>
 						 
 						        <ice:dataPaginator id="scroll_2_cluster" for="tableCluster" rendered="#{appBean.showClusterResults}" 
@@ -673,7 +681,8 @@
 						                        firstRowIndexVar="firstRowIndex" lastRowIndexVar="lastRowIndex"
 						                        pageCountVar="pageCount" pageIndexVar="pageIndex">
 						 
-						                 <ice:outputFormat value="{0} candidates found, displaying {1} candidates from {2} to {3}. Page {4} / {5}" styleClass="standard" >
+						                 <ice:outputFormat styleClass="standard"
+						                 	value="{0} candidates found, displaying {1} candidates from {2} to {3}. Page {4} / {5}">
 						                        <f:param value="#{rowsCount}" />
 						                        <f:param value="#{displayedRowsCountVar}" />
 						                        <f:param value="#{firstRowIndex}" />
@@ -732,24 +741,24 @@
 							<ice:panelGrid columns="1" styleClass="scrollerTable2" columnClasses="standardTable_ColumnCentered" >
 						        <ice:dataPaginator id="scroll_1_fragmenter" for="fragmenterList" fastStep="10"
 						                         pageCountVar="pageCount" pageIndexVar="pageIndex"
-						                         paginator="true" paginatorMaxPages="9" rendered="#{appBean.mfb.showResult}" >
+						                         paginator="true" paginatorMaxPages="9" rendered="#{appBean.mfb.showResult}">
 						                <f:facet name="first" >
-						                         <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-first.gif" style="border:none;"/>
+						                         <ice:graphicImage url="#{msgs.xpDataPaginatorFirst}" style="border:none;"/>
 						                </f:facet>
 						                <f:facet name="last">
-						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-last.gif" style="border:none;" />
+						                        <ice:graphicImage url="#{msgs.xpDataPaginatorLast}" style="border:none;" />
 						                </f:facet>
 						                <f:facet name="previous">
-						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-previous.gif" style="border:none;" />
+						                        <ice:graphicImage url="#{msgs.xpDataPaginatorPrevious}" style="border:none;" />
 						                </f:facet>
 						                <f:facet name="next">
-						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-next.gif" style="border:none;" />
+						                        <ice:graphicImage url="#{msgs.xpDataPaginatorNext}" style="border:none;" />
 						                </f:facet>
 						                <f:facet name="fastforward">
-						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-ff.gif" style="border:none;" />
+						                        <ice:graphicImage url="#{msgs.xpDataPaginatorFastforward}" style="border:none;" />
 						                </f:facet>
 						                <f:facet name="fastrewind">
-						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-fr.gif" style="border:none;" />
+						                        <ice:graphicImage url="#{msgs.xpDataPaginatorFastrewind}" style="border:none;" />
 						                </f:facet>
 						        </ice:dataPaginator>
 						 
@@ -811,10 +820,10 @@
 						                         pageCountVar="pageCount" pageIndexVar="pageIndex"
 						                         paginator="true" paginatorMaxPages="9" rendered="#{appBean.mfb.showResult}" >
 						                <f:facet name="first" >
-						                         <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-first.gif" style="border:none;"/>
+						                         <ice:graphicImage url="#{msgs.xpDataPaginatorFirst}" style="border:none;"/>
 						                </f:facet>
 						                <f:facet name="last">
-						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-last.gif" style="border:none;" />
+						                        <ice:graphicImage url="#{msgs.xpDataPaginatorLast}" style="border:none;" />
 						                </f:facet>
 						                <f:facet name="previous">
 						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-previous.gif" style="border:none;" />
@@ -914,6 +923,7 @@
 											</ice:outputLink>
 										</ice:panelGroup>
 									</f:facet>
+									
 									<!-- display the table cell values-->
 									<ice:panelGroup style="text-align: center; white-space: nowrap;">
 										<ice:outputText id="cellValue"
@@ -925,39 +935,25 @@
 							</div>
 							<ice:dataPaginator id="scroll_1_tan" for="dataTbl" fastStep="10"
 								pageCountVar="pageCount" pageIndexVar="pageIndex"
-								paginator="true" paginatorMaxPages="9"
-								rendered="#{appBean.mblb.showResult}">
-	
+								paginator="true" paginatorMaxPages="9" rendered="#{appBean.mfb.showResult}">
 								<f:facet name="first">
-									<ice:graphicImage url="css/xp/css-images/arrow-first.gif"
-										style="border:none;" />
+									<ice:graphicImage url="#{msgs.xpDataPaginatorFirst}" style="border:none;"/>
 								</f:facet>
-	
 								<f:facet name="last">
-									<ice:graphicImage url="css/xp/css-images/arrow-last.gif"
-										style="border:none;" />
+									<ice:graphicImage url="#{msgs.xpDataPaginatorLast}" style="border:none;"/>
 								</f:facet>
-	
 								<f:facet name="previous">
-									<ice:graphicImage url="css/xp/css-images/arrow-previous.gif"
-										style="border:none;" />
+									<ice:graphicImage url="#{msgs.xpDataPaginatorPrevious}"	style="border:none;"/>
 								</f:facet>
-	
 								<f:facet name="next">
-									<ice:graphicImage url="css/xp/css-images/arrow-next.gif"
-										style="border:none;" />
+									<ice:graphicImage url="#{msgs.xpDataPaginatorNext}"	style="border:none;"/>
 								</f:facet>
-	
 								<f:facet name="fastforward">
-									<ice:graphicImage url="css/xp/css-images/arrow-ff.gif"
-										style="border:none;" />
+									<ice:graphicImage url="#{msgs.xpDataPaginatorFastforward}" style="border:none;"/>
 								</f:facet>
-	
 								<f:facet name="fastrewind">
-									<ice:graphicImage url="css/xp/css-images/arrow-fr.gif"
-										style="border:none;" />
+									<ice:graphicImage url="#{msgs.xpDataPaginatorFastrewind}" style="border:none;"/>
 								</f:facet>
-	
 							</ice:dataPaginator>
 			    		</ice:panelGroup>
 			    		
@@ -1022,31 +1018,24 @@
 								</div>
 								<ice:dataPaginator id="scroll_2_tan" for="dataTbl2" fastStep="10"
 									pageCountVar="pageCount" pageIndexVar="pageIndex"
-									paginator="true" paginatorMaxPages="9"
-									rendered="#{appBean.mblb.showResult}">
+									paginator="true" paginatorMaxPages="9" rendered="#{appBean.mblb.showResult}">
 									<f:facet name="first">
-										<ice:graphicImage url="css/xp/css-images/arrow-first.gif"
-											style="border:none;" />
+										<ice:graphicImage url="#{msgs.xpDataPaginatorFirst}" style="border:none;"/>
 									</f:facet>
 									<f:facet name="last">
-										<ice:graphicImage url="css/xp/css-images/arrow-last.gif"
-											style="border:none;" />
+										<ice:graphicImage url="#{msgs.xpDataPaginatorLast}" style="border:none;"/>
 									</f:facet>
 									<f:facet name="previous">
-										<ice:graphicImage url="css/xp/css-images/arrow-previous.gif"
-											style="border:none;" />
+										<ice:graphicImage url="#{msgs.xpDataPaginatorPrevious}"	style="border:none;"/>
 									</f:facet>
 									<f:facet name="next">
-										<ice:graphicImage url="css/xp/css-images/arrow-next.gif"
-											style="border:none;" />
+										<ice:graphicImage url="#{msgs.xpDataPaginatorNext}"	style="border:none;"/>
 									</f:facet>
 									<f:facet name="fastforward">
-										<ice:graphicImage url="css/xp/css-images/arrow-ff.gif"
-											style="border:none;" />
+										<ice:graphicImage url="#{msgs.xpDataPaginatorFastforward}" style="border:none;"/>
 									</f:facet>
 									<f:facet name="fastrewind">
-										<ice:graphicImage url="css/xp/css-images/arrow-fr.gif"
-											style="border:none;" />
+										<ice:graphicImage url="#{msgs.xpDataPaginatorFastrewind}" style="border:none;"/>
 									</f:facet>
 								</ice:dataPaginator>
 			    		</ice:panelGroup>
