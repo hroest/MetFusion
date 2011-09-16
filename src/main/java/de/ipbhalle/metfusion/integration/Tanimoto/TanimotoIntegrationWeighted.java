@@ -41,7 +41,7 @@ public class TanimotoIntegrationWeighted extends Integration {
 	private final double gamma = 0.6;
 		
 	//private final double power = 3.686441d;
-	
+	private boolean done = Boolean.FALSE;
 	
 	public TanimotoIntegrationWeighted(ISimilarity similarity) {
 		super(similarity.getMatrix(), similarity.getRowScores(), similarity.getColScores(), similarity.getThreshold(), similarity.getNumHits());
@@ -123,10 +123,12 @@ public class TanimotoIntegrationWeighted extends Integration {
 
 	@Override
 	public void run() {
+		this.setDone(Boolean.FALSE);
 		System.out.println("start weighted integration via run()");
 		List<ResultExt> newOrder = computeNewOrdering();
 		setResultingOrder(newOrder);
 		System.out.println("finished weighted integration via run()");
+		this.setDone(Boolean.TRUE);
 	}
 	
 	@Override
@@ -280,6 +282,14 @@ public class TanimotoIntegrationWeighted extends Integration {
 
 	public Queue<ScoreRankPair> getResultRanking() {
 		return resultRanking;
+	}
+
+	public void setDone(boolean done) {
+		this.done = done;
+	}
+
+	public boolean isDone() {
+		return done;
 	}
 
 }
