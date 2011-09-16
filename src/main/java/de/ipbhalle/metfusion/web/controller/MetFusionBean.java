@@ -48,7 +48,9 @@ import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import com.icesoft.faces.context.Resource;
+import com.icesoft.faces.context.effects.Appear;
 import com.icesoft.faces.context.effects.Effect;
+import com.icesoft.faces.context.effects.Fade;
 import com.icesoft.faces.context.effects.Highlight;
 
 import de.ipbhalle.MassBank.MassBankLookupBean;
@@ -183,6 +185,7 @@ public class MetFusionBean implements Serializable {
     private MetFusionThread mfthread;
     private String status;
     private boolean enableStart = Boolean.TRUE;
+    private Effect effect;
     
     /** thread handling for parallel processing */
     private int threads = 1;
@@ -234,6 +237,17 @@ public class MetFusionBean implements Serializable {
 		System.out.println("threads -> " + threads);
 	}
     
+    public void toggleEffect() {
+    	if(!enableStart) {							// let progress bars appear
+    		effect = new Appear();
+    	}
+    	
+    	if(mblb.isDone() && mfb.isDone()){			// let progress bars vanish
+    		effect = new Fade();
+    	}
+    	effect.setFired(false);
+    }
+    
     public String runThreadedVersion() {
     	setEnableStart(Boolean.FALSE);
     	mblb.collectInstruments();
@@ -246,6 +260,9 @@ public class MetFusionBean implements Serializable {
     	setShowClusterResults(Boolean.FALSE);
     	mblb.setSearchProgress(0);
     	mfb.setProgress(0);
+    	mblb.setDone(Boolean.FALSE);
+    	mfb.setDone(Boolean.FALSE);
+    	toggleEffect();
     	
 		int mode = 0;
 		try {
@@ -363,8 +380,8 @@ public class MetFusionBean implements Serializable {
 	    			renderer.render(PUSH_GROUP);
 	    			
 	    			// break loop if reached 100%
-	    			if(percentProgressGlobal == 100 || isShowClusterResults())	{// break if overall progress is 100% or clustering is done (final step)
-	    				setEnableStart(Boolean.TRUE);
+	    			if(percentProgressGlobal == 100 || isShowClusterResults())	{	// break if overall progress is 100% 
+	    				setEnableStart(Boolean.TRUE);								// or clustering is done (final step)
 	    				break;
 	    			}
 	            }
@@ -1408,6 +1425,14 @@ public class MetFusionBean implements Serializable {
 
 	public boolean isEnableStart() {
 		return enableStart;
+	}
+
+	public void setEffect(Effect effect) {
+		this.effect = effect;
+	}
+
+	public Effect getEffect() {
+		return effect;
 	}
 
 }
