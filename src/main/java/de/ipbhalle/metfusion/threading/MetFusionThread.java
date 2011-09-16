@@ -65,6 +65,7 @@ public class MetFusionThread implements Runnable {
 		setActive(Boolean.TRUE);
 		setProgress(steps);
 		metfusion.setStatus("Retrieval");
+		metfusion.toggleEffect();		// let progress bars appear
 		
 		massbank.run();
 		metfrag.run();
@@ -79,6 +80,8 @@ public class MetFusionThread implements Runnable {
 		stepsDonePercent(steps);
 		metfusion.setShowResultsDatabase(true);
 		System.out.println("done threading");
+		metfusion.toggleEffect();		// let progress bars fade away
+		
 		metfusion.setStatus("Images + Matrix");
 		// create tanimoto matrix and perform chemical-similarity based integration
 		List<Result> listMassBank = massbank.getResults();
