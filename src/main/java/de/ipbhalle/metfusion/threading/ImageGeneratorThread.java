@@ -19,46 +19,8 @@ public class ImageGeneratorThread extends Thread {
 	private String outputFolder;
 	private String tempPath;
 	private Map<String, String> idToPath;
-	private final String sep = System.getProperty("file.separator");
 	public final String DEFAULT_ENDING = ".png";
 	private boolean done = Boolean.FALSE;
-	
-//	public ImageGeneratorThread(List<? super ResultExt> compounds, String storagePath) {
-//		this.compounds = compounds;
-//		this.outputFolder = storagePath;
-//		this.idToPath = new HashMap<String, String>();
-//	}
-	
-//	@Override
-//	public void run() {
-//		System.out.println("Start generating compound pictures!");
-//		
-//		StructureToFile stf = null;
-//		try {
-//			stf = new StructureToFile(200, 200, getOutputFolder(), false, false);
-//		} catch (Exception e) {
-//			System.err.println("Error creating StructureToFile object! - Aborting...");
-//			e.printStackTrace();
-//			return;
-//		}
-//		
-//		for (ResultExt r : this.compounds) {
-//			String filename = r.getId() + DEFAULT_ENDING;
-//			File image = new File(getOutputFolder(), filename);
-//			String path = image.getAbsolutePath();
-//			if(stf != null && !image.exists())
-//				try {
-//					stf.writeMOL2PNGFile(r.getMol(), filename);
-//					r.setImagePath(path);
-//					idToPath.put(r.getId(), path);
-//				} catch (Exception e) {
-//					System.err.println("Exception occured for [" + filename + "]");
-//					e.printStackTrace();
-//				}
-//		}
-//		
-//		System.out.println("Finished generating compound pictures!");
-//	}
 	
 	/**
 	 * Constructor allowing List of Result (upper bound) or any subclass.
