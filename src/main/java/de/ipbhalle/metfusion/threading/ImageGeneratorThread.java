@@ -89,41 +89,31 @@ public class ImageGeneratorThread extends Thread {
 		}
 		
 		for (Object obj : this.compounds) {
+			Result r = null;
 			if(obj instanceof ResultExt) {
-				ResultExt r = (ResultExt) obj;
-				String filename = r.getId() + DEFAULT_ENDING;
-				File image = new File(getOutputFolder(), filename);
-				String path = getTempPath() + filename;
-				if(stf != null && !image.exists()) {
-					try {
-						stf.writeMOL2PNGFile(r.getMol(), filename);
-						r.setImagePath(path);
-						idToPath.put(r.getId(), path);
-					} catch (Exception e) {
-						System.err.println("Exception occured for [" + filename + "] while generating compound image!");
-						e.printStackTrace();
-					}
-				}
+				r = (ResultExt) obj;
 			}
 			else if (obj instanceof Result) {
-				Result r = (Result) obj;
-				String filename = r.getId() + DEFAULT_ENDING;
-				File image = new File(getOutputFolder(), filename);
-				String path = getTempPath() + filename;
-				if(stf != null && !image.exists()) {
-					try {
-						stf.writeMOL2PNGFile(r.getMol(), filename);
-						r.setImagePath(path);
-						idToPath.put(r.getId(), path);
-					} catch (Exception e) {
-						System.err.println("Exception occured for [" + filename + "] while generating compound image!");
-						e.printStackTrace();
-					}
-				}
+				r = (Result) obj;
 			}
 			else {
 				System.err.println("Object not of required class!");
 				System.err.println("found [" + obj.getClass() + "], but need [de.ipbhalle.metfusion.wrapper.Result] or extending class!");
+				continue;
+			}
+			
+			String filename = r.getId() + DEFAULT_ENDING;
+			File image = new File(getOutputFolder(), filename);
+			String path = getTempPath() + filename;
+			if(stf != null && !image.exists()) {
+				try {
+					stf.writeMOL2PNGFile(r.getMol(), filename);
+					r.setImagePath(path);
+					idToPath.put(r.getId(), path);
+				} catch (Exception e) {
+					System.err.println("Exception occured for [" + filename + "] while generating compound image!");
+					e.printStackTrace();
+				}
 			}
 		}
 		
