@@ -580,11 +580,13 @@
 						<f:selectItem itemLabel="Database List" itemValue="database" itemDisabled="#{!appBean.showResultsDatabase}"/>
 					</ice:selectOneRadio>
 					
-					<ice:panelGroup style="background-color: MintCream;" rendered="#{appBean.createdResource}">
+					<ice:panelGroup style="background-color: MintCream; border: 1px solid ForestGreen;" rendered="#{appBean.createdResource}">
+						<ice:panelGrid columns="2">
 						<ice:outputText value="Export results into Excel file:"/>
 						<ice:outputResource id="outputResource" resource="#{appBean.outputResource}"
 							label="Save results in Excel document." mimeType="application/vnd.ms-excel"
 							fileName="#{appBean.outputResource.resourceName}" image="/images/icons/xls.png" rendered="#{appBean.createdResource}"/>
+						</ice:panelGrid>
     				</ice:panelGroup>
       						
 					<ice:panelStack selectedPanel="#{appBean.selectedResult}">
@@ -901,7 +903,7 @@
 													<ice:panelGrid columns="2">
 														<ice:outputLabel id="lblMtrxRankOld" for="txtMtrxRankOld" value="Tied Rank:"/>
 														<ice:outputText id="txtMtrxRankOld" value="#{appBean.mfb.results[item].tiedRank}"/>
-														<ice:outputLabel id="lblMtrxScoreOld" for="txtMtrxScoreOld" value="MetFusion Score:"/>
+														<ice:outputLabel id="lblMtrxScoreOld" for="txtMtrxScoreOld" value="MetFrag Score:"/>
 														<ice:outputText id="txtMtrxScoreOld" value="#{appBean.mfb.results[item].score}"/>
 													</ice:panelGrid>
 												</ice:panelGroup>
@@ -986,7 +988,7 @@
 																<ice:outputLabel id="lblMtrxRankNew" for="txtMtrxRankNew" value="Tied Rank:"/>
 																<ice:outputText id="txtMtrxRankNew" value="#{appBean.secondOrder[item].tiedRank}"/>
 																<ice:outputLabel id="lblMtrxScoreNew" for="txtMtrxScoreNew" value="MetFusion Score:"/>
-																<ice:outputText id="txtMtrxScoreNew" value="#{appBean.secondOrder[item].score}"/>
+																<ice:outputText id="txtMtrxScoreNew" value="#{appBean.secondOrder[item].resultScore}"/>
 															</ice:panelGrid>
 														</ice:panelGroup>
 													</ice:panelGrid>
