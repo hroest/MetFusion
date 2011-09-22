@@ -762,124 +762,110 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		if(!tempPath.endsWith("/"))
 			tempPath += "/";
 		
-		/**
-		 * TODO: auskommentiert für Gridengine Evaluationsläufe
-		 */
-//	    new File(relImagePath).mkdirs();
-//		StructureToFile stf = null;
-//		try {
-//			stf = new StructureToFile(200, 200, relImagePath, false, false);
-//		} catch (Exception e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-		
-            List<Result> results = new ArrayList<Result>();
-            List<String> duplicates = new ArrayList<String>();
+        List<Result> results = new ArrayList<Result>();
+        List<String> duplicates = new ArrayList<String>();
 
-            String name = "";
-            String id = "";
-            double score = 0.0d;
-            String site = "";
-            String sumFormula = "";
+        String name = "";
+        String id = "";
+        double score = 0.0d;
+        String site = "";
+        String sumFormula = "";
+        
+        int limitCounter = 0;
+        int resultLimit = (limit >= queryResults.size()) ? (queryResults.size()-1) : limit;
+        for(int i = 0; i < queryResults.size(); i++) {
+            String s = queryResults.get(i);
+            this.searchCounter = limitCounter;
+            updateSearchProgress();	// update progress bar
             
-            int limitCounter = 0;
-            //for (String s : queryResults) {
-            for(int i = 0; i < queryResults.size(); i++) {
-                String s = queryResults.get(i);
-//			int idx = results.indexOf(s);
+            /**
+             *  create results only till the given limit
+             */
+            if(limitCounter == resultLimit) {
+            	this.searchProgress = 100;
+            	//updateSearchProgress();	// update progress bar
+            	break;
+            }
 
-                this.searchCounter = limitCounter;
-                updateSearchProgress();	// update progress bar
+            String[] split = s.split("\t");
+            if(split.length == 6) {
+                // name; instrument
+                // id
+                // ionization mode
+                // sum formula
+                // score
+                // site
+                name = split[0].substring(0, split[0].indexOf(";"));
+                id = split[1].trim();
+                sumFormula = split[3].trim();
+                score = Double.parseDouble(split[4].substring(split[4].indexOf(".")));
+                site = split[5];
+
+                String url = getServerUrl();
+                if(!url.contains("Dispatcher.jsp") && url.endsWith("/"))
+                	url += "jsp/Dispatcher.jsp?type=disp&id=" + id + "&site=" + site + "&qmz=" + getQmz() + "&CUTOFF=5";
                 
-                /**
-                 *  create results only till the given limit
-                 */
-                if(limitCounter == limit) {
-                	this.searchProgress = 100;
-                	//updateSearchProgress();	// update progress bar
-                	break;
+                //String record = MassBankUtilities.retrieveRecord(id, site);
+                MassBankUtilities.fetchRecord(id, site);
+                //String mol = MassBankUtilities.retrieveMol(name, site, id);
+
+                String prefix = id.substring(0, 2);
+                File dir = new File(cacheMassBank);
+                String[] institutes = dir.list();
+                File f = null;
+                String basePath = "";
+                for (int j = 0; j < institutes.length; j++) {
+                    if(institutes[j].startsWith(prefix)) {
+                        f = new File(dir, institutes[j] + "/mol/");
+                        basePath = f.getAbsolutePath();
+                        if(!basePath.endsWith("/"))
+                                basePath += "/";
+                        //System.out.println("basePath for " + id + " -> " + basePath);
+                        break;
+                    }
+                }
+                //boolean fetch = MassBankUtilities.fetchMol(name, id, site, basePath);
+                boolean fetch = false;
+                //boolean write = MassBankUtilities.writeMolFile(id, mol, basePath);
+
+                // create AtomContainer via SMILES
+                Map<String, String> links = MassBankUtilities.retrieveLinks(id, site);
+                String smiles = links.get("smiles");
+                //System.out.println("smiles -> " + smiles);
+                IAtomContainer container = null;
+                // first look if container is present, then download if not
+                container = MassBankUtilities.getContainer(id, basePath);
+                if(container == null) {
+                    fetch = MassBankUtilities.fetchMol(name, id, site, basePath);
+                    if(fetch) {
+                        System.out.println("container via fetch");
+                        //container = MassBankUtilities.getMolFromAny(id, basePath, smiles);
+                        container = MassBankUtilities.getContainer(id, basePath);
+                    }
+                    else {
+                        System.out.println("container via smiles");
+                        container = MassBankUtilities.getMolFromSmiles(smiles);
+
+                        if(container != null) {
+                            // write out molfile
+                            File mol = new File(basePath, id + ".mol");
+                            MassBankUtilities.writeContainer(mol, container);
+                        }
+                    }
                 }
 
-                String[] split = s.split("\t");
-                if(split.length == 6) {
-                    // name; instrument
-                    // id
-                    // ionization mode
-                    // sum formula
-                    // score
-                    // site
-                    name = split[0].substring(0, split[0].indexOf(";"));
-                    id = split[1].trim();
-                    sumFormula = split[3].trim();
-                    score = Double.parseDouble(split[4].substring(split[4].indexOf(".")));
-                    site = split[5];
-
-                    String url = getServerUrl();
-                    if(!url.contains("Dispatcher.jsp") && url.endsWith("/"))
-                    	url += "jsp/Dispatcher.jsp?type=disp&id=" + id + "&site=" + site + "&qmz=" + getQmz() + "&CUTOFF=5";
-                    
-                    //String record = MassBankUtilities.retrieveRecord(id, site);
-                    MassBankUtilities.fetchRecord(id, site);
-                    //String mol = MassBankUtilities.retrieveMol(name, site, id);
-
-                    String prefix = id.substring(0, 2);
-                    File dir = new File(cacheMassBank);
-                    String[] institutes = dir.list();
-                    File f = null;
-                    String basePath = "";
-                    for (int j = 0; j < institutes.length; j++) {
-                        if(institutes[j].startsWith(prefix)) {
-                            f = new File(dir, institutes[j] + "/mol/");
-                            basePath = f.getAbsolutePath();
-                            if(!basePath.endsWith("/"))
-                                    basePath += "/";
-                            //System.out.println("basePath for " + id + " -> " + basePath);
-                            break;
-                        }
+                // hydrogen handling
+                if(container != null) {
+                    try {
+                        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+                        CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
+                        hAdder.addImplicitHydrogens(container);
+                        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
+                    } catch (CDKException e) {
+                        System.err.println("error manipulating mol for " + id);
+                        continue;
                     }
-                    //boolean fetch = MassBankUtilities.fetchMol(name, id, site, basePath);
-                    boolean fetch = false;
-                    //boolean write = MassBankUtilities.writeMolFile(id, mol, basePath);
-
-                    // create AtomContainer via SMILES
-                    Map<String, String> links = MassBankUtilities.retrieveLinks(id, site);
-                    String smiles = links.get("smiles");
-                    //System.out.println("smiles -> " + smiles);
-                    IAtomContainer container = null;
-                    // first look if container is present, then download if not
-                    container = MassBankUtilities.getContainer(id, basePath);
-                    if(container == null) {
-                        fetch = MassBankUtilities.fetchMol(name, id, site, basePath);
-                        if(fetch) {
-                            System.out.println("container via fetch");
-                            //container = MassBankUtilities.getMolFromAny(id, basePath, smiles);
-                            container = MassBankUtilities.getContainer(id, basePath);
-                        }
-                        else {
-                            System.out.println("container via smiles");
-                            container = MassBankUtilities.getMolFromSmiles(smiles);
-
-                            if(container != null) {
-                                // write out molfile
-                                File mol = new File(basePath, id + ".mol");
-                                MassBankUtilities.writeContainer(mol, container);
-                            }
-                        }
-                    }
-
-                    // hydrogen handling
-                    if(container != null) {
-                        try {
-                            AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-                            CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-                            hAdder.addImplicitHydrogens(container);
-                            AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-                        } catch (CDKException e) {
-                            System.err.println("error manipulating mol for " + id);
-                            continue;
-                        }
-                    }
+                }
 
 //				if(container == null && !fetch && smiles != null && !smiles.isEmpty()) {
 //					if(fetch) {
@@ -897,25 +883,25 @@ public class MassBankLookupBean implements Runnable, Serializable {
 //				IAtomContainer container = MassBankUtilities.getContainer(mol);
 //				results.add(new Result("MassBank", id, name, score, container));
 
-                    /**
-                     *  if entry is not present yet, add it - else don't
-                     */
-                    if(container != null) {	// removed duplicate check -> !duplicates.contains(name) &&
-                    	
-                    	// compute molecular formula
-    					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
-    					if(iformula == null)	// fallback to MassBank sum formula
-    						iformula = MolecularFormulaManipulator.getMolecularFormula(sumFormula, NoNotificationChemObjectBuilder.getInstance());
-    					String formula = MolecularFormulaManipulator.getHTML(iformula);
-    					// compute molecular mass
-    					double emass = 0.0d;
-    					if(!formula.contains("R"))	// compute exact mass from formula only if NO residues "R" are present
-    						emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
-    					else emass = MassBankUtilities.retrieveExactMass(id, site);
-    					
-                    	/**
-                    	 * TODO: auskommentiert für Gridengine Evaluationsläufe
-                    	 */
+                /**
+                 *  if entry is not present yet, add it - else don't
+                 */
+                if(container != null) {	// removed duplicate check -> !duplicates.contains(name) &&
+                	
+                	// compute molecular formula
+					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
+					if(iformula == null)	// fallback to MassBank sum formula
+						iformula = MolecularFormulaManipulator.getMolecularFormula(sumFormula, NoNotificationChemObjectBuilder.getInstance());
+					String formula = MolecularFormulaManipulator.getHTML(iformula);
+					// compute molecular mass
+					double emass = 0.0d;
+					if(!formula.contains("R"))	// compute exact mass from formula only if NO residues "R" are present
+						emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
+					else emass = MassBankUtilities.retrieveExactMass(id, site);
+					
+                	/**
+                	 * TODO: auskommentiert für Gridengine Evaluationsläufe
+                	 */
 //                    	if(stf != null)
 //							try {
 //								stf.writeMOL2PNGFile(container, id + ".png");
@@ -923,24 +909,31 @@ public class MassBankLookupBean implements Runnable, Serializable {
 //								// TODO Auto-generated catch block
 //								e.printStackTrace();
 //							}
-                        duplicates.add(name);
-                        //results.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
-                        results.add(new Result("MassBank", id, name, score, container, url, tempPath + id + ".png", formula, emass));
-                        limitCounter++;
-                    }
-
-                    // add unused results (duplicate or no mol container) to list
-                    if(!fetch && container == null) {
-                        //unused.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
-                    	unused.add(new Result("MassBank", id, name, score, container, url, tempPath + id + ".png"));
-                    }
+                    duplicates.add(name);
+                    //results.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
+                    results.add(new Result("MassBank", id, name, score, container, url, tempPath + id + ".png", formula, emass));
+                    limitCounter++;
                 }
-                else if(split.length == 7) {
-                        System.err.println("length == 7");
+
+                // add unused results (duplicate or no mol container) to list
+                if(!fetch && container == null) {
+                    //unused.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
+                	unused.add(new Result("MassBank", id, name, score, container, url, tempPath + id + ".png"));
                 }
             }
-            System.out.println("entries after duplicate removal -> " + results.size());
-            this.results = results;
+            else if(split.length == 7) {
+                    System.err.println("length == 7");
+            }
+            else {
+            	System.err.println("unknown split length! - time to update MassBank format!?!");
+            }
+        }
+        // ensure progress bar set to 100% - can be lower if not all results had moldata, thus not increasing limitCounter
+        this.searchCounter = resultLimit;
+        updateSearchProgress();	// update progress bar
+        
+        System.out.println("entries after duplicate removal -> " + results.size());
+        this.results = results;
 	}
 	
 	private String formatPeaks() {
