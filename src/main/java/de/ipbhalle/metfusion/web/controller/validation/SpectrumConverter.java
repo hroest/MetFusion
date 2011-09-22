@@ -18,7 +18,7 @@ import javax.faces.convert.FacesConverter;
 
 import de.ipbhalle.metfusion.web.controller.MetFusionBean;
 
-@FacesConverter("de.ipbhalle.MetFlow.web.controller.validation.SpectrumConverter")
+@FacesConverter("de.ipbhalle.metfusion.web.controller.validation.SpectrumConverter")
 public class SpectrumConverter implements Converter {
 
 	private static final String linebreak = System.getProperty("line.separator");
@@ -82,7 +82,18 @@ public class SpectrumConverter implements Converter {
 		//StringBuilder sb = new StringBuilder();
 		peaklist = peaklist.replaceAll("[ \t\\x0B\f\r]+", DEFAULT_WHITESPACE);
 		
-		return peaklist;
+		StringBuilder sb = new StringBuilder();
+		String[] split = peaklist.split("\n");
+		for (int i = 0; i < split.length; i++) {
+			split[i] = split[i].trim();
+			String[] temp = split[i].split(DEFAULT_WHITESPACE);
+			if(temp.length == 3) {
+				sb.append(temp[0]).append(DEFAULT_WHITESPACE).append(temp[2]).append("\n");
+			}
+			else sb.append(split[i]).append("\n");
+		}
+		String s = sb.toString().trim();
+		return s;
 	}
 	
 	/**
