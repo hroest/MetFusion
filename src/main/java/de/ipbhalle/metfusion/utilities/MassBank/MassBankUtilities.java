@@ -5,6 +5,7 @@
 
 package de.ipbhalle.metfusion.utilities.MassBank;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
@@ -17,6 +18,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,6 +51,8 @@ import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 
 import de.ipbhalle.CDK.ErrorHandler.ErrorHandler;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 /**
  * The Class MassBankUtilities.
@@ -345,6 +349,9 @@ public class MassBankUtilities {
 			}
 			method.releaseConnection();
 			
+			System.out.println("compound -> " + compound + "\tsite -> " + site);
+			System.out.println("mol -> \n" + mol);
+			
 			if(mol.contains("M  EN") && !mol.contains("M  END")) {
 				mol = mol.replace("M  EN", "M  END");
 			}
@@ -352,7 +359,7 @@ public class MassBankUtilities {
 //				Pattern p = Pattern.compile("[0-9]+\n[0-9]+\n");
 //				mol = p.matcher(mol).replaceFirst("").trim();
 //			}
-			if(mol.contains("<!DOCTYPE html PUBLIC") || !mol.contains("M  END")) {	// reset mol mol data if encountered error on server
+			if(mol.contains("<!DOCTYPE html PUBLIC")) {	// reset mol mol data if encountered error on server
 				System.err.println(id + " contains html code - return false");
 				mol = "";
                                 f.delete();
@@ -573,13 +580,15 @@ public class MassBankUtilities {
 		String[] institutes = dir.list();
 		File f = null;
 		for (int i = 0; i < institutes.length; i++) {
-			if(institutes[i].startsWith(prefix))
+			if(institutes[i].startsWith(prefix)) {
 				f = new File(dir, institutes[i] + "/records/" + id + ".txt");
+				break;
+			}
 		}
 		//File f = new File("/home/mgerlich/workspace-3.5/MassBankComparison/MBCache/" + id + ".txt");
 		if(!f.exists()) {
-			String reqStr = "http://msbi.ipb-halle.de/MassBank/";
-			//String reqStr = "http://www.massbank.jp/";
+			//String reqStr = "http://msbi.ipb-halle.de/MassBank/";
+			String reqStr = "http://www.massbank.jp/";
 			reqStr += "jsp/" + MassBankCommon.DISPATCHER_NAME;
 			
 			HttpClient client = new HttpClient();
@@ -614,6 +623,26 @@ public class MassBankUtilities {
 				}
 				
 				method.releaseConnection();
+				
+				if(result1.contains("Chemical Structure") && result1.contains("<img src=")) {	// record provides gif image
+					int first = result1.indexOf("<img src=");
+					String sub = result1.substring(first, result1.indexOf(" style=", first));
+					if(sub.contains("gif_large") && sub.contains("onClick")) {
+						int second = sub.indexOf("'");
+						String url = sub.substring(second + 1, sub.indexOf("'", second + 2));
+						BufferedImage img = null;
+						img = ImageIO.read(new URL(url));
+						
+						String path = f.getAbsolutePath();
+						path = path.replace("records", "gif_large");	// replace subdirectory
+						path = path.replace("txt", "gif");				// replace ending
+						String file = path.substring(0, path.lastIndexOf("/") + 1);
+						File subdir = new File(file);
+						subdir.mkdir();
+						File image = new File(subdir, id + ".gif");
+						ImageIO.write(img, "gif", image);
+					}
+				}
 				
 				if(result1.contains("ACCESSION")) {
 					String result = result1.substring(result1.indexOf("ACCESSION"), result1.indexOf("</pre>"));
@@ -756,9 +785,9 @@ public class MassBankUtilities {
 		try {
 			br = new BufferedReader(new FileReader(f));
 		} catch (FileNotFoundException e) {
-                        System.err.println("File " + f.getAbsolutePath() + " not found!");
+            System.err.println("File " + f.getAbsolutePath() + " not found!");
 			e.printStackTrace();
-                        return dbs;     // cancel reading of file and return empty hashmap
+            return dbs;     // cancel reading of file and return empty hashmap
 		}
 		String line = "";
 		String db = "";
