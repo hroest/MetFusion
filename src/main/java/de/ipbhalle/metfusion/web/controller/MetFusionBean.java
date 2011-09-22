@@ -330,8 +330,13 @@ public class MetFusionBean implements Serializable {
 	    			renderer.render(PUSH_GROUP);
 	    			
 	    			// break loop if reached 100%
-	    			if(percentProgress == 100)
+	    			if(percentProgress == 100 || mblb.isDone()) {
+	    				percentProgress = 100;
+	    				percentProgressGlobal += 10;	// when finished, increase global progress completed percentage
+	    				// send updated progress to outputProgress component
+		    			renderer.render(PUSH_GROUP);
 	    				break;
+	    			}
 	            }
             }
         }, "updateThreadDatabase");
@@ -355,8 +360,10 @@ public class MetFusionBean implements Serializable {
 	    			renderer.render(PUSH_GROUP);
 	    			
 	    			// break loop if reached 100%
-	    			if(percentProgressFragmenter == 100)
+	    			if(percentProgressFragmenter == 100) {
+	    				percentProgressGlobal += 10;	// when finished, increase global progress completed percentage
 	    				break;
+	    			}
 	            }
             }
         }, "updateThreadFragmenter");
@@ -372,7 +379,8 @@ public class MetFusionBean implements Serializable {
 	    				e.printStackTrace();
 	    			}
 	    			
-	    			percentProgressGlobal = mfthread.getProgress();
+	    			if(mfthread.getProgress() > percentProgressGlobal)	// use pseudo progress from finished retrieval threads
+	    				percentProgressGlobal = mfthread.getProgress();	// both threads increase per 10 = 20% -> first getProgress starts at 25%
 	    			System.out.println("while running...");
 	    			System.out.println("percentProgressGlobal -> " + percentProgressGlobal);
 	    			
@@ -381,6 +389,7 @@ public class MetFusionBean implements Serializable {
 	    			
 	    			// break loop if reached 100%
 	    			if(percentProgressGlobal == 100 || isShowClusterResults())	{	// break if overall progress is 100% 
+	    				setPercentProgressGlobal(100);
 	    				setEnableStart(Boolean.TRUE);								// or clustering is done (final step)
 	    				break;
 	    			}
@@ -871,21 +880,30 @@ public class MetFusionBean implements Serializable {
 			}
 			
 			int currentRow = 0;
-			//int currentCol = 0;
+			int currentCol = 0;
 			int counter = 0;
 			// write MetFusion results
 			for (ResultExt result : secondOrder) {
 				//currentRow = counter*4 + 1;
 				currentRow++;
 				
+				currentCol = 0;
 				// output is text
-				WritableCell cellRank = new Number(0, currentRow, result.getTiedRank(), arial10format);
-				WritableCell cellID = new Label(1, currentRow, result.getId(), arial10format);
-				WritableCell cellName = new Label(2, currentRow, result.getName(), arial10format);
-				WritableCell cellOrigScore = new Number(3, currentRow, result.getScoreShort(), arial10format);
-				WritableCell cellNewScore = new Number(4, currentRow, result.getResultScore(), arial10format);
+				WritableCell cellRank = new Number(currentCol, currentRow, result.getTiedRank(), arial10format);
+				currentCol++;
+				WritableCell cellID = new Label(currentCol, currentRow, result.getId(), arial10format);
+				currentCol++;
+				WritableCell cellName = new Label(currentCol, currentRow, result.getName(), arial10format);
+				currentCol++;
+				WritableCell cellOrigScore = new Number(currentCol, currentRow, result.getScoreShort(), arial10format);
+				currentCol++;
+				WritableCell cellNewScore = new Number(currentCol, currentRow, result.getResultScore(), arial10format);
+				currentCol++;
 				//wi = new WritableImage(5, currentRow, 1, 3, new File(appPath, result.getImagePath()));
-				wi = new WritableImage(5, currentRow, 1, 3, new File(webRoot, result.getImagePath()));
+				File temp = new File(webRoot, result.getImagePath());
+				if(temp.exists())
+					wi = new WritableImage(currentCol, currentRow, 1, 3, temp);
+				//wi = new WritableImage(5, currentRow, 1, 3, new File(webRoot, result.getImagePath()));
 				
 				try
 				{
@@ -934,7 +952,7 @@ public class MetFusionBean implements Serializable {
 			}
 			
 			int currentRow = 0;
-			//int currentCol = 0;
+			int currentCol = 0;
 			int counter = 0;
 			
 			// write MassBank results
@@ -942,13 +960,21 @@ public class MetFusionBean implements Serializable {
 				//currentRow = counter*4 + 1;
 				currentRow++;
 				
+				currentCol = 0;
 				// output is text
-				WritableCell cellRank = new Number(0, currentRow, result.getTiedRank(), arial10format);
-				WritableCell cellID = new Label(1, currentRow, result.getId(), arial10format);
-				WritableCell cellName = new Label(2, currentRow, result.getName(), arial10format);
-				WritableCell cellOrigScore = new Number(3, currentRow, result.getScoreShort(), arial10format);
+				WritableCell cellRank = new Number(currentCol, currentRow, result.getTiedRank(), arial10format);
+				currentCol++;
+				WritableCell cellID = new Label(currentCol, currentRow, result.getId(), arial10format);
+				currentCol++;
+				WritableCell cellName = new Label(currentCol, currentRow, result.getName(), arial10format);
+				currentCol++;
+				WritableCell cellOrigScore = new Number(currentCol, currentRow, result.getScoreShort(), arial10format);
+				currentCol++;
 				//wi = new WritableImage(4, currentRow, 1, 3, new File(appPath, result.getImagePath()));
-				wi = new WritableImage(4, currentRow, 1, 3, new File(webRoot, result.getImagePath()));
+				File temp = new File(webRoot, result.getImagePath());
+				if(temp.exists())
+					wi = new WritableImage(currentCol, currentRow, 1, 3, temp);
+				//wi = new WritableImage(5, currentRow, 1, 3, new File(webRoot, result.getImagePath()));
 				
 				try
 				{
@@ -994,20 +1020,27 @@ public class MetFusionBean implements Serializable {
 			}
 			
 			int currentRow = 0;
-			//int currentCol = 0;
+			int currentCol = 0;
 			int counter = 0;
 			// write MetFrag results
 			for (Result result : mfb.getResults()) {
 				//currentRow = counter*4 + 1;
 				currentRow++;
 				
+				currentCol = 0;
 				// output is text
-				WritableCell cellRank = new Number(0, currentRow, result.getTiedRank(), arial10format);
-				WritableCell cellID = new Label(1, currentRow, result.getId(), arial10format);
-				WritableCell cellName = new Label(2, currentRow, result.getName(), arial10format);
-				WritableCell cellOrigScore = new Number(3, currentRow, result.getScoreShort(), arial10format);
+				WritableCell cellRank = new Number(currentCol, currentRow, result.getTiedRank(), arial10format);
+				currentCol++;
+				WritableCell cellID = new Label(currentCol, currentRow, result.getId(), arial10format);
+				currentCol++;
+				WritableCell cellName = new Label(currentCol, currentRow, result.getName(), arial10format);
+				currentCol++;
+				WritableCell cellOrigScore = new Number(currentCol, currentRow, result.getScoreShort(), arial10format);
+				currentCol++;
 				//wi = new WritableImage(4, currentRow, 1, 3, new File(appPath, result.getImagePath()));
-				wi = new WritableImage(4, currentRow, 1, 3, new File(webRoot, result.getImagePath()));
+				File temp = new File(webRoot, result.getImagePath());
+				if(temp.exists())
+					wi = new WritableImage(currentCol, currentRow, 1, 3, temp);
 				
 				try
 				{
