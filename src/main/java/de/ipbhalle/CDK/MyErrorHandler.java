@@ -3,7 +3,7 @@
  * last modified Jun 2, 2010 - 10:39:52 AM
  * email: mgerlich@ipb-halle.de
  */
-package de.ipbhalle.CDK.ErrorHandler;
+package de.ipbhalle.CDK;
 
 import java.io.*;
 import java.util.regex.Pattern;
@@ -16,7 +16,7 @@ import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 import org.openscience.cdk.ChemFile;
 
 
-public class ErrorHandler implements IChemObjectReaderErrorHandler {
+public class MyErrorHandler implements IChemObjectReaderErrorHandler {
 	
 	public static void main(String[] args) {
 		//File f = new File("/vol/massbank/Cache/JP_Funatsu/mol/JP011837.mol");
@@ -89,7 +89,7 @@ public class ErrorHandler implements IChemObjectReaderErrorHandler {
 		MDLReader reader = null;
 		try {
 			reader = new MDLReader(new FileReader(f));
-			reader.setErrorHandler(new ErrorHandler());
+			reader.setErrorHandler(new MyErrorHandler());
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
