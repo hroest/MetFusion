@@ -7,6 +7,8 @@ package de.ipbhalle.metfusion.threading;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.faces.application.FacesMessage;
+
 import de.ipbhalle.MassBank.MassBankLookupBean;
 import de.ipbhalle.metfusion.integration.Similarity.SimilarityMetFusion;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoIntegrationWeighted;
@@ -29,6 +31,9 @@ public class MetFusionThread implements Runnable {
 	private boolean active = Boolean.FALSE;
 	private int steps = 0;
 	private final int totalSteps = 8;
+	
+	/** The index of the error tab. This depends on the number and order of available tabs in the JSF page. */
+	private String numErrorTab = "3";
 	
 	public MetFusionThread(MetFusionBean app, MassBankLookupBean database, MetFragBean fragmenter, StyleBean styleBean, String tempPath) {
 		this.metfusion = app;
@@ -66,6 +71,7 @@ public class MetFusionThread implements Runnable {
 		setProgress(steps);
 		metfusion.setStatus("Retrieval");
 		metfusion.toggleEffect();		// let progress bars appear
+		metfusion.setErrorMessage("");	// reset error message, thus hide error tab
 		
 		massbank.run();
 		metfrag.run();
@@ -76,6 +82,98 @@ public class MetFusionThread implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		
+		if(massbank.getResults() == null || massbank.getResults().size() == 0) {
+        	String errMessage = "Peak(s) not found in MassBank - check the settings and try again.";
+            System.err.println(errMessage);
+            FacesMessage curentMessage = new FacesMessage(errMessage, errMessage);
+            curentMessage.setSeverity(FacesMessage.SEVERITY_WARN);
+            //Mark as ERROR
+            metfusion.setStatus("Empty MassBank result!");
+            stepsDonePercent(totalSteps);
+    		setActive(Boolean.FALSE);
+    		metfusion.setEnableStart(Boolean.TRUE);
+    		
+    		metfusion.setShowTable(true);
+			metfusion.setSelectedTab(numErrorTab);
+			metfusion.setErrorMessage(errMessage);
+			massbank.setShowResult(false);
+			
+            return;
+        }
+        else if(massbank.getResults() != null) {
+            System.out.println("# MassBank results: " + massbank.getResults().size());
+            massbank.setShowResult(true);
+            //setShowResultsDatabase(true);
+        }
+        else {      // abort run and return
+            //String errMessage = "EMPTY MassBank result! - Check settings.";
+        	String errMessage = "Peak(s) not found in MassBank - check the settings and try again.";
+            //this.errorMessage = errMessage;
+            System.err.println(errMessage);
+            FacesMessage curentMessage = new FacesMessage(errMessage, errMessage);
+            curentMessage.setSeverity(FacesMessage.SEVERITY_WARN);
+            //Mark as ERROR
+            stepsDonePercent(totalSteps);
+    		setActive(Boolean.FALSE);
+    		metfusion.setEnableStart(Boolean.TRUE);
+    		
+    		metfusion.setShowTable(true);
+			metfusion.setSelectedTab(numErrorTab);
+			metfusion.setErrorMessage(errMessage);
+			massbank.setShowResult(false);
+			
+            return;
+        }
+                
+        if(metfrag.getResults() == null || metfrag.getResults().size() == 0) {
+        	String errMessage = "EMPTY MetFrag result! - Check settings.";
+        	//this.errorMessage = errMessage;
+            System.err.println(errMessage);
+            FacesMessage curentMessage = new FacesMessage(errMessage, errMessage);
+            curentMessage.setSeverity(FacesMessage.SEVERITY_WARN);
+            //Mark as ERROR
+            metfusion.setStatus("Empty MetFrag result!");
+            stepsDonePercent(steps);
+    		setActive(Boolean.FALSE);
+    		metfusion.setEnableStart(Boolean.TRUE);
+    		stepsDonePercent(totalSteps);
+    		setActive(Boolean.FALSE);
+    		metfusion.setEnableStart(Boolean.TRUE);
+    		stepsDonePercent(totalSteps);
+			
+    		metfusion.setShowTable(true);
+			metfusion.setSelectedTab(numErrorTab);
+			metfusion.setErrorMessage(errMessage);
+			metfrag.setShowResult(false);
+			
+			return;
+        }
+        else if(metfrag.getResults() != null) {
+        	System.out.println("# MetFrag results: " + metfrag.getResults().size());
+        	metfrag.setShowResult(true);
+        }
+        else {      // abort run and return
+            String errMessage = "EMPTY MetFrag result! - Check settings.";
+            //this.errorMessage = errMessage;
+            System.err.println(errMessage);
+            FacesMessage curentMessage = new FacesMessage(errMessage, errMessage);
+            curentMessage.setSeverity(FacesMessage.SEVERITY_WARN);
+            //Mark as ERROR
+            stepsDonePercent(totalSteps);
+    		setActive(Boolean.FALSE);
+    		metfusion.setEnableStart(Boolean.TRUE);
+    		stepsDonePercent(totalSteps);
+			setActive(Boolean.FALSE);
+			
+			metfusion.setShowTable(true);
+			metfusion.setSelectedTab(numErrorTab);
+			metfusion.setErrorMessage(errMessage);
+			metfrag.setShowResult(false);
+			
+            return;
+        }
+		
 		steps += 2;
 		stepsDonePercent(steps);
 		metfusion.setShowResultsDatabase(true);
@@ -86,6 +184,26 @@ public class MetFusionThread implements Runnable {
 		// create tanimoto matrix and perform chemical-similarity based integration
 		List<Result> listMassBank = massbank.getResults();
 		List<Result> listMetFrag = metfrag.getResults();
+		// cancel if one or both lists are empty -> check settings
+		if(listMassBank.isEmpty() || listMetFrag.isEmpty()) {
+			String errMessage = "An error occured!";
+        	
+			if(listMassBank.isEmpty())
+				errMessage = "Peak(s) not found in MassBank - check the settings and try again.";
+			if(listMetFrag.isEmpty())
+				errMessage = "EMPTY MetFrag result! - Check settings.";
+			
+			stepsDonePercent(totalSteps);
+			setActive(Boolean.FALSE);
+			metfusion.setEnableStart(Boolean.TRUE);
+			metfusion.setShowTable(true);
+			metfusion.setSelectedTab(numErrorTab);
+			metfusion.setErrorMessage(errMessage);
+			//metfusion.setPercentProgressFragmenter(100);
+
+			return;
+		}
+		
 		TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, listMetFrag);	//, 3, 0.5f);
 		String sessionPath = massbank.getSessionPath();
 		// fork new thread for generating ColorCodedMatrix
