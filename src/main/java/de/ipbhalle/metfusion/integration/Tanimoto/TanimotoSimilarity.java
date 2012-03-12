@@ -87,6 +87,9 @@ public class TanimotoSimilarity implements ISimilarity, Runnable {
 		
 		TanimotoIntegration integration = new TanimotoIntegration(sim);
 		List<ResultExt> newOrder = integration.computeNewOrdering();
+		for (ResultExt resultExt : newOrder) {
+			System.out.println(resultExt.getName() + "\tscore -> " + resultExt.getResultScore());
+		}
 	}
 	
 	public TanimotoSimilarity(File matrix) throws NumberFormatException, IOException {
