@@ -31,6 +31,11 @@ import de.ipbhalle.metfusion.wrapper.ScoreRankPair;
 
 public class TanimotoIntegration extends Integration implements Runnable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private ISimilarity similarity;
 	
 	private double[] resultScores;
@@ -179,7 +184,7 @@ public class TanimotoIntegration extends Integration implements Runnable{
 			//newList.add(new ResultExt(similarity.getCandidates().get((rank_new[i] - 1)), (rank_new[i] - 1), i, resultScores[(rank_new[i] - 1)]));
 			ScoreRankPair srp = resultRanking.poll();
 			Result r = candidates.get(srp.getIndex());
-			newList.add(new ResultExt(r, r.getTiedRank(), srp.getRank(), resultScores[srp.getIndex()]));
+			newList.add(new ResultExt(r, r.getTiedRank(), srp.getRank(), resultScores[srp.getIndex()], r.getMatchingPeaks()));
 		}
 		
 		this.resultingOrder = newList;
@@ -211,7 +216,8 @@ public class TanimotoIntegration extends Integration implements Runnable{
 		
 		for (int i = 0; i < indices.length; i++) {
 			//newList.add(mapping.get(i));
-			newList.add(new ResultExt(similarity.getCandidates().get((indices[i] - 1)), (indices[i] - 1), i, resultScoresWeighted[(indices[i] - 1)]));
+			newList.add(new ResultExt(similarity.getCandidates().get((indices[i] - 1)), (indices[i] - 1), i, 
+					resultScoresWeighted[(indices[i] - 1)], similarity.getCandidates().get((indices[i] - 1)).getMatchingPeaks()));
 		}
 		
 		//this.resultingOrder = newList;
@@ -471,8 +477,14 @@ public class TanimotoIntegration extends Integration implements Runnable{
 		
 		int[] tied_ranks_orig = MatrixUtils.rank(rowScores, MatrixUtils.Order.DESCENDING);
 		Queue<ScoreRankPair> orig = MatrixUtils.ranking(rowScores);
+		for (ScoreRankPair srp : orig) {
+			System.out.println("[orig] index -> " + srp.getIndex() + "\trank -> " + srp.getRank() + "\tscore -> " + srp.getScore());
+		}
 		int[] tied_ranks = MatrixUtils.rank(result, MatrixUtils.Order.DESCENDING);
 		Queue<ScoreRankPair> resultRank = MatrixUtils.ranking(result);
+		for (ScoreRankPair srp : resultRank) {
+			System.out.println("[new] index -> " + srp.getIndex() + "\trank -> " + srp.getRank() + "\tscore -> " + srp.getScore());
+		}
 		
 		/**
 		 * skip computation of delta ranks as it is only required for evaluation in R
