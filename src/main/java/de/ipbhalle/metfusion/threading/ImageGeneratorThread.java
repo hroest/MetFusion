@@ -65,9 +65,9 @@ public class ImageGeneratorThread extends Thread {
 			}
 			
 			String filename = r.getId() + DEFAULT_ENDING;
-			File image = new File(getOutputFolder(), filename);
+			//File image = new File(getOutputFolder(), filename);
 			String path = getTempPath() + filename;
-			if(stf != null && !image.exists()) {
+			if(stf != null  && r.getMol() != null) {	// && !image.exists() - remove redundancy check for SDF -> compounds 0,1,2,.. exist in all SDF files
 				try {
 					stf.writeMOL2PNGFile(r.getMol(), filename);
 					r.setImagePath(path);
