@@ -5,13 +5,8 @@
  */
 package de.ipbhalle.metfusion.integration.Tanimoto;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 
 import org.apache.commons.math.linear.RealMatrix;
@@ -113,7 +108,7 @@ public class TanimotoIntegrationWeighted extends Integration {
 			ScoreRankPair srp = resultRanking.poll();
 			Result r = candidates.get(srp.getIndex());
 			//System.out.println("ScoreRankPair tiedRank -> " + srp.getRank() + " score -> " + srp.getScore() + "  index -> " + srp.getIndex());
-			newList.add(new ResultExt(r, r.getTiedRank(), srp.getRank(), resultScores[srp.getIndex()]));
+			newList.add(new ResultExt(r, r.getTiedRank(), srp.getRank(), resultScores[srp.getIndex()], r.getMatchingPeaks()));
 		}
 		
 		this.resultingOrder = newList;
@@ -148,7 +143,8 @@ public class TanimotoIntegrationWeighted extends Integration {
 			//newList.add(mapping.get(i));
 			//newList.add(new ResultExt(similarity.getCandidates().get((indices[i] - 1)), (indices[i] - 1), i, resultScores[(indices[i] - 1)]));
 			ScoreRankPair srp = resultRanking.poll();
-			newList.add(new ResultExt(similarity.getCandidates().get(srp.getIndex()), srp.getRank(), srp.getRank(), resultScores[srp.getIndex()]));
+			newList.add(new ResultExt(similarity.getCandidates().get(srp.getIndex()), srp.getRank(), srp.getRank(), 
+					resultScores[srp.getIndex()], similarity.getCandidates().get(srp.getIndex()).getMatchingPeaks()));
 		}
 		
 		//this.resultingOrder = newList;
