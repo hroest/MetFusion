@@ -33,6 +33,7 @@ import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
+import de.ipbhalle.CDK.AtomContainerHandler;
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
 import de.ipbhalle.metfusion.web.controller.MetFragBean;
 import de.ipbhalle.metfusion.wrapper.Result;
@@ -105,6 +106,8 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	private boolean showResult;
 	private List<Result> results;
 	private List<String> originalResults;
+	private String missingEntriesNote = "Note: Some entries from the original MassBank query are left out because of missing structure information!";
+	private boolean showNote = Boolean.FALSE;
 	
 	private List<Result> unused;
 	
@@ -299,7 +302,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		for (int i = 0; i < currentSelected.size(); i++) {
 			String[] temp = currentSelected.get(i);
 			for (int j = 0; j < temp.length; j++) {
-				System.out.println("currentSelected -> " + temp[j]);
+				//System.out.println("currentSelected -> " + temp[j]);
 				if(temp[j] != null && !temp[j].isEmpty()) {
 					remaining.add(temp[j]);
 					numSelected++;
@@ -307,14 +310,14 @@ public class MassBankLookupBean implements Runnable, Serializable {
 			}
 		}
 		
-		String[] old = (String[]) event.getOldValue();
-		for (int i = 0; i < old.length; i++) {
-			System.out.println("old -> " + old[i]);
-		}
+//		String[] old = (String[]) event.getOldValue();
+//		for (int i = 0; i < old.length; i++) {
+//			System.out.println("old -> " + old[i]);
+//		}
 		String[] newInstruments = (String[]) event.getNewValue();
-		for (int i = 0; i < newInstruments.length; i++) {
-			System.out.println("newInstruments -> " + newInstruments[i]);
-		}
+//		for (int i = 0; i < newInstruments.length; i++) {
+//			System.out.println("newInstruments -> " + newInstruments[i]);
+//		}
 		String lastInst = "";
 		if(remaining.size() == 1 && newInstruments.length == 0) {
 			numSelected = 0;	// reset selected instruments to 0 as the last instrument was deselected
@@ -364,7 +367,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		for (int i = 0; i < currentSelected.size(); i++) {
 			String[] temp = currentSelected.get(i);
 			for (int j = 0; j < temp.length; j++) {
-				System.out.println("currentSelected -> " + temp[j]);
+				//System.out.println("currentSelected -> " + temp[j]);
 				if(!temp[j].isEmpty())
 					tempInstruments.add(temp[j]);
 			}
@@ -373,7 +376,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		String[] collected = new String[tempInstruments.size()];
 		for (int i = 0; i < collected.length; i++) {
 			collected[i] = tempInstruments.get(i);
-			System.out.println("collected [" + i + "] -> " + collected[i]);
+			//System.out.println("collected [" + i + "] -> " + collected[i]);
 		}
 		
 		System.out.println("collected.length -> " + collected.length);
@@ -528,8 +531,10 @@ public class MassBankLookupBean implements Runnable, Serializable {
 
 		// if there are no entries after filtering, add all filtered entries
 		// back
-		if (queryResults.size() == 0)
+		if (queryResults.size() == 0) {
+			this.done = Boolean.TRUE;
 			return;
+		}
 
 		this.originalResults = result;
 		this.unused = new ArrayList<Result>();
@@ -857,10 +862,11 @@ public class MassBankLookupBean implements Runnable, Serializable {
                 // hydrogen handling
                 if(container != null) {
                     try {
-                        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-                        CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-                        hAdder.addImplicitHydrogens(container);
-                        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
+	                	container = AtomContainerHandler.addExplicitHydrogens(container);
+//                        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+//                        CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
+//                        hAdder.addImplicitHydrogens(container);
+//                        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
                     } catch (CDKException e) {
                         System.err.println("error manipulating mol for " + id);
                         continue;
@@ -934,6 +940,10 @@ public class MassBankLookupBean implements Runnable, Serializable {
         
         System.out.println("entries after duplicate removal -> " + results.size());
         this.results = results;
+        if(this.results.size() < this.originalResults.size()) {	// entries are left out because of missing structure information
+        	System.out.println(missingEntriesNote);
+        	setShowNote(Boolean.TRUE);
+        }
 	}
 	
 	private String formatPeaks() {
@@ -1357,6 +1367,22 @@ public class MassBankLookupBean implements Runnable, Serializable {
 
 	public void setPresentOther(boolean presentOther) {
 		this.presentOther = presentOther;
+	}
+
+	public void setMissingEntriesNote(String missingEntriesNote) {
+		this.missingEntriesNote = missingEntriesNote;
+	}
+
+	public String getMissingEntriesNote() {
+		return missingEntriesNote;
+	}
+
+	public void setShowNote(boolean showNote) {
+		this.showNote = showNote;
+	}
+
+	public boolean isShowNote() {
+		return showNote;
 	}
 
 }
