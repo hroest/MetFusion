@@ -29,6 +29,9 @@ public class Result {
 	/** The name of the result, e.g. compound name. */
 	protected String name;
 	
+	/** The canonical SMILES, either from a record or generated from the mol-file/container. */
+	protected String smiles = "";
+	
 	/** The AtomContainer representing the molecular structure as provided
 	 * by SMILES, InChI or mol/sdf data. */
 	protected IAtomContainer mol;
@@ -60,6 +63,8 @@ public class Result {
 	/** The sum formula of the compound. Either taken from record or computed from IAtomcontainer. */
 	protected String sumFormula;
 	
+	/** The number of peaks matching this candidate/spectrum. */
+	protected int matchingPeaks;
 	
 	public Result() {
 		
@@ -81,6 +86,7 @@ public class Result {
 		this.score = score;
 		this.mol = mol;
 		this.setScoreShort(roundThreeDecimals(score));	// set the short version of the score
+		//this.setScoreShort(score);	// fix for windows
 		this.tiedRank = 1;
 		calculateBitSet();			// calculate the bitset for the AtomContainer
 	}
@@ -155,10 +161,11 @@ public class Result {
 	 * @param exactMass exact mass of the compound as double
 	 */
 	public Result(String port, String id, String name, double score, IAtomContainer mol, String url, 
-			String imagePath, String landingURL, String sumFormula, double exactMass) {
+			String imagePath, String landingURL, String sumFormula, double exactMass, int peaksExplained) {
 		this(port, id, name, score, mol, url, imagePath, landingURL);
 		this.sumFormula = sumFormula;
 		this.exactMass = exactMass;
+		this.matchingPeaks = peaksExplained;
 	}
 	
 	/**
@@ -395,5 +402,21 @@ public class Result {
 
 	public void setSumFormula(String sumFormula) {
 		this.sumFormula = sumFormula;
+	}
+
+	public int getMatchingPeaks() {
+		return matchingPeaks;
+	}
+
+	public void setMatchingPeaks(int matchingPeaks) {
+		this.matchingPeaks = matchingPeaks;
+	}
+
+	public String getSmiles() {
+		return smiles;
+	}
+
+	public void setSmiles(String smiles) {
+		this.smiles = smiles;
 	}
 }
