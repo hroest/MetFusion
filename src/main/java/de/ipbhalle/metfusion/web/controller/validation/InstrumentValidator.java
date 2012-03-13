@@ -49,7 +49,6 @@ public class InstrumentValidator implements Validator {
 			 */
 			List<String> old = (List<String>) obj;
 			for (String s : old) {
-				System.out.println("old -> " + s);
 				instruments.add(s);
 			}
 		}
@@ -75,8 +74,5 @@ public class InstrumentValidator implements Validator {
 		}
 		
 		FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put(MassBankLookupBean.getSessionmapkeyinstruments(), instruments);
-		for (String s : instruments) {
-			System.out.println("new -> " + s);
-		}
 	}
 }
