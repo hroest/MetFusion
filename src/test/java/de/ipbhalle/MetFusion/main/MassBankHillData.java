@@ -27,7 +27,6 @@ import de.ipbhalle.metfusion.web.controller.MetFragBean;
 import de.ipbhalle.metfusion.wrapper.Result;
 import de.ipbhalle.metfusion.wrapper.ResultExt;
 import de.ipbhalle.metfusion.integration.Similarity.SimilarityMetFusion;
-import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoIntegration;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoIntegrationWeighted;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoSimilarity;
 
@@ -37,7 +36,8 @@ public class MassBankHillData {
 	String oldResultsPath = "/home/mgerlich/workspace-3.5/MassBankComparison/MassBankQueries";
 	
 																		// für japanische MassBank Anfrage
-	static String serverUrl = "http://massbankInternal.ipb-sub.ipb-halle.de/MassBank/"; 
+	static String serverUrl = "http://www.massbank.jp/";
+		//"http://massbankInternal.ipb-sub.ipb-halle.de/MassBank/"; 
 		//"http://msbi.ipb-halle.de/MassBank/";		//"http://www.massbank.jp/";
 	
 	Date current;
@@ -280,6 +280,8 @@ public class MassBankHillData {
 				+ "&CUTOFF=5" + "&NUM=0&VAL=" + mbPeaks;
 		param += inst;
 		
+		
+		Thread.sleep(10000);	// put thread to sleep to prevent hammering/DOS
 		
 		/**
 		 * threading
