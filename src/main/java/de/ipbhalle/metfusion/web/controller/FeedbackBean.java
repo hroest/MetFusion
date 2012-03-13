@@ -305,12 +305,19 @@ public class FeedbackBean implements Validator {
 				// only send email if both sender and recipient email are not null
 				if(!this.email.isEmpty() && !to.isEmpty()) {
 					MailClient client = new MailClient();
-					client.sendMailWithoutAttach(server, this.email, to, subject, message);
+					
+					if(appBean.getMfb().isRenderSDF()) {
+						String[] attachments = new String[1];
+						attachments[0] = appBean.getMfb().getSessionPath() + appBean.getMfb().getSelectedSDF();
+						client.sendMail(server, this.email, to, subject, message, attachments);		// send SDF as attachment
+					}
+					else client.sendMailWithoutAttach(server, this.email, to, subject, message);
 				}
 				else {
 					MailClient client = new MailClient();	// fall back to default sender if no email was given
 					client.sendMailWithoutAttach(server, from, to, subject, message);
 				}
+				
 				// send also a copy to sender
 				//client.sendMailWithoutAttach(server, from, this.email, subject, "Your message:\n\n" + message);
 			} catch (AddressException e1) {
