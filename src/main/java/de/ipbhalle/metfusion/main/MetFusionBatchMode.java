@@ -36,6 +36,7 @@ public class MetFusionBatchMode {
 	private final String fileSeparator = System.getProperty("file.separator");
 	private final String userHome = System.getProperty("user.home");
 	private final String currentDir = System.getProperty("user.dir");
+	private final String tempDir = System.getProperty("java.io.tmpdir");
 	private final String lineSeparator = System.getProperty("line.separator");
 	private final String fileEncoding = System.getProperty("file.encoding");
 	
@@ -84,7 +85,8 @@ public class MetFusionBatchMode {
 				System.out.print("[" + format + "] ");
 			}
 			
-			System.out.println("\nExample call: java -jar JARFILE -mf settings.mf -out /tmp");
+			System.out.println("\nExample call: java -jar JARFILE -mf settings.mf #this uses the current directory for output!");
+			System.out.println("Example call: java -jar JARFILE -mf settings.mf -out /tmp");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF");
 			
@@ -109,6 +111,10 @@ public class MetFusionBatchMode {
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
 				i++;	// skip value, iterate over new argument
 			}
+		}
+		if(!checkOUT) {
+			settings.put(ARGUMENTS.out, currentDir);
+			checkOUT = Boolean.TRUE;
 		}
 		if(checkMF & checkSDF | checkMF & checkOUT)
 			success = true;
