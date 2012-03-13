@@ -104,6 +104,7 @@ public class MailClient {
 
 	protected void addAtachments(String[] attachments, Multipart multipart)
 			throws MessagingException, AddressException {
+		int counter = 0;
 		for (int i = 0; i <= attachments.length - 1; i++) {
 			String filename = attachments[i];
 			MimeBodyPart attachmentBodyPart = new MimeBodyPart();
@@ -114,8 +115,10 @@ public class MailClient {
 
 			// assume that the filename you want to send is the same as the
 			// actual file name - could alter this to remove the file path
-			attachmentBodyPart.setFileName(filename);
-
+			String ending = filename.substring(filename.lastIndexOf("."));
+			counter = i+1;
+			attachmentBodyPart.setFileName(counter + ending);
+			
 			// add the attachment
 			multipart.addBodyPart(attachmentBodyPart);
 		}
