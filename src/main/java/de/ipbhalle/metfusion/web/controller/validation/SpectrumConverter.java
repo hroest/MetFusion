@@ -4,19 +4,12 @@
 
 package de.ipbhalle.metfusion.web.controller.validation;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import javax.el.ELContext;
-import javax.el.ELResolver;
-import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
-import javax.faces.convert.ConverterException;
 import javax.faces.convert.FacesConverter;
 
-import de.ipbhalle.metfusion.web.controller.MetFusionBean;
 
 @FacesConverter("de.ipbhalle.metfusion.web.controller.validation.SpectrumConverter")
 public class SpectrumConverter implements Converter {
@@ -25,34 +18,34 @@ public class SpectrumConverter implements Converter {
 	
 	// the possible peaklist formats
 	/** mz only, nominal or exact */
-	private static final String PEAKLIST_PATTERN_MZ_ONLY = "([0-9]+([\\.|,][0-9]+)?(\n|\r)?)+"; 
+//	private static final String PEAKLIST_PATTERN_MZ_ONLY = "([0-9]+([\\.|,][0-9]+)?(\n|\r)?)+"; 
 	//"([0-9]+([\\.|,][0-9]+)?(\\s)?)+";
 	
 	/** mz and int */
-	private static final String PEAKLIST_PATTERN_MZ_INT = "(\\d+\\.?\\d+\\s*?)+"; 
+//	private static final String PEAKLIST_PATTERN_MZ_INT = "(\\d+\\.?\\d+\\s*?)+"; 
 		//"([0-9]+([\\.|,][0-9]+)?(\\s)+[0-9]+([\\.|,][0-9]+)?(\n|\r)?)+";	
 	//"([0-9]+([\\.|,][0-9]+)?[0-9]+([\\.|,][0-9]+)?(\\s)?)+";
 	
 	/** mz, intensity and rel.intensity */
-	private static final String PEAKLIST_PATTERN_MZ_REL_INT = 
-		"([0-9]+([\\.|,][0-9]+)?(\\s)+[0-9]+([\\.|,][0-9]+)?(\\s)+[0-9]+([\\.|,][0-9]+)?(\n|\r)?)+";
+//	private static final String PEAKLIST_PATTERN_MZ_REL_INT = 
+//		"([0-9]+([\\.|,][0-9]+)?(\\s)+[0-9]+([\\.|,][0-9]+)?(\\s)+[0-9]+([\\.|,][0-9]+)?(\n|\r)?)+";
 	
 	/** unseparated list of int-values for mz and int */
-	private static final String PEAKLIST_PATTERN_GOLM = "([0-9]+(\\.[0-9]+)?\\s[0-9]+(\\s)?)+";
+//	private static final String PEAKLIST_PATTERN_GOLM = "([0-9]+(\\.[0-9]+)?\\s[0-9]+(\\s)?)+";
 	
 	// ([0-9]+([\.|,][0-9]+)?(\s[0-9]+([\.|,][0-9]+)?)?(\s)?)+
 	
 	// the regex patterns used for each possible format
-	private Pattern pattern_MZ_ONLY;
-	private Pattern pattern_MZ_INT;
-	private Pattern pattern_MZ_REL_INT;
-	private Pattern pattern_GOLM;
+//	private Pattern pattern_MZ_ONLY;
+//	private Pattern pattern_MZ_INT;
+//	private Pattern pattern_MZ_REL_INT;
+//	private Pattern pattern_GOLM;
 	
 	// the matcher objects used for each pattern
-	private Matcher matcher_MZ_ONLY;
-	private Matcher matcher_MZ_INT;
-	private Matcher matcher_MZ_REL_INT;
-	private Matcher matcher_GOLM;
+//	private Matcher matcher_MZ_ONLY;
+//	private Matcher matcher_MZ_INT;
+//	private Matcher matcher_MZ_REL_INT;
+//	private Matcher matcher_GOLM;
 	
 	/** default intenstiy value used for spectrum seach */
 	private static final int DEFAULT_INT = 500;
@@ -60,10 +53,10 @@ public class SpectrumConverter implements Converter {
 	private static final String DEFAULT_WHITESPACE = " ";
 	
 	public SpectrumConverter() {
-		pattern_MZ_ONLY = Pattern.compile(PEAKLIST_PATTERN_MZ_ONLY);
-		pattern_MZ_INT = Pattern.compile(PEAKLIST_PATTERN_MZ_INT);
-		pattern_MZ_REL_INT = Pattern.compile(PEAKLIST_PATTERN_MZ_REL_INT);
-		pattern_GOLM = Pattern.compile(PEAKLIST_PATTERN_GOLM);
+//		pattern_MZ_ONLY = Pattern.compile(PEAKLIST_PATTERN_MZ_ONLY);
+//		pattern_MZ_INT = Pattern.compile(PEAKLIST_PATTERN_MZ_INT);
+//		pattern_MZ_REL_INT = Pattern.compile(PEAKLIST_PATTERN_MZ_REL_INT);
+//		pattern_GOLM = Pattern.compile(PEAKLIST_PATTERN_GOLM);
 	}
 	
 	/**
@@ -75,7 +68,7 @@ public class SpectrumConverter implements Converter {
 		peaklist = peaklist.replaceAll(",", ".");
 		
 		if(peaklist.contains(";"))
-			peaklist = peaklist.replaceAll(";", "\n");
+			peaklist = peaklist.replaceAll(";", linebreak);
 		// one peak per line
 		
 		//System.out.println("peaklist -> \n" + peaklist);
@@ -83,14 +76,17 @@ public class SpectrumConverter implements Converter {
 		peaklist = peaklist.replaceAll("[ \t\\x0B\f\r]+", DEFAULT_WHITESPACE);
 		
 		StringBuilder sb = new StringBuilder();
-		String[] split = peaklist.split("\n");
+		String[] split = peaklist.split(linebreak);
 		for (int i = 0; i < split.length; i++) {
 			split[i] = split[i].trim();
 			String[] temp = split[i].split(DEFAULT_WHITESPACE);
-			if(temp.length == 3) {
-				sb.append(temp[0]).append(DEFAULT_WHITESPACE).append(temp[2]).append("\n");
+			if(temp.length == 1) {	// only mz information -> append default intensity
+				sb.append(temp[0]).append(DEFAULT_WHITESPACE).append(DEFAULT_INT).append(linebreak);
 			}
-			else sb.append(split[i]).append("\n");
+			else if(temp.length == 3) {	// mz abs.int. and rel.int information -> remove absolute intensity
+				sb.append(temp[0]).append(DEFAULT_WHITESPACE).append(temp[2]).append(linebreak);
+			}
+			else sb.append(split[i]).append(linebreak);
 		}
 		String s = sb.toString().trim();
 		return s;
