@@ -6,8 +6,10 @@
 package de.ipbhalle.metfusion.wrapper;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +84,50 @@ public class ColorcodedMatrix implements Runnable, Serializable {
 	}
 	
 	public boolean writeColorMatrix(File f) {
+		System.out.println("started writing color coded matrix -> " + f.getAbsolutePath());
+		Formatter formatter = null;
+		try {
+			formatter = new Formatter(f);
+		} catch (FileNotFoundException e) {
+			//e.printStackTrace();
+			// File not found exception thrown since this is a new
+		    // file name. However, Formatter will create the new file.
+			System.err.println("Error creating Formatter for matrix writing!");
+			return false;
+		}
 		
+		//formatter.format("MetFrag|MassBank\t");
+		for (int i = 0; i < primaries.size(); i++) {
+			// write column header
+			if(i < (primaries.size() - 1)) {
+				formatter.format(primaries.get(i).getId());
+				formatter.format("[%1.3f]\t", primaries.get(i).getScore());	// write score followed by a tab
+			}
+			else {
+				formatter.format(primaries.get(i).getId());
+				formatter.format("[%1.3f]%n", primaries.get(i).getScore());	// write last score followed by newline
+			}
+		}
+		
+		ColorNode[][] data = colorMatrix;
+		for (int i = 0; i < data.length; i++) {			// rows
+			for (int j = 0; j < data[i].length; j++) {	// columns
+				if(j == 0 ) {			// write row header
+					formatter.format(candidates.get(i).getId());
+					formatter.format("[%1.3f]\t", candidates.get(i).getScore());
+				}
+				
+				if(j < (data[i].length - 1)) {
+					formatter.format("%1.3f\t", data[i][j].getValueShort());
+				}
+				else {
+					formatter.format("%1.3f%n", data[i][j].getValueShort());
+				}
+			}
+		}
+		formatter.flush();
+		formatter.close();
+		System.out.println("finished writing Tanimoto matrix");
 		return true;
 	}
 	
