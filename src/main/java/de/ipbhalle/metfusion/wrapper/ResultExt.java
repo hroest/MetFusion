@@ -34,6 +34,7 @@ public class ResultExt extends Result {
 		setImagePath(r.getImagePath());
 		setSumFormula(r.getSumFormula());
 		setExactMass(r.getExactMass());
+		setSmiles(r.getSmiles());
 	}
 	
 	public ResultExt(String port, String id, String name, double score,
@@ -50,6 +51,7 @@ public class ResultExt extends Result {
 		setImagePath(r.getImagePath());
 		this.setSumFormula(r.getSumFormula());
 		this.setExactMass(r.getExactMass());
+		setSmiles(r.getSmiles());
 		flagValue();
 	}
 	
@@ -61,11 +63,12 @@ public class ResultExt extends Result {
 		
 	}
 	
-	public ResultExt(Result r, int before, int after, double resultScore) {
+	public ResultExt(Result r, int before, int after, double resultScore, int matchingPeaks) {
 		this(r, before, after);
 		this.resultScore = resultScore;
 		this.landingURL = r.landingURL;
 		super.tiedRank = after;
+		super.matchingPeaks = matchingPeaks;
 	}
 	
 	public ResultExt(Result r, int before, int after, double resultScore, 
