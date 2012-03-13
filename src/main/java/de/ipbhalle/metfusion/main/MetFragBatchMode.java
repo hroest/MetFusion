@@ -7,9 +7,11 @@ package de.ipbhalle.metfusion.main;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.faces.model.SelectItem;
@@ -353,7 +355,7 @@ public class MetFragBatchMode implements Runnable {
 					String formula = MolecularFormulaManipulator.getHTML(iformula);
 					// compute molecular mass
 					double emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
-					emass = Double.valueOf(threeDForm.format(emass));	// shorten exact mass to 3 decimal places
+					emass = roundThreeDecimals(emass);	//Double.valueOf(threeDForm.format(emass));	// shorten exact mass to 3 decimal places
 					
 					// hydrogen handling
 	                if(container != null) {
@@ -439,6 +441,29 @@ public class MetFragBatchMode implements Runnable {
 		
 	}
 
+	/**
+	 * Round an input do score to three decimals.
+	 * 
+	 * @param d the double value to be rounded
+	 * 
+	 * @return the resulting three decimal double
+	 */
+	private double roundThreeDecimals(double d) {
+		NumberFormat f = NumberFormat.getInstance(Locale.ENGLISH);
+		if (f instanceof DecimalFormat) {
+			((DecimalFormat) f).applyPattern("#.###");
+			return Double.valueOf(((DecimalFormat) f).format(d));
+		}
+		
+		DecimalFormat threeDForm = new DecimalFormat("#.###");
+		try {
+			Double newD = Double.valueOf(threeDForm.format(d));
+			return newD;
+		} catch(NumberFormatException e) {
+			return d;
+		}
+	}
+	
 	public void setDone(boolean done) {
 		this.done = done;
 	}
