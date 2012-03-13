@@ -6,6 +6,7 @@
 package de.ipbhalle.metfusion.web.controller;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -15,10 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.el.ELContext;
-import javax.el.ELResolver;
 import javax.faces.application.FacesMessage;
-import javax.faces.bean.CustomScoped;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.component.UIComponent;
@@ -27,9 +25,11 @@ import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpSession;
 
+import org.icefaces.component.fileentry.FileEntry;
+import org.icefaces.component.fileentry.FileEntryEvent;
+import org.icefaces.component.fileentry.FileEntryResults;
+import org.icefaces.component.fileentry.FileEntryResults.FileInfo;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -39,19 +39,13 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPISoapProxy;
-import com.icesoft.faces.context.effects.Effect;
-import com.icesoft.faces.context.effects.Highlight;
 
-import de.ipbhalle.MassBank.MassBankLookupBean;
-import de.ipbhalle.metfrag.chemspiderClient.ChemSpider;
+import de.ipbhalle.CDK.AtomContainerHandler;
 import de.ipbhalle.metfrag.keggWebservice.KeggWebservice;
 import de.ipbhalle.metfrag.main.MetFrag;
 import de.ipbhalle.metfrag.main.MetFragResult;
 import de.ipbhalle.metfrag.molDatabase.PubChemLocal;
-import de.ipbhalle.metfrag.pubchem.PubChemWebService;
 import de.ipbhalle.metfrag.spectrum.WrapperSpectrum;
-import de.ipbhalle.metfrag.tools.renderer.StructureToFile;
-import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
 import de.ipbhalle.metfusion.wrapper.Result;
 
 
@@ -79,6 +73,15 @@ public class MetFragBean implements Runnable, Serializable {
 	 * identifier for ChemSpider
 	 */
 	private final String dbCHEMSPIDER = "chemspider";
+	/**
+	 * identifier for SDF Upload
+	 */
+	private final String dbSDF = "sdf";
+	/** boolean flag indicating whether SDF upload details are rendered or not */
+	private boolean renderSDF = Boolean.FALSE;
+	private String selectedSDF = "";
+	private boolean validSDF = Boolean.FALSE;
+	private String noteSDF = "";
 	
 	/**
 	 * define selected upstream DB - defaults to pubchem
@@ -89,7 +92,8 @@ public class MetFragBean implements Runnable, Serializable {
 	/**
 	 * SelectItem options for upstream DB
 	 */
-	private SelectItem[] databases = {new SelectItem(dbKEGG, "KEGG"), new SelectItem(dbPUBCHEM, "PubChem"), new SelectItem(dbCHEMSPIDER, "ChemSpider")};
+	private SelectItem[] databases = {new SelectItem(dbKEGG, "KEGG"), new SelectItem(dbPUBCHEM, "PubChem"),
+			new SelectItem(dbCHEMSPIDER, "ChemSpider"), new SelectItem(dbSDF, "SDF Upload")};
 	
 	/**
 	 * constant which identifes part of a string to be replaced with corresponding DB ID
@@ -120,7 +124,6 @@ public class MetFragBean implements Runnable, Serializable {
 	
 	/**
 	 * variable defining the exact mass for database lookup
-	 * TODO: add possibility to define a modified mass (e.g. [M+H]+, [M+Na]+, and so on)
 	 */
 	private double exactMass = 272.06847;
 	
@@ -236,7 +239,8 @@ public class MetFragBean implements Runnable, Serializable {
 	private String sessionPath;
 	private String sessionID = "";
 	
-	private final String landingPage = "http://msbi.ipb-halle.de/MetFragBeta/LandingPage.jspx?";
+	private final String landingPage = "http://msbi.ipb-halle.de/MetFrag/LandingPage.jspx?";	
+	//"http://msbi.ipb-halle.de/MetFragBeta/LandingPage.jspx?";
 	
 	private List<SelectItem> adductList;
 	private double selectedAdduct;
@@ -315,17 +319,59 @@ public class MetFragBean implements Runnable, Serializable {
 		this.exactMass = getSelectedAdduct() + getParentIon();
 	}
 	
+	public void changeDatabase(ValueChangeEvent event) {
+		String newVal = (String) event.getNewValue();
+		if(newVal.equals(dbSDF)) {
+			renderSDF = Boolean.TRUE;
+		}
+		else renderSDF = Boolean.FALSE;
+	}
+	
+	public void listener(FileEntryEvent event) {
+	    FileEntry fileEntry = (FileEntry) event.getSource();
+	    FileEntryResults results = fileEntry.getResults();
+	    this.validSDF = Boolean.FALSE;
+	    this.selectedSDF = "";
+	    System.out.println("#uploads -> " + results.getFiles().size());
+	    if(results.getFiles().size() == 0)	{// nothing was uploaded
+	    	System.err.println("Nothing was uploaded.");
+        	this.selectedSDF = "";
+        	this.validSDF = Boolean.FALSE;
+        	this.noteSDF = "Please specify a SDF file for upload!";
+	    }
+	    
+	    for (FileInfo fileInfo : results.getFiles()) {	// JSF restriction to 1 uploaded file...
+	        if (fileInfo.isSaved() && fileInfo.getFileName().endsWith("sdf")) {		// TODO: check for valid SDF
+	            // Process the file. Only save cloned copies of results or fileInfo
+	        	System.out.println(fileInfo.getFileName() + "\t" + fileInfo.getContentType());
+	        	this.selectedSDF = fileInfo.getFileName();
+	        	this.validSDF = Boolean.TRUE;
+	        	this.noteSDF = "SDF Upload successful!";
+	        	break;
+	        }
+	        else {
+	        	System.err.println("No valid SDF file.");
+	        	this.selectedSDF = "";
+	        	this.validSDF = Boolean.FALSE;
+	        	this.noteSDF = "Error during SDF Upload!";
+	        }
+	    }
+	}
+	
 	public void submit(ActionEvent event) {
 		this.progress = 0;
 		this.done = Boolean.FALSE;
 		
-//		String peakString = "119.051 467.616\n123.044 370.662\n147.044 6078.145\n"
-//				+ "153.019 10000.0\n179.036 141.192\n189.058 176.358\n273.076 10000.000\n"
-//				+ "274.083 318.003";
-		//WrapperSpectrum spectrum = new WrapperSpectrum(peakString, 1, 272.06847);
+		// handle wrong SDF
+		if(selectedDB.equals(dbSDF) && !validSDF) {
+			this.done = Boolean.TRUE;
+			this.progress = 100;
+			this.showResult = false;
+			this.noteSDF = "No valid SDF uploaded - canceled run.";
+			return;
+		}
 		
 		WrapperSpectrum spectrum = new WrapperSpectrum(inputSpectrum, mode, exactMass, true);
-		//new WrapperSpectrum(inputSpectrum, mode, exactMass);
 		
 //		FacesContext fc = FacesContext.getCurrentInstance();
 //	    HttpSession session = (HttpSession) fc.getExternalContext().getSession(false);
@@ -386,13 +432,17 @@ public class MetFragBean implements Runnable, Serializable {
 //					spectrum, useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck, 
 //					breakAromaticRings, treeDepth, hydrogenTest, neutralLossInEveryLayer,
 //					bondEnergyScoring, breakOnlySelectedBonds, limit, false);
-			List<MetFragResult> result = MetFrag.startConvenienceMetFusion(database, databaseID, 
+			List<MetFragResult> result = new ArrayList<MetFragResult>();
+			if(database.equals(dbSDF))
+				result = MetFrag.startConvenienceSDF(spectrum, useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck,
+						breakAromaticRings, treeDepth, hydrogenTest, neutralLossInEveryLayer, bondEnergyScoring, 
+						breakOnlySelectedBonds, limit, Boolean.FALSE, sessionPath + selectedSDF);
+			else  result = MetFrag.startConvenienceMetFusion(database, databaseID, 
 					molecularFormula, exactMass, spectrum, useProxy, mzabs, mzppm, searchPPM, 
 					molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, hydrogenTest,
 					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password);
 			this.mfResults = result;
 			System.out.println("MetFrag result#: " + result.size() + "\n");
-			
 			this.results = new ArrayList<Result>();
 			this.results.clear();
 			
@@ -405,7 +455,7 @@ public class MetFragBean implements Runnable, Serializable {
 			for (MetFragResult mfr : result) {
 				if(mfr.getStructure() != null) {
 					IAtomContainer container = mfr.getStructure();
-					
+
 					// compute molecular formula
 					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
 					String formula = MolecularFormulaManipulator.getHTML(iformula);
@@ -416,15 +466,12 @@ public class MetFragBean implements Runnable, Serializable {
 					/**
 					 *  hydrogen handling
 					 */
-//					try {
-//						AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-//						CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-//				        hAdder.addImplicitHydrogens(container);
-//				        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-//					} catch (CDKException e) {
-//						System.err.println("error manipulating mol for " + mfr.getCandidateID());
-//						continue;
-//					}
+					try {
+	                	container = AtomContainerHandler.addExplicitHydrogens(container);
+					} catch (CDKException e) {
+						System.err.println("error manipulating mol for " + mfr.getCandidateID());
+						continue;
+					}
 					
 					// remove hydrogens
 					//container = AtomContainerManipulator.removeHydrogens(container);
@@ -460,7 +507,7 @@ public class MetFragBean implements Runnable, Serializable {
 					}
 					else if(database.equals(dbCHEMSPIDER)) {
 						int id = Integer.parseInt(mfr.getCandidateID());
-						String token = "4d6c67db-65d0-474e-9f5c-f70f5c85111c";
+						String token = "a1004d0f-9d37-47e0-acdd-35e58e34f603";
 						ExtendedCompoundInfo cpdInfo = chemSpiderProxy.getExtendedCompoundInfo(id, token);
 						name = cpdInfo.getCommonName();
 					}
@@ -475,10 +522,10 @@ public class MetFragBean implements Runnable, Serializable {
 					String params = formatLandingURL(spectrumURLEncoded, database, mfr.getCandidateID(), exactMass, molecularFormula);
 					String landingURL = landingPage + params;
 					
-					
+					System.out.println("candidate ID -> " + mfr.getCandidateID());
 					//results.add(new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename, landingURL));
 					results.add(new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename,
-							landingURL, formula, emass));
+							landingURL, formula, emass, mfr.getPeaksExplained()));
 					//results.add(new Result("MetFrag", mfr.getCandidateID(), mfr.getCandidateID(), mfr.getScore(), container, url, ""));
 					
 					// write 
@@ -495,7 +542,8 @@ public class MetFragBean implements Runnable, Serializable {
 			done = Boolean.TRUE;
 			showResult = true;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			this.progress = 100;
+			done = Boolean.TRUE;
 			e.printStackTrace();
 			showResult = false;
 		}
@@ -507,6 +555,11 @@ public class MetFragBean implements Runnable, Serializable {
 	public void updateSearchProgress(int current) {
 		int maximum = this.mfResults.size();
 		int border = (limit >= maximum) ? maximum : limit;
+		if(border == 0) {
+			this.progress = 100;
+			return;
+		}
+		
 		float result = (((float) current / (float) border) * 100f);
 		this.progress = Math.round(result);
 		
@@ -522,7 +575,6 @@ public class MetFragBean implements Runnable, Serializable {
 	
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
 		submit(null);
 	}
 	
@@ -792,6 +844,38 @@ public class MetFragBean implements Runnable, Serializable {
 
 	public boolean isDone() {
 		return done;
+	}
+
+	public void setRenderSDF(boolean renderSDF) {
+		this.renderSDF = renderSDF;
+	}
+
+	public boolean isRenderSDF() {
+		return renderSDF;
+	}
+
+	public void setSelectedSDF(String selectedSDF) {
+		this.selectedSDF = selectedSDF;
+	}
+
+	public String getSelectedSDF() {
+		return selectedSDF;
+	}
+
+	public void setValidSDF(boolean validSDF) {
+		this.validSDF = validSDF;
+	}
+
+	public boolean isValidSDF() {
+		return validSDF;
+	}
+
+	public void setNoteSDF(String noteSDF) {
+		this.noteSDF = noteSDF;
+	}
+
+	public String getNoteSDF() {
+		return noteSDF;
 	}
 
 }
