@@ -6,7 +6,9 @@
 package de.ipbhalle.metfusion.wrapper;
 
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.BitSet;
+import java.util.Locale;
 
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.fingerprint.Fingerprinter;
@@ -210,8 +212,19 @@ public class Result {
 	 * @return the resulting three decimal double
 	 */
 	private double roundThreeDecimals(double d) {
+		NumberFormat f = NumberFormat.getInstance(Locale.ENGLISH);
+		if (f instanceof DecimalFormat) {
+			((DecimalFormat) f).applyPattern("#.###");
+			return Double.valueOf(((DecimalFormat) f).format(d));
+		}
+		
 		DecimalFormat threeDForm = new DecimalFormat("#.###");
-		return Double.valueOf(threeDForm.format(d));
+		try {
+			Double newD = Double.valueOf(threeDForm.format(d));
+			return newD;
+		} catch(NumberFormatException e) {
+			return d;
+		}
 	}
 	
 	/**
