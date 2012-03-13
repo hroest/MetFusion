@@ -25,6 +25,7 @@ import javax.faces.bean.SessionScoped;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
+import javax.faces.event.ValueChangeEvent;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
@@ -83,6 +84,7 @@ public class MetFusionBean implements Serializable {
 	 */
 	
 	private Highlight effectOutputText = new Highlight("#FFA500");
+	private Highlight effectNote = new Highlight("#FFA500");
 	
 	/** default location for storing MetFrag structure images */
 	private static final String DEFAULT_IMAGE_CACHE = "/vol/metfrag/images/";
@@ -163,6 +165,7 @@ public class MetFusionBean implements Serializable {
 	private Locale locale;
 	
 	private String errorMessage = "";
+	private String metfragModeSetting = "MetFrag is set to work in <b>positive</b> mode";	// "Currently, only positive mode is supported!"
 	
 	/** output resource for all workflow results, will be stored in xls file */
     private Resource outputResource;
@@ -171,7 +174,6 @@ public class MetFusionBean implements Serializable {
     
     /** progress bar rendering */
     private static final int PAUSE_AMOUNT_S = 1000; // milliseconds to pause between progress updates
-    private Thread updateThread;
     private Thread updateThreadDatabase;	// updater thread for database lookup
     private Thread updateThreadFragmenter;	// updater thread for fragmenter computation
     private Thread updateThreadGlobal;		// global update thread for MetFusion
@@ -245,10 +247,12 @@ public class MetFusionBean implements Serializable {
     	if(mblb.isDone() && mfb.isDone()){			// let progress bars vanish
     		effect = new Fade();
     	}
-    	effect.setFired(false);
+    	//effect.setFired(false);
     }
     
     public String runThreadedVersion() {
+    	FacesContext fc = FacesContext.getCurrentInstance();
+    	
     	setEnableStart(Boolean.FALSE);
     	mblb.collectInstruments();
     	mblb.setInputSpectrum(inputSpectrum);
@@ -262,9 +266,22 @@ public class MetFusionBean implements Serializable {
     	mfb.setProgress(0);
     	mblb.setDone(Boolean.FALSE);
     	mfb.setDone(Boolean.FALSE);
-    	toggleEffect();
     	
-		int mode = 0;
+    	this.tanimotoClusters = new ArrayList<ResultExtGroupBean>();
+    	this.secondOrder = new ArrayList<ResultExt>();
+    	mfb.setResults(new ArrayList<Result>());
+    	mblb.setResults(new ArrayList<Result>());
+//    	if(!mfb.isValidSDF()) {
+//    		String errMessage = "Error - no SDF file provided!";
+//            System.err.println(errMessage);
+//            FacesMessage currentMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, errMessage, errMessage);
+//            fc.addMessage("inputForm:errdbSDF", currentMessage);
+//            
+//            return "wrongSDF";
+//    	}
+    	//toggleEffect();
+    	
+		int mode = 0;		// initialize with both modes
 		try {
 			mode = Integer.parseInt(mblb.getSelectedIon());
 		}
@@ -272,11 +289,10 @@ public class MetFusionBean implements Serializable {
 			mode = 1;		// default to positive mode
 		}
 		
-//		if(mode == 0) // MassBank uses "both" ionizations
-//			mode = 1;	// switch to "positive" mode
+		if(mode == 0) // MassBank uses "both" ionizations, but MetFrag would be set GC-MS
+			mode = 1;	// switch to "positive" mode
         mfb.setMode(mode);
         
-        FacesContext fc = FacesContext.getCurrentInstance();
 		// set context environment
 		session = (HttpSession) fc.getExternalContext().getSession(false);
 		scontext = (ServletContext) fc.getExternalContext().getContext();
@@ -360,8 +376,11 @@ public class MetFusionBean implements Serializable {
 	    			renderer.render(PUSH_GROUP);
 	    			
 	    			// break loop if reached 100%
-	    			if(percentProgressFragmenter == 100) {
+	    			if(percentProgressFragmenter == 100 || mfb.isDone()) {
+	    				percentProgress = 100;
 	    				percentProgressGlobal += 10;	// when finished, increase global progress completed percentage
+	    				// send updated progress to outputProgress component
+		    			renderer.render(PUSH_GROUP);
 	    				break;
 	    			}
 	            }
@@ -406,6 +425,12 @@ public class MetFusionBean implements Serializable {
 		
         System.out.println("threaded end!");
     	return "threaded";
+    }
+    
+    public String stopExecution() {
+    	
+    	//updateThreadGlobal.
+    	return "stopped";
     }
     
     // ActionEvent event
@@ -1154,11 +1179,27 @@ public class MetFusionBean implements Serializable {
 		return c;
 	}
 
+	public void changeIonizationListener(ValueChangeEvent event) {
+		System.out.println("old -> " + (String) event.getOldValue());
+		String newVal = (String) event.getNewValue();
+		System.out.println("new -> " + newVal);
+		if(newVal.equals("1")) 
+			metfragModeSetting = "MetFrag is set to work in <b>positive</b> mode.";
+		else if(newVal.equals("-1")) 
+			metfragModeSetting = "MetFrag is set to work in <b>negative</b> mode.";
+		else if(newVal.equals("0"))
+			metfragModeSetting = "MetFrag <b>would</b> work in GC-MS mode - <b>defaulting back to positive mode</b>.";
+		else metfragModeSetting = "<b>Unknown ionization mode</b>.";
+		
+		this.effectNote = new Highlight("#FFA500");
+	}
+	
 	public void reset(ActionEvent event) {
 		System.out.println("started reset procedures");
 		this.newOrder = new ArrayList<ResultExt>();
 		this.secondOrder = new ArrayList<ResultExt>();
 		this.colorMatrix = null;
+		this.colorMatrixAfter = null;
 		this.showTable = false;
 		//this.useClustering = false;
 		
@@ -1171,6 +1212,7 @@ public class MetFusionBean implements Serializable {
 		setShowResultsFragmenter(false);
 		setShowResultsDatabase(false);
 		setShowTable(false);
+		setShowResultTable(false);
 		
 		this.mfb.setShowResult(false);
 		setShowClusterResults(false);
@@ -1466,6 +1508,22 @@ public class MetFusionBean implements Serializable {
 
 	public Effect getEffect() {
 		return effect;
+	}
+
+	public void setMetfragModeSetting(String metfragModeSetting) {
+		this.metfragModeSetting = metfragModeSetting;
+	}
+
+	public String getMetfragModeSetting() {
+		return metfragModeSetting;
+	}
+
+	public void setEffectNote(Highlight effectNote) {
+		this.effectNote = effectNote;
+	}
+
+	public Highlight getEffectNote() {
+		return effectNote;
 	}
 
 }
