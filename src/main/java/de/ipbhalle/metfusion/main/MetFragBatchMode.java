@@ -410,7 +410,9 @@ public class MetFragBatchMode implements Runnable {
 					}
 					else if(database.equals(dbCHEMSPIDER)) {
 						int id = Integer.parseInt(mfr.getCandidateID());
-						String token = "4d6c67db-65d0-474e-9f5c-f70f5c85111c";
+						//String token = "4d6c67db-65d0-474e-9f5c-f70f5c85111c";
+						//String token = "a1004d0f-9d37-47e0-acdd-35e58e34f603";
+						String token = "eeca1d0f-4c03-4d81-aa96-328cdccf171a";
 						ExtendedCompoundInfo cpdInfo = chemSpiderProxy.getExtendedCompoundInfo(id, token);
 						name = cpdInfo.getCommonName();
 					}
