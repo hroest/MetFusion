@@ -518,8 +518,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
     		 */
 
 		// retrieve result list
-		ArrayList<String> result = mbCommon.execMultiDispatcher(serverUrl,
-				typeName, param);
+		ArrayList<String> result = mbCommon.execMultiDispatcher(serverUrl, typeName, param);
 
 		// only provide non-Hill records to result set
 		this.queryResults = new ArrayList<String>();
