@@ -36,7 +36,7 @@ import massbank.MassBankCommon;
 
 public class MassBankBatchMode implements Runnable {
 
-	private final String serverUrl = "http://www.massbank.jp/";
+	private final String serverUrl = "http://msbi.ipb-halle.de/MassBank/";	//"http://www.massbank.jp/";
 	private static final String cacheMassBank = "/vol/massbank/Cache/";
 	private static final String fileSeparator = System.getProperty("file.separator");
 	private static final String os = System.getProperty("os.name");
@@ -264,6 +264,8 @@ public class MassBankBatchMode implements Runnable {
                 File dir = null;
         		if(os.startsWith("Windows")) {
         			dir = new File(currentDir);
+        			File temp = new File(currentDir, prefix);
+        			temp.mkdir();
         		}
         		else dir = new File(cacheMassBank);
                 //File dir = new File(cacheMassBank);
@@ -273,6 +275,7 @@ public class MassBankBatchMode implements Runnable {
                 for (int j = 0; j < institutes.length; j++) {
                     if(institutes[j].startsWith(prefix)) {
                         f = new File(dir, institutes[j] + fileSeparator + "mol" + fileSeparator);
+                        f.mkdirs();
                         basePath = f.getAbsolutePath();
                         if(!basePath.endsWith(fileSeparator))
                                 basePath += fileSeparator;
@@ -280,6 +283,15 @@ public class MassBankBatchMode implements Runnable {
                         break;
                     }
                 }
+//                if(basePath.isEmpty()) {
+//                	f = new File(dir, prefix + fileSeparator + "mol" + fileSeparator);
+//                    f.mkdirs();
+//                    basePath = f.getAbsolutePath();
+//                    
+//                    f = new File(dir, prefix + fileSeparator + "records" + fileSeparator);
+//                    f.mkdirs();
+//                }
+                
                 //boolean fetch = MassBankUtilities.fetchMol(name, id, site, basePath);
                 boolean fetch = false;
                 //boolean write = MassBankUtilities.writeMolFile(id, mol, basePath);
