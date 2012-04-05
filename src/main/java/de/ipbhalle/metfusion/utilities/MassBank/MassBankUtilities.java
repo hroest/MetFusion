@@ -61,7 +61,7 @@ import de.ipbhalle.CDK.MyErrorHandler;
 public class MassBankUtilities {
 
 	/** The Constant baseUrl. */
-	private final static String baseUrl = "http://msbi.ipb-halle.de/MassBank/";	
+	private final static String baseUrl = "http://www.massbank.jp/";	
 	//"http://www.massbank.jp/";	//  http://msbi.ipb-halle.de/MassBank/
 	
 	/** The server url. */
@@ -610,6 +610,7 @@ public class MassBankUtilities {
 		}
 		//File f = new File("/home/mgerlich/workspace-3.5/MassBankComparison/MBCache/" + id + ".txt");
 		if(!f.exists()) {
+			f.setWritable(true, false);	// set writable for owner and everyone else
 			String reqStr = baseUrl; 	//"http://msbi.ipb-halle.de/MassBank/";
 			//String reqStr = "http://www.massbank.jp/";
 			reqStr += "jsp/" + MassBankCommon.DISPATCHER_NAME;
@@ -760,10 +761,10 @@ public class MassBankUtilities {
          // else return;
 		}
 		
-		if(!f.canWrite()) {
-			System.err.println("File [" + f.getAbsolutePath() + "] is not writable!");
-			return dbs;
-		}
+//		if(!f.canWrite()) {
+//			System.err.println("File [" + f.getAbsolutePath() + "] is not writable!");
+//			return dbs;
+//		}
 		
 		if(f != null && !f.exists()) {
 			String reqStr = baseUrl;	//"http://msbi.ipb-halle.de/MassBank/";
