@@ -495,8 +495,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 			inst = inst.substring(0, inst.length() - 1);
 
 		// set ionization mode to positive if none selected
-		if (selectedIon == null || selectedIon.isEmpty()
-				|| selectedIon.length() == 0)
+		if (selectedIon == null || selectedIon.isEmpty() || selectedIon.length() == 0)
 			selectedIon = (String) ionisations[0].getValue();
 
 		/**
@@ -511,7 +510,11 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		String param = "quick=true&CEILING=1000&WEIGHT=SQUARE&NORM=SQRT&START=1&TOLUNIT=unit"
 				+ "&CORTYPE=COSINE&FLOOR=0&NUMTHRESHOLD=3&CORTHRESHOLD=0.8&TOLERANCE=0.3"
 				+ "&CUTOFF=" + cutoff + "&NUM=0&VAL=" + paramPeak.toString();
-		param += inst;
+		/**
+		 * TODO: add selector in web interface for MS mode
+		 */
+		param += "&ms=all&ms=MS&ms=MS2&ms=MS3&ms=MS4";
+		param += inst;	// append ionization mode
 		System.out.println(param);
 		/**
     		 * 
@@ -934,12 +937,13 @@ public class MassBankLookupBean implements Runnable, Serializable {
             }
         }
         // ensure progress bar set to 100% - can be lower if not all results had moldata, thus not increasing limitCounter
-        this.searchCounter = resultLimit;
+        this.searchCounter = results.size();	//resultLimit;
+        this.limit = results.size();
         updateSearchProgress();	// update progress bar
         
         System.out.println("entries after duplicate removal -> " + results.size());
         this.results = results;
-        if(this.results.size() < this.originalResults.size()) {	// entries are left out because of missing structure information
+        if(unused.size() > 0  | this.results.size() < this.originalResults.size()) {	// entries are left out because of missing structure information
         	System.out.println(missingEntriesNote);
         	setShowNote(Boolean.TRUE);
         }
