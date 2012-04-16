@@ -184,13 +184,10 @@ public class SimilarityMetFusion {
 			mapPositions.put(id, results.get(i));
 
 			try {
-				AtomContainerManipulator
-						.percieveAtomTypesAndConfigureAtoms(molecule);
-				CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(molecule
-						.getBuilder());
+				AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(molecule);
+				CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(molecule.getBuilder());
 				hAdder.addImplicitHydrogens(molecule);
-				AtomContainerManipulator
-						.convertImplicitToExplicitHydrogens(molecule);
+				AtomContainerManipulator.convertImplicitToExplicitHydrogens(molecule);
 			} catch (CDKException e) {
 				System.err.println("error manipulating mol for " + id);
 				continue;
@@ -217,16 +214,17 @@ public class SimilarityMetFusion {
 		// Map<String, Integer> mapGroups = new HashMap<String, Integer>();
 		// List<ResultExt> newRanking = new ArrayList<ResultExt>();
 
-		// int rankTanimotoGroup = 0;
+		int rankTanimotoGroup = 0;
+		int rankBefore = 0;
+		int clusterSize = 0;
 		for (int i = keysScore.length - 1; i >= 0; i--) {
 			List<String> candidateGroup = new ArrayList<String>();
 			Map<String, IAtomContainer> candidateToStructureTemp = new HashMap<String, IAtomContainer>();
 
 			for (int j = 0; j < realScoreMap.get(keysScore[i]).size(); j++) {
 				candidateGroup.add(realScoreMap.get(keysScore[i]).get(j));
-				candidateToStructureTemp.put(realScoreMap.get(keysScore[i])
-						.get(j), candidateToStructure.get(realScoreMap.get(
-						keysScore[i]).get(j)));
+				candidateToStructureTemp.put(realScoreMap.get(keysScore[i]).get(j), 
+						candidateToStructure.get(realScoreMap.get(keysScore[i]).get(j)));
 			}
 
 			Similarity sim = null;
@@ -236,56 +234,150 @@ public class SimilarityMetFusion {
 				e.printStackTrace();
 				return new ArrayList<ResultExtGroupBean>();
 			}
-			TanimotoClusterer tanimoto = new TanimotoClusterer(
-					sim.getSimilarityMatrix(), sim.getCandidateToPosition());
-			List<SimilarityGroup> clusteredCpds = tanimoto.clusterCandididates(
-					candidateGroup, 0.95f);
-			List<SimilarityGroup> groupedCandidates = tanimoto
-					.getCleanedClusters(clusteredCpds);
+			TanimotoClusterer tanimoto = new TanimotoClusterer(sim.getSimilarityMatrix(), sim.getCandidateToPosition());
+			List<SimilarityGroup> clusteredCpds = tanimoto.clusterCandididates(candidateGroup, 0.95f);
+			List<SimilarityGroup> groupedCandidates = tanimoto.getCleanedClusters(clusteredCpds);
 
 			for (SimilarityGroup similarityGroup : groupedCandidates) {
+				clusterSize = similarityGroup.getSimilarCompounds().size();
+				rankTanimotoGroup = rankBefore + clusterSize;
 				// cluster
 				if (similarityGroup.getSimilarCompounds().size() > 1) {
-					ResultExtGroupBean filesRecordGroup = new ResultExtGroupBean(
-							GROUP_INDENT_STYLE_CLASS, GROUP_ROW_STYLE_CLASS,
-							null, EXPAND_IMAGE, CONTRACT_IMAGE,
-							resultRowGroupedBeans, false);
+					ResultExtGroupBean filesRecordGroup = new ResultExtGroupBean(GROUP_INDENT_STYLE_CLASS, GROUP_ROW_STYLE_CLASS,
+							null, EXPAND_IMAGE, CONTRACT_IMAGE,	resultRowGroupedBeans, false);
 					// String baseCand =
 					// similarityGroup.getCandidateTocompare();
-					ResultExt parent = mapPositions.get(similarityGroup
-							.getCandidateTocompare());
+					ResultExt parent = mapPositions.get(similarityGroup.getCandidateTocompare());
+					parent.setClusterRank(rankTanimotoGroup);
 					addToResultsList(parent, filesRecordGroup);
 
-					for (int k = 0; k < similarityGroup.getSimilarCompounds()
-							.size(); k++) {
-						if (similarityGroup.getCandidateTocompare().equals(
-								similarityGroup.getSimilarCompounds().get(k)
-										.getCompoundID()))
+					for (int k = 0; k < similarityGroup.getSimilarCompounds().size(); k++) {
+						if (similarityGroup.getCandidateTocompare().equals(similarityGroup.getSimilarCompounds().get(k).getCompoundID()))
 							continue;
-						ResultExtGroupBean childFilesGroup = new ResultExtGroupBean(
-								CHILD_INDENT_STYLE_CLASS, CHILD_ROW_STYLE_CLASS);
-						ResultExt child = mapPositions.get(similarityGroup
-								.getSimilarCompounds().get(k).getCompoundID());
+						
+						ResultExtGroupBean childFilesGroup = new ResultExtGroupBean(CHILD_INDENT_STYLE_CLASS, CHILD_ROW_STYLE_CLASS);
+						ResultExt child = mapPositions.get(similarityGroup.getSimilarCompounds().get(k).getCompoundID());
+						child.setClusterRank(rankTanimotoGroup);
 						addToResultsList(child, childFilesGroup);
-						filesRecordGroup
-								.addChildFilesGroupRecord(childFilesGroup);
+						filesRecordGroup.addChildFilesGroupRecord(childFilesGroup);
 					}
 				}
 				// single
 				else {
-					ResultExtGroupBean filesRecordGroup = new ResultExtGroupBean(
-							"", "", null, SPACER_IMAGE, SPACER_IMAGE,
-							resultRowGroupedBeans, false);
+					ResultExtGroupBean filesRecordGroup = new ResultExtGroupBean("", "", null, SPACER_IMAGE, SPACER_IMAGE, resultRowGroupedBeans, false);
 
 					// retrieve current result and store it in cluster list
-					ResultExt single = mapPositions.get(similarityGroup
-							.getCandidateTocompare());
+					ResultExt single = mapPositions.get(similarityGroup.getCandidateTocompare());
+					single.setClusterRank(rankTanimotoGroup);
 					if (!(single == null))
 						addToResultsList(single, filesRecordGroup);
 				}
+				rankBefore = rankBefore + clusterSize;
 			}
 		}
 		return resultRowGroupedBeans;
+	}
+	
+	/**
+	 * Cluster version without StyleBean.
+	 * 
+	 * @param results
+	 * @return
+	 */
+	public List<ResultExt> computeClusterRank(List<ResultExt> results) {
+		List<ResultExt> clusteredResults = new ArrayList<ResultExt>();
+		
+		Map<String, IAtomContainer> candidateToStructure = new HashMap<String, IAtomContainer>();
+		Map<Double, Vector<String>> realScoreMap = new HashMap<Double, Vector<String>>();
+		Map<String, ResultExt> mapPositions = new HashMap<String, ResultExt>();
+
+		for (int i = 0; i < results.size(); i++) {
+			String id = results.get(i).getId();
+			IAtomContainer molecule = results.get(i).getMol();
+			mapPositions.put(id, results.get(i));
+
+			try {
+				AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(molecule);
+				CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(molecule.getBuilder());
+				hAdder.addImplicitHydrogens(molecule);
+				AtomContainerManipulator.convertImplicitToExplicitHydrogens(molecule);
+			} catch (CDKException e) {
+				System.err.println("error manipulating mol for " + id);
+				continue;
+			}
+
+			candidateToStructure.put(id, molecule);
+			Double currentScore = results.get(i).getResultScore();
+
+			if (realScoreMap.containsKey(currentScore)) {
+				Vector<String> tempList = realScoreMap.get(currentScore);
+				tempList.add(id);
+				realScoreMap.put(currentScore, tempList);
+			} else {
+				Vector<String> temp = new Vector<String>();
+				temp.add(id);
+				realScoreMap.put(currentScore, temp);
+			}
+		}
+
+		Double[] keysScore = new Double[realScoreMap.keySet().size()];
+		keysScore = realScoreMap.keySet().toArray(keysScore);
+		Arrays.sort(keysScore);
+
+		int rankTanimotoGroup = 0;
+		int rankBefore = 0;
+		int clusterSize = 0;
+		for (int i = keysScore.length - 1; i >= 0; i--) {
+			List<String> candidateGroup = new ArrayList<String>();
+			Map<String, IAtomContainer> candidateToStructureTemp = new HashMap<String, IAtomContainer>();
+
+			for (int j = 0; j < realScoreMap.get(keysScore[i]).size(); j++) {
+				candidateGroup.add(realScoreMap.get(keysScore[i]).get(j));
+				candidateToStructureTemp.put(realScoreMap.get(keysScore[i]).get(j), 
+						candidateToStructure.get(realScoreMap.get(keysScore[i]).get(j)));
+			}
+
+			Similarity sim = null;
+			try {
+				sim = new Similarity(candidateToStructureTemp, true, false);
+			} catch (CDKException e) {
+				e.printStackTrace();
+				continue;		// skip scores group if similarity can not be computed
+			}
+			TanimotoClusterer tanimoto = new TanimotoClusterer(sim.getSimilarityMatrix(), sim.getCandidateToPosition());
+			List<SimilarityGroup> clusteredCpds = tanimoto.clusterCandididates(candidateGroup, 0.95f);
+			List<SimilarityGroup> groupedCandidates = tanimoto.getCleanedClusters(clusteredCpds);
+
+			for (SimilarityGroup similarityGroup : groupedCandidates) {
+				clusterSize = similarityGroup.getSimilarCompounds().size();
+				rankTanimotoGroup = rankBefore + clusterSize;
+				// cluster
+				if (similarityGroup.getSimilarCompounds().size() > 1) {
+					ResultExt parent = mapPositions.get(similarityGroup.getCandidateTocompare());
+					parent.setClusterRank(rankTanimotoGroup);
+					clusteredResults.add(parent);
+
+					for (int k = 0; k < similarityGroup.getSimilarCompounds().size(); k++) {
+						if (similarityGroup.getCandidateTocompare().equals(similarityGroup.getSimilarCompounds().get(k).getCompoundID()))
+							continue;
+						
+						ResultExt child = mapPositions.get(similarityGroup.getSimilarCompounds().get(k).getCompoundID());
+						child.setClusterRank(rankTanimotoGroup);
+						clusteredResults.add(child);
+					}
+				}
+				// single
+				else {
+					// retrieve current result and store it in cluster list
+					ResultExt single = mapPositions.get(similarityGroup.getCandidateTocompare());
+					single.setClusterRank(rankTanimotoGroup);
+					
+					clusteredResults.add(single);
+				}
+				rankBefore = rankBefore + clusterSize;
+			}
+		}
+		return clusteredResults;
 	}
 	
 	/**
