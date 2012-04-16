@@ -5,24 +5,20 @@
 package de.ipbhalle.metfusion.main;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
-import javax.faces.model.SelectItemGroup;
 
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesGenerator;
-import org.openscience.cdk.tools.CDKHydrogenAdder;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import de.ipbhalle.CDK.AtomContainerHandler;
@@ -36,11 +32,12 @@ import massbank.MassBankCommon;
 
 public class MassBankBatchMode implements Runnable {
 
-	private final String serverUrl = "http://msbi.ipb-halle.de/MassBank/";	//"http://www.massbank.jp/";
+	private final String serverUrl = "http://www.massbank.jp/";	//"http://www.massbank.jp/";
 	private static final String cacheMassBank = "/vol/massbank/Cache/";
 	private static final String fileSeparator = System.getProperty("file.separator");
 	private static final String os = System.getProperty("os.name");
 	private static final String currentDir = System.getProperty("user.dir");
+	private static final String tempDir = System.getProperty("java.io.tmpdir");
 	
 	private MassBankCommon mbCommon;
 	private GetConfig config;
@@ -57,6 +54,9 @@ public class MassBankBatchMode implements Runnable {
 	private static final String ESI = "ESI";
 	private static final String OTHER = "Others";
 
+	private static final String RECORDS = "records";
+	private static final String MOL = "mol";
+	
 	private int limit = 100;
 	private int cutoff = 5;
 
@@ -210,7 +210,7 @@ public class MassBankBatchMode implements Runnable {
 		this.unused = new ArrayList<Result>();
 		
 		//this.queryResults = result;
-		System.out.println(result.size() + "\n");
+		System.out.println("MassBank results# = " + result.size() + "\n");
 		
 		wrapResults();
 	}
@@ -257,44 +257,39 @@ public class MassBankBatchMode implements Runnable {
                 site = split[5];
 
                 //String record = MassBankUtilities.retrieveRecord(id, site);
-                MassBankUtilities.fetchRecord(id, site);
+//                MassBankUtilities.fetchRecord(id, site);
                 //String mol = MassBankUtilities.retrieveMol(name, site, id);
 
                 String prefix = id.substring(0, 2);
                 File dir = null;
         		if(os.startsWith("Windows")) {
-        			dir = new File(currentDir);
-        			File temp = new File(currentDir, prefix);
-        			temp.mkdir();
+        			dir = new File(tempDir);
         		}
-        		else dir = new File(cacheMassBank);
-                //File dir = new File(cacheMassBank);
-                String[] institutes = dir.list();
-                File f = null;
+        		//else dir = new File(cacheMassBank);
+        		else dir = new File(tempDir);
+        		
+                File cache = new File(dir, prefix);
                 String basePath = "";
-                for (int j = 0; j < institutes.length; j++) {
-                    if(institutes[j].startsWith(prefix)) {
-                        f = new File(dir, institutes[j] + fileSeparator + "mol" + fileSeparator);
-                        f.mkdirs();
-                        basePath = f.getAbsolutePath();
-                        if(!basePath.endsWith(fileSeparator))
-                                basePath += fileSeparator;
-                        //System.out.println("basePath for " + id + " -> " + basePath);
-                        break;
-                    }
+                boolean createDir = false;
+                if(!cache.exists()) {		// cache folder does not exist, create it
+                	createDir = cache.mkdirs();
+                	if(createDir) {
+                		System.out.println("created directory [" + cache.getAbsolutePath() + "] -> " + createDir);
+                		File molDir = new File(cache, MOL);
+                        File recDir = new File(cache, RECORDS);
+                        System.out.println("created molDir ? " + molDir.mkdir() + "\treated recDir ? " + recDir.mkdir());	// create subdirectories
+                        basePath = molDir.getAbsolutePath();
+                	}
                 }
-//                if(basePath.isEmpty()) {
-//                	f = new File(dir, prefix + fileSeparator + "mol" + fileSeparator);
-//                    f.mkdirs();
-//                    basePath = f.getAbsolutePath();
-//                    
-//                    f = new File(dir, prefix + fileSeparator + "records" + fileSeparator);
-//                    f.mkdirs();
-//                }
-                
-                //boolean fetch = MassBankUtilities.fetchMol(name, id, site, basePath);
+                else {		// cache folder already exists 
+                	File molDir = new File(cache, fileSeparator + MOL + fileSeparator);
+                	if(!molDir.isDirectory())
+                		molDir.mkdirs();
+                	
+                	basePath = molDir.getAbsolutePath();
+                }
+
                 boolean fetch = false;
-                //boolean write = MassBankUtilities.writeMolFile(id, mol, basePath);
 
                 // create AtomContainer via SMILES
                 Map<String, String> links = MassBankUtilities.retrieveLinks(id, site);
@@ -306,6 +301,9 @@ public class MassBankBatchMode implements Runnable {
                 IAtomContainer container = null;
                 // first look if container is present, then download if not
                 container = MassBankUtilities.getContainer(id, basePath);
+                /**
+                 * TODO in-memory processing of mol files
+                 */
                 if(container == null) {
                     fetch = MassBankUtilities.fetchMol(name, id, site, basePath);
                     if(fetch) {
@@ -335,6 +333,11 @@ public class MassBankBatchMode implements Runnable {
 //                        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
                     } catch (CDKException e) {
                         System.err.println("error manipulating mol for " + id);
+                        // add erroneous record to list of unuses entries
+                        Result r = new Result("MassBank", id, name, score, container, "", tempPath + id + ".png");
+                    	r.setSmiles(smiles);
+                    	unused.add(r);
+                    	
                         continue;
                     }
                 }
