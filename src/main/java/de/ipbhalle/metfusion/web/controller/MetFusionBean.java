@@ -339,8 +339,8 @@ public class MetFusionBean implements Serializable {
 	    			
 	    			percentProgress = mblb.getSearchProgress();
 	    			percentProgressDatabase = percentProgress;
-	    			System.out.println("while running...");
-	    			System.out.println("percentProgress -> " + percentProgress);
+//	    			System.out.println("while running...");
+//	    			System.out.println("percentProgress -> " + percentProgress);
 	    			
 	    			// send updated progress to outputProgress component
 	    			renderer.render(PUSH_GROUP);
@@ -369,8 +369,8 @@ public class MetFusionBean implements Serializable {
 	    			}
 	    			
 	    			percentProgressFragmenter = mfb.getProgress();
-	    			System.out.println("while running...");
-	    			System.out.println("percentProgressFragmenter -> " + percentProgressFragmenter);
+//	    			System.out.println("while running...");
+//	    			System.out.println("percentProgressFragmenter -> " + percentProgressFragmenter);
 	    			
 	    			// send updated progress to outputProgress component
 	    			renderer.render(PUSH_GROUP);
@@ -400,8 +400,8 @@ public class MetFusionBean implements Serializable {
 	    			
 	    			if(mfthread.getProgress() > percentProgressGlobal)	// use pseudo progress from finished retrieval threads
 	    				percentProgressGlobal = mfthread.getProgress();	// both threads increase per 10 = 20% -> first getProgress starts at 25%
-	    			System.out.println("while running...");
-	    			System.out.println("percentProgressGlobal -> " + percentProgressGlobal);
+//	    			System.out.println("while running...");
+//	    			System.out.println("percentProgressGlobal -> " + percentProgressGlobal);
 	    			
 	    			// send updated progress to outputProgress component
 	    			renderer.render(PUSH_GROUP);
