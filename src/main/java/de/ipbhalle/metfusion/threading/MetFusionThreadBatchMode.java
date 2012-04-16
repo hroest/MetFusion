@@ -9,6 +9,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.faces.application.FacesMessage;
 
@@ -72,11 +74,37 @@ public class MetFusionThreadBatchMode implements Runnable {
 		return prefix + prefixSeparator + filename;
 	}
 	
+	private void writeUnused(List<Result> unused, File out) {
+		if(!unused.isEmpty()) {
+			try {
+				FileWriter fw = new FileWriter(out);
+				for (Result r : unused) {
+					fw.write(r.getId() + "\t" + r.getName() + "\t" + r.getScore() + "\n");
+				}
+				fw.flush();
+				fw.close();
+			} catch (IOException e) {
+				System.err.println("Error writing list of unused MassBank records!");
+			}
+		}
+	}
+	
 	@Override
 	public void run() {
 		long time1 = System.currentTimeMillis();
 		setActive(Boolean.TRUE);
 		
+//		ExecutorService threadExecutor = Executors.newFixedThreadPool(2);
+//		threadExecutor.execute(massbank);
+//		threadExecutor.execute(metfrag);
+//		threadExecutor.shutdown();
+//		while(!threadExecutor.isTerminated()) {
+//			try {
+//				Thread.sleep(1000);
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+//		}
 		massbank.run();
 		metfrag.run();
 		while(!massbank.isDone() && !metfrag.isDone()) {
@@ -95,6 +123,22 @@ public class MetFusionThreadBatchMode implements Runnable {
             //Mark as ERROR
     		setActive(Boolean.FALSE);
     		
+    		// write out MetFrag results
+    		File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
+    		List<Result> listMetFrag = metfrag.getResults();
+    		try {
+    			FileWriter fw = new FileWriter(incomplete);    			
+    			fw.write("## MetFrag\n");
+    			for (int i = 0; i < listMetFrag.size(); i++) {
+    				Result result = listMetFrag.get(i);
+    				fw.write(formatResultOutput(result, false));
+    			}
+    			fw.flush();
+    			fw.close();
+    		} catch (IOException e1) {
+    			System.err.println("Error writing original results in [" + incomplete.getAbsolutePath() + "]!");
+    		}
+    		
             return;
         }
         else if(massbank.getResults() != null) {
@@ -111,6 +155,22 @@ public class MetFusionThreadBatchMode implements Runnable {
             //Mark as ERROR
     		setActive(Boolean.FALSE);
     		
+    		// write out MetFrag results
+    		File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
+    		List<Result> listMetFrag = metfrag.getResults();
+    		try {
+    			FileWriter fw = new FileWriter(incomplete);    			
+    			fw.write("## MetFrag\n");
+    			for (int i = 0; i < listMetFrag.size(); i++) {
+    				Result result = listMetFrag.get(i);
+    				fw.write(formatResultOutput(result, false));
+    			}
+    			fw.flush();
+    			fw.close();
+    		} catch (IOException e1) {
+    			System.err.println("Error writing original results in [" + incomplete.getAbsolutePath() + "]!");
+    		}
+    		
             return;
         }
                 
@@ -123,6 +183,22 @@ public class MetFusionThreadBatchMode implements Runnable {
             //Mark as ERROR
     		setActive(Boolean.FALSE);
     		setActive(Boolean.FALSE);
+    		
+    		// write out MassBank results
+    		File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
+    		List<Result> listMassBank = massbank.getResults();
+    		try {
+    			FileWriter fw = new FileWriter(incomplete);    			
+    			fw.write("## MassBank\n");
+    			for (int i = 0; i < listMassBank.size(); i++) {
+    				Result result = listMassBank.get(i);
+    				fw.write(formatResultOutput(result, false));
+    			}
+    			fw.flush();
+    			fw.close();
+    		} catch (IOException e1) {
+    			System.err.println("Error writing original results in [" + incomplete.getAbsolutePath() + "]!");
+    		}
     		
             return;
         }
@@ -138,12 +214,31 @@ public class MetFusionThreadBatchMode implements Runnable {
             //Mark as ERROR
     		setActive(Boolean.FALSE);
             
+    		// write out MassBank results
+    		File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
+    		List<Result> listMassBank = massbank.getResults();
+    		try {
+    			FileWriter fw = new FileWriter(incomplete);    			
+    			fw.write("## MassBank\n");
+    			for (int i = 0; i < listMassBank.size(); i++) {
+    				Result result = listMassBank.get(i);
+    				fw.write(formatResultOutput(result, false));
+    			}
+    			fw.flush();
+    			fw.close();
+    		} catch (IOException e1) {
+    			System.err.println("Error writing original results in [" + incomplete.getAbsolutePath() + "]!");
+    		}
+    		
             return;
         }
 		
 		// create tanimoto matrix and perform chemical-similarity based integration
 		List<Result> listMassBank = massbank.getResults();
 		List<Result> listMetFrag = metfrag.getResults();
+		
+		File unused = new File(tempPath, addPrefixToFile("unused.log"));
+		writeUnused(massbank.getUnused(), unused);
 		
 		/**
 		 * TODO: check output
@@ -154,13 +249,13 @@ public class MetFusionThreadBatchMode implements Runnable {
 			fw.write("## MassBank\n");
 			for (int i = 0; i < listMassBank.size(); i++) {
 				Result result = listMassBank.get(i);
-				fw.write(formatResultOutput(result));
+				fw.write(formatResultOutput(result, false));
 			}
 			
 			fw.write("## MetFrag\n");
 			for (int i = 0; i < listMetFrag.size(); i++) {
 				Result result = listMetFrag.get(i);
-				fw.write(formatResultOutput(result));
+				fw.write(formatResultOutput(result, false));
 			}
 			
 			fw.flush();
@@ -231,7 +326,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 			redraw.add(new Result(r));
 			
 			try {
-				fw.write(formatResultOutput(r));
+				fw.write(formatResultOutput(r, false));
 			} catch (IOException e) {
 				System.err.println("Error writing to file [" + newOut.getAbsolutePath() + "]");
 			}
@@ -243,6 +338,33 @@ public class MetFusionThreadBatchMode implements Runnable {
 		} catch (IOException e1) {
 			System.err.println("Error finalizing file [" + newOut.getAbsolutePath() + "]");
 		}
+		
+		/**
+		 * write SMILES file for Jan
+		 */
+		File smilesOut = new File(tempPath, addPrefixToFile("smiles.txt"));
+		try {
+			fw = new FileWriter(smilesOut);
+		} catch (IOException e1) {
+			System.err.println("Error writing SMILES in [" + smilesOut.getAbsolutePath() + "]!");
+		}
+		for (int i = 0; i < resultingOrder.size(); i++) {
+			ResultExt r = resultingOrder.get(i);
+			try {
+				fw.write(r.getSmiles() + lineSeparator);
+			} catch (IOException e) {
+				System.err.println("Error writing to file [" + smilesOut.getAbsolutePath() + "]");
+			}
+		}
+		try {
+			fw.flush();
+			fw.close();
+		} catch (IOException e1) {
+			System.err.println("Error finalizing file [" + smilesOut.getAbsolutePath() + "]");
+		}
+		/**
+		 * 
+		 */
 		
 		/**
 		 *  new colored similarity matrix after metfusion
@@ -263,10 +385,47 @@ public class MetFusionThreadBatchMode implements Runnable {
         cmT.getCcm().writeColorMatrix(new File(tempPath, addPrefixToFile("color.mat")));
         cmtAfter.getCcm().writeColorMatrix(new File(tempPath, addPrefixToFile("colorAfter.mat")));
         
-        // write output files
+        metfusion.setSecondOrder(resultingOrder);	// assign results to metfusion bean
+		SimilarityMetFusion sm = new SimilarityMetFusion();
+		System.out.println("Started clustering");
+//		List<ResultExtGroupBean> clustersBean = sm.computeScoresCluster(resultingOrder);	// original bean-like clustering
+//		List<ResultExt> clusterResultExt = sm.computeScores(resultingOrder);	
+		List<ResultExt> clusters = sm.computeClusterRank(resultingOrder);
+		
+		/**
+		 * TODO check
+		 */
+		File clusterOut = new File(tempPath, addPrefixToFile("resultsCluster.log"));
+		try {
+			fw = new FileWriter(clusterOut);
+			fw.write("ID\tResultScore\tCluster\tName\tExactMass\tSMILES\tSumFormula\n");
+		} catch (IOException e) {
+			System.err.println("Error writing [header] to file [" + clusterOut.getAbsolutePath() + "]");
+		}
+		for (int i = 0; i < clusters.size(); i++) {
+			ResultExt r = clusters.get(i);
+			try {
+				fw.write(formatResultOutput(r, true));
+			} catch (IOException e) {
+				System.err.println("Error writing [parent cluster] to file [" + clusterOut.getAbsolutePath() + "]");
+			}
+		}
+		try {
+			fw.flush();
+			fw.close();
+		} catch (IOException e1) {
+			System.err.println("Error finalizing file [" + clusterOut.getAbsolutePath() + "]");
+		}
+		
+		//metfusion.setTanimotoClusters(clustersBean);
+		metfusion.setClusterResults(clusters);
+		System.out.println("Finished clustering");
+		
+		// write output files
         if(this.format.equals(OutputFormats.SDF)) {
         	SDFOutputHandler sdfhandler = new SDFOutputHandler(tempPath + prefix + ".sdf", Boolean.FALSE);
-    		sdfhandler.writeRerankedResults(resultingOrder);
+    		//sdfhandler.writeRerankedResults(resultingOrder);
+        	sdfhandler.writeClusterResults(clusters);
         }
         else if(this.format.equals(OutputFormats.XLS)) {
 	        XLSOutputHandler xlsHandler = new XLSOutputHandler(tempPath + prefix + ".xls");
@@ -295,50 +454,6 @@ public class MetFusionThreadBatchMode implements Runnable {
 				System.err.print(of.toString() + "  ");
 			}
         }
-        
-        metfusion.setSecondOrder(resultingOrder);	// assign results to metfusion bean
-		SimilarityMetFusion sm = new SimilarityMetFusion();
-		System.out.println("Started clustering");
-		//List<ResultExtGroupBean> clusters = sm.computeScoresCluster(resultingOrder, styleBean);
-		List<ResultExtGroupBean> clusters = sm.computeScoresCluster(resultingOrder);
-		/**
-		 * TODO check
-		 */
-		File clusterOut = new File(tempPath, addPrefixToFile("resultsCluster.log"));
-		try {
-			fw = new FileWriter(clusterOut);
-			fw.write("ID\tResultScore\tCluster\tName\tExactMass\tSMILES\tSumFormula\n");
-		} catch (IOException e) {
-			System.err.println("Error writing [header] to file [" + clusterOut.getAbsolutePath() + "]");
-		}
-		for (int i = 0; i < clusters.size(); i++) {
-			ResultExtGroupBean r = clusters.get(i);
-			try {
-				fw.write(formatResultOutput(r));
-			} catch (IOException e) {
-				System.err.println("Error writing [parent cluster] to file [" + clusterOut.getAbsolutePath() + "]");
-			}
-			List<ResultExtGroupBean> l = r.getChildResultRows();
-			if(l.size() > 1) {
-				for (int j = 0; j < l.size(); j++) {
-					ResultExtGroupBean child = clusters.get(i);
-					try {
-						fw.write(formatResultOutput(child));
-					} catch (IOException e) {
-						System.err.println("Error writing [child cluster] to file [" + clusterOut.getAbsolutePath() + "]");
-					}
-				}
-			}
-		}
-		try {
-			fw.flush();
-			fw.close();
-		} catch (IOException e1) {
-			System.err.println("Error finalizing file [" + clusterOut.getAbsolutePath() + "]");
-		}
-		
-		metfusion.setTanimotoClusters(clusters);
-		System.out.println("Finished clustering");
 		
 		System.out.println("list size -> " + clusters.size());
 		setActive(Boolean.FALSE);
@@ -353,31 +468,32 @@ public class MetFusionThreadBatchMode implements Runnable {
 	 * to formatted output strings.
 	 * @return The correctly formatted String for output in a file.
 	 */
-	private String formatResultOutput(Object o) {
-		if(o instanceof Result) {
-			Result r = (Result) o;
+	private String formatResultOutput(Object o, boolean cluster) {
+		String result = "";
+		
+		if(cluster) {
+			ResultExt r = (ResultExt) o;
 			
-			String result =  r.getId() + DEFAULT_SEPARATOR + r.getScore() + DEFAULT_SEPARATOR + r.getName() + 
-				DEFAULT_SEPARATOR + r.getExactMass() + DEFAULT_SEPARATOR + r.getSmiles() + DEFAULT_SEPARATOR + r.getSumFormula() + DEFAULT_NEWLINE;
+			result = r.getId() + DEFAULT_SEPARATOR + r.getResultScore() + DEFAULT_SEPARATOR + r.getClusterRank() + 
+				DEFAULT_SEPARATOR +	r.getName() + DEFAULT_SEPARATOR + r.getExactMass() + DEFAULT_SEPARATOR + r.getSmiles() + 
+				DEFAULT_SEPARATOR + r.getSumFormula() + DEFAULT_NEWLINE;
 			return result;
 		}
 		else if(o instanceof ResultExt) {
 			ResultExt r = (ResultExt) o;
 			
-			String result = r.getId() + DEFAULT_SEPARATOR + r.getResultScore() + DEFAULT_SEPARATOR + r.getName() + 
+			result = r.getId() + DEFAULT_SEPARATOR + r.getResultScore() + DEFAULT_SEPARATOR + r.getName() + 
 				DEFAULT_SEPARATOR + r.getExactMass() + DEFAULT_SEPARATOR + r.getSmiles() + DEFAULT_SEPARATOR + r.getSumFormula() + DEFAULT_NEWLINE;
 			return result;
 		}
-		else if(o instanceof ResultExtGroupBean) {
-			ResultExtGroupBean r = (ResultExtGroupBean) o;
+		else if(o instanceof Result) {
+			Result r = (Result) o;
 			
-			String result = r.getId() + DEFAULT_SEPARATOR + r.getResultScore() + DEFAULT_SEPARATOR + r.getClusterRank() + 
-				DEFAULT_SEPARATOR +	r.getName() + DEFAULT_SEPARATOR + r.getExactMass() + DEFAULT_SEPARATOR + r.getSmiles() + 
-				DEFAULT_SEPARATOR + r.getSumFormula() + DEFAULT_NEWLINE;
+			result =  r.getId() + DEFAULT_SEPARATOR + r.getScore() + DEFAULT_SEPARATOR + r.getName() + 
+				DEFAULT_SEPARATOR + r.getExactMass() + DEFAULT_SEPARATOR + r.getSmiles() + DEFAULT_SEPARATOR + r.getSumFormula() + DEFAULT_NEWLINE;
 			return result;
 		}
 		
-		String result = "";
 		return result;
 	}
 
