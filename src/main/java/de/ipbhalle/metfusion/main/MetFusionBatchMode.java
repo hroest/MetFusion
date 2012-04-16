@@ -27,9 +27,9 @@ public class MetFusionBatchMode {
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
 	//private final static int NUM_ARGS = 3;
-	public static enum ARGUMENTS {mf, sdf, out, format};
+	public static enum ARGUMENTS {mf, sdf, out, format, proxy};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
-	private boolean checkMF, checkSDF, checkOUT, checkFORMAT;
+	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY;
 	private Map<ARGUMENTS, String> settings;
 	
 	private final String os = System.getProperty("os.name");
@@ -47,11 +47,11 @@ public class MetFusionBatchMode {
 	private ColorcodedMatrix colorMatrix;
 	private ColorcodedMatrix colorMatrixAfter;
 	private List<ResultExt> secondOrder;
+	private List<ResultExt> clusterResults;
 	private List<ResultExtGroupBean> tanimotoClusters;
 	
 	
 	public MetFusionBatchMode(String[] args) {
-		
 		this.doneSetup = setup();
 		this.doneCheck = checkArguments(args);
 	}
@@ -84,11 +84,13 @@ public class MetFusionBatchMode {
 			for (OutputFormats format : of) {
 				System.out.print("[" + format + "] ");
 			}
+			System.out.println("optionally: -proxy");
 			
 			System.out.println("\nExample call: java -jar JARFILE -mf settings.mf #this uses the current directory for output!");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -out /tmp");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF");
+			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -proxy");
 			
 			return success;
 		}
@@ -107,6 +109,10 @@ public class MetFusionBatchMode {
 					this.checkOUT = Boolean.TRUE;
 				if(temp.equals(ARGUMENTS.format.toString()))
 					this.checkFORMAT = Boolean.TRUE;
+				if(temp.equals(ARGUMENTS.proxy.toString())) {
+					this.checkPROXY = Boolean.TRUE;	// proxy does not have an additional property, mark as set/unset and continue
+					continue;
+				}
 				
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
 				i++;	// skip value, iterate over new argument
@@ -176,10 +182,11 @@ public class MetFusionBatchMode {
 		if(!outPath.endsWith(mfbm.fileSeparator))
 			outPath += mfbm.fileSeparator;
 		
-		MetFragBatchMode metfragbm = new MetFragBatchMode(outPath);
-		MassBankBatchMode mbbm = new MassBankBatchMode(outPath, Ionizations.pos);
-		
 		MetFusionBatchSettings settings = mfbm.batchFileHandler.getBatchSettings();
+		Ionizations ion = settings.getMbIonization();		// retrieve ionization for MassBank
+		
+		MetFragBatchMode metfragbm = new MetFragBatchMode(outPath);
+		MassBankBatchMode mbbm = new MassBankBatchMode(outPath, ion);
 		
 		mbbm.setInputSpectrum(settings.getPeaks());
 		mbbm.setSelectedInstruments(settings.getMbInstruments());
@@ -196,6 +203,9 @@ public class MetFusionBatchMode {
 		metfragbm.setSearchppm(settings.getMfSearchPPM());
 		metfragbm.setLimit(settings.getMfLimit());
 		metfragbm.setDatabaseID(settings.getMfDatabaseIDs());
+		if(mfbm.checkPROXY)		// if proxy switch was set, use proxy in MetFrag
+			metfragbm.setProxy(Boolean.TRUE);
+		
 		// sdf path
 		if(mfbm.isCheckSDF()) {
 			String sdfFile = mfbm.settings.get(ARGUMENTS.sdf);
@@ -268,6 +278,14 @@ public class MetFusionBatchMode {
 
 	public void setCheckOUT(boolean checkOUT) {
 		this.checkOUT = checkOUT;
+	}
+
+	public List<ResultExt> getClusterResults() {
+		return clusterResults;
+	}
+
+	public void setClusterResults(List<ResultExt> clusterResults) {
+		this.clusterResults = clusterResults;
 	}
 
 }
