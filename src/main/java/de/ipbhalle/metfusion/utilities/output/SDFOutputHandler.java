@@ -59,8 +59,46 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		props.put(properties.newscore, r.getResultScore());	// resulting Score
 		props.put(properties.smiles, r.getSmiles());		// SMILES
 		props.put(properties.peaksExplained, r.getMatchingPeaks());	// number of peaks explained
+		props.put(properties.URL, r.getUrl());				// URL of the compound
+		props.put(properties.tiedRank, r.getTiedRank());	// add tied rank
+		props.put(properties.clusterRank, r.getClusterRank());	// add cluster rank
 		
 		return props;
+	}
+	
+	public boolean writeClusterResults(List<ResultExt> results) {
+		boolean success = Boolean.FALSE;
+		OutputStream os = null;
+		try {
+			os = new FileOutputStream(new File(filename), append);
+		} catch (FileNotFoundException e) {
+			System.err.println("Could not find file [" + filename + "]!");
+			return success;
+		}
+		
+		SDFWriter sdfwriter = new SDFWriter(os);
+		for (ResultExt result : results) {
+			IAtomContainer container = result.getMol();
+			Map<Object, Object> props = fetchProperties(result);
+			container.setProperties(props);
+			container.setID((String) props.get(properties.name));
+			
+			try {
+				sdfwriter.write(container);
+			} catch (CDKException e) {
+				System.err.println("Error writing container for molecule [" + result.getId() + "]");
+			}
+		}
+		
+		try {
+			sdfwriter.close();
+		} catch (IOException e) {
+			System.err.println("Could not close connection to file [" + filename + "]!");
+			return success;
+		}
+		success = Boolean.TRUE;
+		
+		return success;
 	}
 	
 	@Override
