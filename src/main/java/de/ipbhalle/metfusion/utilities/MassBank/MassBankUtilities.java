@@ -5,7 +5,6 @@
 
 package de.ipbhalle.metfusion.utilities.MassBank;
 
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
@@ -18,14 +17,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import javax.imageio.ImageIO;
 
 import massbank.GetConfig;
 import massbank.MassBankCommon;
@@ -34,7 +31,7 @@ import net.sf.jniinchi.INCHI_RET;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.tomcat.jni.OS;
+
 import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
@@ -55,6 +52,7 @@ import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 
 import de.ipbhalle.CDK.MyErrorHandler;
 
+
 /**
  * The Class MassBankUtilities.
  */
@@ -70,9 +68,24 @@ public class MassBankUtilities {
 	private static final String os = System.getProperty("os.name");
 	private static final String fileSeparator = System.getProperty("file.separator");
 	private static final String currentDir = System.getProperty("user.dir");
+	private static final String tempDir = System.getProperty("java.io.tmpdir");
 	
 	/** The Constant cacheMassBank. */
 	private static final String cacheMassBank = "/vol/massbank/Cache/";
+	
+	private String cacheDir;
+	
+	private static final String RECORDS = "records";
+	private static final String MOL = "mol";
+	
+	
+	public MassBankUtilities() {
+		this.cacheDir = tempDir;
+	}
+	
+	public MassBankUtilities(String cacheDir) {
+		this.cacheDir = cacheDir;
+	}
 	
 	/**
 	 * Format a peaklist string into the appropriate format used for
@@ -194,7 +207,7 @@ public class MassBankUtilities {
 	 */
 	public static boolean writeMolFile(String id, String mol, String basePath) {
 		boolean success = false;
-		File f = new File(basePath + id + ".mol");
+		File f = new File(basePath, id + ".mol");
 //		if(f.exists()){
 //			System.out.println("File " + f +  " exists!");
 //			return true;
@@ -312,7 +325,7 @@ public class MassBankUtilities {
 	 * @return true, if successful
 	 */
 	public static boolean fetchMol(String compound, String id, String site, String basePath) {
-		File f = new File(basePath + id + ".mol");
+		File f = new File(basePath, id + ".mol");
 		if(f.exists()) {
 			System.out.println(f + " exists");
 			return true;
@@ -337,6 +350,10 @@ public class MassBankUtilities {
 			InputStream is = method.getResponseBodyAsStream();
 			StringBuilder sb = new StringBuilder();
 			String line = "";
+			int headerCounter = 0;
+			int additionalCount = 0;
+			boolean foundEND = false;
+			List<String> dump = new ArrayList<String>();
 			if (is != null) {
 				try {
 					BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
@@ -345,16 +362,40 @@ public class MassBankUtilities {
 							sb.append(line);
 						else
 							sb.append(line).append("\n"); // .append("\n");
+						
+						dump.add(line);
+						if(line.contains("V2000") || line.contains("V3000")) {	// first line after headerblock
+							if(headerCounter < 3) {	// header block too small, add empty rows to fill
+								int toAdd = 3 - headerCounter;
+								for (int i = 0; i < toAdd; i++) {
+									dump.add(0, "");	// add empty lines to header
+								}
+							}
+							else if(headerCounter > 3) {	// header block too big, remove rows
+								int toRemove = headerCounter - 3;
+								for (int i = 0; i < toRemove; i++) {
+									dump.remove(0);	// remove first line multiple times
+								}
+							}
+						}
+						if(foundEND)	// count number of additional lines after END-tag of mol file
+							additionalCount++;
+						
+						if(line.contains("M  END"))	// mark end of regular mol file
+							foundEND = true;
+						headerCounter++;
 					}
 				} finally {
 					is.close();
 				}
-				mol = sb.toString().trim();
+				sb = new StringBuilder();
+				for (int i = 0; i < dump.size()-additionalCount; i++) {
+					sb.append(dump.get(i)).append("\n");
+				}
+				//mol = sb.toString().trim();
+				mol = sb.toString();
 			}
 			method.releaseConnection();
-			
-			System.out.println("compound -> " + compound + "\tsite -> " + site);
-			System.out.println("mol -> \n" + mol);
 			
 			if(mol.contains("M  EN") && !mol.contains("M  END")) {
 				mol = mol.replace("M  EN", "M  END");
@@ -372,7 +413,7 @@ public class MassBankUtilities {
 			if(mol.equals("0\n") || !mol.contains("M  END")){		// found no molfile
 				System.err.println(id + " is empty or non-standard - return false");
 				mol = "";		// reset corrupt/missing mol data to empty string
-                f.delete();
+				f.delete();
 				return false;
 			}
 		} catch (HttpException e) {
@@ -404,14 +445,16 @@ public class MassBankUtilities {
 	 */
 	public static String retrieveMol(String compound, String site, String record) {
 		String reqStr = "";
-		if(record.startsWith("CO") || record.startsWith("PB")) {
-			reqStr = "http://msbi.ipb-halle.de/MassBank/" + "jsp/" + MassBankCommon.DISPATCHER_NAME;
-			if(record.startsWith("CO"))
-				site = "1";
-			else if(record.startsWith("PB"))
-				site = "0";				
-		}
-		else reqStr = baseUrl + "jsp/" + MassBankCommon.DISPATCHER_NAME;
+//		if(record.startsWith("CO") || record.startsWith("PB")) {
+//			reqStr = "http://msbi.ipb-halle.de/MassBank/" + "jsp/" + MassBankCommon.DISPATCHER_NAME;
+//			if(record.startsWith("CO"))
+//				site = "1";
+//			else if(record.startsWith("PB"))
+//				site = "0";				
+//		}
+//		else reqStr = baseUrl + "jsp/" + MassBankCommon.DISPATCHER_NAME;
+		reqStr = baseUrl + "jsp/" + MassBankCommon.DISPATCHER_NAME;
+		
 //		try {
 //			compound = URLEncoder.encode(compound, "UTF-8");
 //			System.out.println("compound encoded -> " + compound);
@@ -532,22 +575,24 @@ public class MassBankUtilities {
 	public static void fetchRecord(String id, String site) {
 		String prefix = id.substring(0, 2);
 		File dir = null;
-		if(os.startsWith("Windows")) {
-			dir = new File(currentDir);
-		}
+		if(os.startsWith("Windows"))
+			dir = new File(tempDir);
+		//else dir = new File(cacheMassBank);
 		else dir = new File(cacheMassBank);
 		String[] institutes = dir.list();
 		File f = null;
         boolean found = false;
         System.out.println("ID -> " + id + "  site -> " + site);
-		for (int i = 0; i < institutes.length; i++) {
-			if(institutes[i].startsWith(prefix)) {
-                f = new File(dir, institutes[i] +  fileSeparator + "records" + fileSeparator + id + ".txt");
-                found = true;
-                //break;
-                return;     // return if record was found
-            }
-		}
+        if(institutes != null) {
+			for (int i = 0; i < institutes.length; i++) {
+				if(institutes[i].startsWith(prefix)) {
+					f = new File(dir, institutes[i] +  fileSeparator + "records" + fileSeparator + id + ".txt");
+	                found = true;
+	                //break;
+	                return;     // return if record was found
+	            }
+			}
+        }
 
 		if (!found) {
 			f = new File(dir, prefix);
@@ -608,11 +653,10 @@ public class MassBankUtilities {
 				break;
 			}
 		}
-		//File f = new File("/home/mgerlich/workspace-3.5/MassBankComparison/MBCache/" + id + ".txt");
 		if(!f.exists()) {
-			f.setWritable(true, false);	// set writable for owner and everyone else
-			String reqStr = baseUrl; 	//"http://msbi.ipb-halle.de/MassBank/";
-			//String reqStr = "http://www.massbank.jp/";
+			//String reqStr = "http://msbi.ipb-halle.de/MassBank/";
+			String reqStr = baseUrl;	//"http://www.massbank.jp/";
+			//f.setWritable(true, false);	// set writable for owner and everyone else
 			reqStr += "jsp/" + MassBankCommon.DISPATCHER_NAME;
 			
 			HttpClient client = new HttpClient();
@@ -726,23 +770,23 @@ public class MassBankUtilities {
 		else prefix = id.substring(0, 2);
 		
 		File dir = null;
-		if(os.startsWith("Windows")) {
-			dir = new File(currentDir);
-		}
+		if(os.startsWith("Windows"))
+			dir = new File(tempDir);
+		//else dir = new File(cacheMassBank);
 		else dir = new File(cacheMassBank);
 		//File dir = new File(cacheMassBank);
 		String[] institutes = dir.list();
 		File f = null;
 		boolean found = false;
-		for (int i = 0; i < institutes.length; i++) {
-			if(institutes[i].startsWith(prefix)) {
-				f = new File(dir, institutes[i] + fileSeparator + "records" + fileSeparator);
-				f.mkdirs();
-				found = true;
-				//f = new File(dir, institutes[i] + fileSeparator + "records" + fileSeparator + id + ".txt");
-				f = new File(f, id + ".txt");
-				
-				break;
+		if(institutes != null) {
+			for (int i = 0; i < institutes.length; i++) {
+				if(institutes[i].startsWith(prefix)) {
+					f = new File(dir, institutes[i] + fileSeparator + "records" + fileSeparator);
+					found = true;
+					f = new File(f, id + ".txt");
+					
+					break;
+				}
 			}
 		}
 		if(!found) {
@@ -767,7 +811,7 @@ public class MassBankUtilities {
 //		}
 		
 		if(f != null && !f.exists()) {
-			String reqStr = baseUrl;	//"http://msbi.ipb-halle.de/MassBank/";
+			String reqStr = baseUrl;	// "http://msbi.ipb-halle.de/MassBank/";
 			reqStr += "jsp/" + MassBankCommon.DISPATCHER_NAME;
 			
 			HttpClient client = new HttpClient();
@@ -1038,7 +1082,7 @@ public class MassBankUtilities {
 	public static IAtomContainer getContainer(String id, String basePath) {
 		File f = new File(basePath, id + ".mol");
 		if(!f.exists()) {
-			System.out.println("mol path -> " + f + "\t=> exists ? " + f.exists());
+			System.out.println("mol path -> " + f + " does not exist!");
 			return null;
 		}
 		
@@ -1046,21 +1090,22 @@ public class MassBankUtilities {
 		try {
 			fis = new FileInputStream(f);
 		} catch (FileNotFoundException e1) {
-			System.err.println("File not found - " + f);
+			System.err.println("File not found - " + f.getAbsolutePath());
 			return null;
 		}
 		InputStream is = fis;
-		MDLV2000Reader reader = new MDLV2000Reader(is);
+		//MDLV2000Reader reader = new MDLV2000Reader(is);
+		MDLReader reader = new MDLReader(is);
 		reader.setErrorHandler(new MyErrorHandler());
+
 		IChemFile chemFile = new ChemFile();
 		IAtomContainer container = null;
-		try {			
+		try {
 			chemFile = (IChemFile) reader.read(chemFile);
-                        List<IAtomContainer> containers = ChemFileManipulator.getAllAtomContainers(chemFile);
-                        if(containers != null && containers.size() > 0)
-                            container = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
-                        else return null;
-                        
+			List<IAtomContainer> containers = ChemFileManipulator.getAllAtomContainers(chemFile);
+			if (containers != null && containers.size() > 0)
+				container = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
+				
 			/**
 			 *  hydrogen handling
 			 */
@@ -1075,13 +1120,18 @@ public class MassBankUtilities {
 			// remove hydrogens
 //			container = AtomContainerManipulator.removeHydrogens(container);
 		} catch (java.lang.NumberFormatException e) {
-			System.err.println("NumberFormatException occured while parsing mol file - " + f);
+			System.err.println("NumberFormatException occured while parsing mol file - " + f.getAbsolutePath());
 			f.delete();	// delete erroneous file if possible
-			return null;
 		} catch (CDKException e) {
-			System.err.println("CDKException occured for mol file - " + f);
+			System.err.println("CDKException occured for mol file - " + f.getAbsolutePath());
 			f.delete();	// delete erroneous file if possible
-			return null;
+		}
+		finally {
+			try {
+				reader.close();
+			} catch (IOException e) {
+				System.err.println("Error closing reader for file " + f.getAbsolutePath());
+			}
 		}
 		
 		return container;
@@ -1141,16 +1191,17 @@ public class MassBankUtilities {
 	 * @return the mol from smiles
 	 */
 	public static IAtomContainer getMolFromSmiles(String smiles) {
-            if(smiles == null || smiles.isEmpty())
-                return null;
-            
-            IAtomContainer container = null;
-            try {
-                SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
-                IMolecule m = sp.parseSmiles(smiles);
-                container = m;
+		if (smiles == null || smiles.isEmpty())
+			return null;
 
-                /**
+		IAtomContainer container = null;
+		try {
+			SmilesParser sp = new SmilesParser(
+					DefaultChemObjectBuilder.getInstance());
+			IMolecule m = sp.parseSmiles(smiles);
+			container = m;
+			
+			/**
                  *  hydrogen handling
                  */
                 try {
@@ -1161,14 +1212,10 @@ public class MassBankUtilities {
                 } catch (CDKException e) {
                     System.err.println("error manipulating mol for smiles");
                 }
-
-                // remove hydrogens
-//			container = AtomContainerManipulator.removeHydrogens(container);
-            } catch (InvalidSmilesException ise) {
-//			ise.printStackTrace();
-                    return null;
-            }
-            return container;
+		} catch (InvalidSmilesException ise) {
+			return null;
+		}
+		return container;
 	}
 	
 	/**
