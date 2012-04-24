@@ -26,7 +26,6 @@ public class MetFusionBatchMode {
 
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
-	//private final static int NUM_ARGS = 3;
 	public static enum ARGUMENTS {mf, sdf, out, format, proxy};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
 	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY;
@@ -135,8 +134,6 @@ public class MetFusionBatchMode {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// -mf /tmp/1_1.mf -out /home/mgerlich/Desktop/testBatchmode/
-		// -mf /home/mgerlich/Documents/metfusion_param_sdf.mf -sdf /home/mgerlich/Desktop/naringenin.sdf -out /home/mgerlich/Desktop/testBatchmode/
 		MetFusionBatchMode mfbm = new MetFusionBatchMode(args);
 		
 		if(mfbm.doneSetup)
@@ -158,15 +155,6 @@ public class MetFusionBatchMode {
 		String mfFile = mfbm.settings.get(ARGUMENTS.mf);
 		File mfFileHandler = new File(mfFile);
 		String prefix = mfFileHandler.getName().substring(0, mfFileHandler.getName().lastIndexOf("."));	// name of batch file - use as prefix for output files!
-		
-//		// sdf path
-//		if(mfbm.isCheckSDF()) {
-//			String sdfFile = mfbm.settings.get(ARGUMENTS.sdf);
-//			File sdf = new File(sdfFile);
-//			//List<IAtomContainer> compounds = mfbm.batchFileHandler.consumeSDF(sdfFile);
-//			List<IAtomContainer> compounds = mfbm.batchFileHandler.consumeSDF(sdf.getAbsolutePath());
-//			System.out.println("#compounds from sdf file -> " + compounds.size());
-//		}
 		
 		mfbm.batchFileHandler = new MetFusionBatchFileHandler(mfFileHandler);
 		try {
@@ -210,7 +198,6 @@ public class MetFusionBatchMode {
 		if(mfbm.isCheckSDF()) {
 			String sdfFile = mfbm.settings.get(ARGUMENTS.sdf);
 			File sdf = new File(sdfFile);
-			//List<IAtomContainer> compounds = mfbm.batchFileHandler.consumeSDF(sdfFile);
 			List<IAtomContainer> compounds = mfbm.batchFileHandler.consumeSDF(sdf.getAbsolutePath());
 			System.out.println("#compounds from sdf file -> " + compounds.size());
 			metfragbm.setSelectedSDF(sdf.getAbsolutePath());
