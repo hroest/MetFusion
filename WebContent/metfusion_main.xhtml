@@ -619,6 +619,7 @@
 						<f:selectItem itemLabel="MetFusion Cluster" itemValue="cluster" itemDisabled="#{!appBean.showClusterResults}"/>
 						<f:selectItem itemLabel="Fragmenter List" itemValue="fragmenter" itemDisable="#{!appBean.showResultsFragmenter}"/>
 						<f:selectItem itemLabel="Database List" itemValue="database" itemDisabled="#{!appBean.showResultsDatabase}"/>
+						<f:selectItem itemLabel="Unused Database Entries" itemValue="unused" itemDisabled="#{!appBean.showResultsDatabase}"/>
 					</ice:selectOneRadio>
 					
 					<ice:panelGroup style="background-color: MintCream; border: 1px solid ForestGreen;" rendered="#{appBean.createdResource}">
@@ -906,6 +907,43 @@
 						                </ice:outputFormat>
 						        </ice:dataPaginator>
 						    </ice:panelGrid>
+						</ice:panelGroup>
+						
+						<ice:panelGroup id="unused">
+			    			<ice:dataTable value="#{appBean.mblb.unused}" var="entry" id="unusedMassBankEntries">
+			    				<f:facet name="header">
+			    					<ice:outputText value="Unused MassBank Entries"/>
+			    				</f:facet>
+			    				<ice:column>
+									<f:facet name="header">Port Name</f:facet>
+									#{entry.port}
+								</ice:column>
+								<ice:column>
+									<f:facet name="header">Record ID</f:facet>
+									<ice:outputLink id="linkOut" value="#{entry.url}" target="_blank" style="text-decoration: underline;">
+										<ice:outputText id="rowData" value="#{entry.id}" nospan="true"/>
+									</ice:outputLink>
+								</ice:column>
+								<ice:column>
+									<f:facet name="header">Compound Name</f:facet>
+									#{entry.name}
+									#{entry.smiles}
+								</ice:column>
+								<ice:column>
+									<f:facet name="header">Exact Mass</f:facet>
+									<ice:outputText value="#{entry.sumFormula}" escape="false"></ice:outputText>
+									<br/><br/>
+									#{entry.exactMass}
+								</ice:column>
+								<ice:column>
+									<f:facet name="header">Structure</f:facet>
+									<ice:graphicImage value="#{entry.imagePath}" alt="Structure"/>
+								</ice:column>
+								<ice:column>
+									<f:facet name="header">Score</f:facet>
+									#{entry.score}
+								</ice:column>
+			    			</ice:dataTable>
 						</ice:panelGroup>
 					</ice:panelStack>
 					
