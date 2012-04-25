@@ -937,8 +937,8 @@ public class MassBankLookupBean implements Runnable, Serializable {
             }
         }
         // ensure progress bar set to 100% - can be lower if not all results had moldata, thus not increasing limitCounter
-        this.searchCounter = results.size();	//resultLimit;
-        this.limit = results.size();
+        this.searchCounter = limit; 	//results.size();	//resultLimit;
+        //this.limit = results.size();
         updateSearchProgress();	// update progress bar
         
         System.out.println("entries after duplicate removal -> " + results.size());
