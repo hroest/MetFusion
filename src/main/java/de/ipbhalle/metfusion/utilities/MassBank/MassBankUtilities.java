@@ -112,9 +112,10 @@ public class MassBankUtilities {
 	 */
 	public static String[] getPeaklistFromFile(File f) {
 		StringBuilder sb = new StringBuilder();
-		String[] data = new String[3];
+		String[] data = new String[4];
 		String mass = "";
 		String compound = "";
+		String ion = "";
 		boolean gotName = false;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(f));
@@ -157,6 +158,14 @@ public class MassBankUtilities {
 //					gotName = true;
 //				}
 				
+				if(line.startsWith("RECORD_TITLE")) {
+					if(line.contains("[M+H]+") || line.contains("M+H"))
+						ion = "pos";
+					else if(line.contains("[M-H]-") || line.contains("M-H")) 
+						ion = "neg";
+					else ion = "pos";
+				}
+				
 				if(line.startsWith("CH$EXACT_MASS:")) {
 					mass = line.substring(line.indexOf(":") + 1).trim();
 				}
@@ -192,6 +201,7 @@ public class MassBankUtilities {
 		data[0] = result;
 		data[1] = mass;
 		data[2] = compound;
+		data[3] = ion;
 		
 		return data;
 	}
@@ -1018,6 +1028,9 @@ public class MassBankUtilities {
 				System.err.println("error manipulating mol for " + f.getAbsolutePath());
 			}
 			
+			// remove hydrogens
+//			container = AtomContainerManipulator.removeHydrogens(container);
+			
 			writer.write(container);
 			writer.close();
 			
@@ -1196,22 +1209,23 @@ public class MassBankUtilities {
 
 		IAtomContainer container = null;
 		try {
-			SmilesParser sp = new SmilesParser(
-					DefaultChemObjectBuilder.getInstance());
+			SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
 			IMolecule m = sp.parseSmiles(smiles);
 			container = m;
 			
 			/**
-                 *  hydrogen handling
-                 */
-                try {
-                    AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-                    CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-                    hAdder.addImplicitHydrogens(container);
-                    AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-                } catch (CDKException e) {
-                    System.err.println("error manipulating mol for smiles");
-                }
+             *  hydrogen handling
+             */
+            try {
+                AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+                CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
+                hAdder.addImplicitHydrogens(container);
+                AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
+            } catch (CDKException e) {
+                System.err.println("error manipulating mol for smiles");
+            }
+			// remove hydrogens
+//			container = AtomContainerManipulator.removeHydrogens(container);
 		} catch (InvalidSmilesException ise) {
 			return null;
 		}
