@@ -464,10 +464,15 @@ public class MetFragBean implements Runnable, Serializable {
 					emass = Double.valueOf(threeDForm.format(emass));	// shorten exact mass to 3 decimal places
 					
 					/**
-					 *  hydrogen handling
-					 */
-					try {
-	                	container = AtomContainerHandler.addExplicitHydrogens(container);
+		             *  hydrogen handling
+		             */
+		            try {
+		                AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+		                CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
+		                hAdder.addImplicitHydrogens(container);
+		                AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
+	                	
+		                //container = AtomContainerHandler.addExplicitHydrogens(container);
 					} catch (CDKException e) {
 						System.err.println("error manipulating mol for " + mfr.getCandidateID());
 						continue;
@@ -507,7 +512,7 @@ public class MetFragBean implements Runnable, Serializable {
 					}
 					else if(database.equals(dbCHEMSPIDER)) {
 						int id = Integer.parseInt(mfr.getCandidateID());
-						String token = "a1004d0f-9d37-47e0-acdd-35e58e34f603";
+						String token = "eeca1d0f-4c03-4d81-aa96-328cdccf171a";
 						ExtendedCompoundInfo cpdInfo = chemSpiderProxy.getExtendedCompoundInfo(id, token);
 						name = cpdInfo.getCommonName();
 					}
