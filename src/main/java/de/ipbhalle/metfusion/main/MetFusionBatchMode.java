@@ -29,10 +29,11 @@ public class MetFusionBatchMode {
 
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
-	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record};
+	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
-	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD;
+	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE;
 	private Map<ARGUMENTS, String> settings;
+	private final static String DEFAULT_SERVER = "http://www.massbank.jp/";
 	
 	private final String os = System.getProperty("os.name");
 	private final String fileSeparator = System.getProperty("file.separator");
@@ -88,6 +89,8 @@ public class MetFusionBatchMode {
 				System.out.print("[" + format + "] ");
 			}
 			System.out.println("optionally: -proxy");
+			System.out.println("optionally: -server http://www.your-massbank.server/");
+			System.out.println("optionally: -cache /path/to/cache");
 			
 			System.out.println("\nExample call: java -jar JARFILE -mf settings.mf #this uses the current directory for output!");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -out /tmp");
@@ -117,9 +120,12 @@ public class MetFusionBatchMode {
 					this.checkPROXY = Boolean.TRUE;	// proxy does not have an additional property, mark as set/unset and continue
 					continue;
 				}
-				if(temp.equals(ARGUMENTS.record.toString())) {
+				if(temp.equals(ARGUMENTS.record.toString()))
 					this.checkRECORD = Boolean.TRUE;
-				}
+				if(temp.equals(ARGUMENTS.server.toString()))
+					this.checkSERVER = Boolean.TRUE;
+				if(this.equals(ARGUMENTS.cache.toString()))
+					this.checkCACHE = Boolean.TRUE;
 				
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
 				i++;	// skip value, iterate over new argument
@@ -193,8 +199,13 @@ public class MetFusionBatchMode {
 		Ionizations ion = settings.getMbIonization();		// retrieve ionization for MassBank
 		
 		MetFragBatchMode metfragbm = new MetFragBatchMode(outPath);
-		MassBankBatchMode mbbm = new MassBankBatchMode(outPath, ion);
+		MassBankBatchMode mbbm = null;
+		if(mfbm.checkSERVER)	// create new MassBankBatchMode with provided server
+			mbbm = new MassBankBatchMode(outPath, ion, mfbm.settings.get(ARGUMENTS.server));
+		else mbbm = new MassBankBatchMode(outPath, ion, DEFAULT_SERVER);	// create new MassBankBatchMode with default server
 		
+		if(mfbm.checkCACHE)				// overwrite default cache location if argument was given
+			mbbm.setCacheMassBank(mfbm.settings.get(ARGUMENTS.cache));
 		
 		mbbm.setInputSpectrum(settings.getPeaks());
 		mbbm.setSelectedInstruments(settings.getMbInstruments());

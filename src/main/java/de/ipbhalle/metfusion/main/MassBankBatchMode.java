@@ -64,9 +64,10 @@ public class MassBankBatchMode implements Runnable {
 	
 	private boolean done = Boolean.FALSE;
 	
-	public MassBankBatchMode(String workDir, Ionizations ion) {
+	public MassBankBatchMode(String workDir, Ionizations ion, String serverUrl) {
 		this.sessionPath = workDir;
 		this.selectedIon = String.valueOf(ion.getValue());
+		this.serverUrl = serverUrl;
 		
 		this.setMbCommon(new MassBankCommon());
 		this.setConfig(new GetConfig(this.serverUrl));
@@ -109,7 +110,7 @@ public class MassBankBatchMode implements Runnable {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		MassBankBatchMode mbbm = new MassBankBatchMode("/home/mgerlich/Desktop/testBatchmode/", Ionizations.pos);
+		MassBankBatchMode mbbm = new MassBankBatchMode("/home/mgerlich/Desktop/testBatchmode/", Ionizations.pos, "http://www.massbank.jp/");
 		
 		MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/mgerlich/Documents/metfusion_param_default.mf"));
 		try {
@@ -512,6 +513,22 @@ public class MassBankBatchMode implements Runnable {
 
 	public boolean isDone() {
 		return done;
+	}
+
+	public String getServerUrl() {
+		return serverUrl;
+	}
+
+	public void setServerUrl(String serverUrl) {
+		this.serverUrl = serverUrl;
+	}
+
+	public String getCacheMassBank() {
+		return cacheMassBank;
+	}
+
+	public void setCacheMassBank(String cacheMassBank) {
+		this.cacheMassBank = cacheMassBank;
 	}
 
 }

@@ -165,7 +165,7 @@ public class BatchRun {
 		
 		// instantiate new MassBankLookupBean with designated MassBank serverUrl
 		//MassBankLookupBean mblb = new MassBankLookupBean(serverUrl);
-		MassBankBatchMode mblb = new MassBankBatchMode(outputDir.getAbsolutePath(), Ionizations.pos);
+		MassBankBatchMode mblb = new MassBankBatchMode(outputDir.getAbsolutePath(), Ionizations.pos, serverUrl);
 		//selectedInstruments = mblb.getSelectedInstruments();
 		
 		//String typeName = MassBankCommon.CGI_TBL[MassBankCommon.CGI_TBL_NUM_TYPE][MassBankCommon.CGI_TBL_TYPE_SEARCH];
