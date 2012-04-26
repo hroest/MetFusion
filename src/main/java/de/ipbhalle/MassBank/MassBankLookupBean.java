@@ -783,7 +783,6 @@ public class MassBankLookupBean implements Runnable, Serializable {
                         basePath = f.getAbsolutePath();
                         if(!basePath.endsWith("/"))
                                 basePath += "/";
-                        //System.out.println("basePath for " + id + " -> " + basePath);
                         break;
                     }
                 }
@@ -817,36 +816,6 @@ public class MassBankLookupBean implements Runnable, Serializable {
                     }
                 }
 
-                // hydrogen handling
-                if(container != null) {
-                    try {
-	                	container = AtomContainerHandler.addExplicitHydrogens(container);
-//                        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-//                        CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-//                        hAdder.addImplicitHydrogens(container);
-//                        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-                    } catch (CDKException e) {
-                        System.err.println("error manipulating mol for " + id);
-                        continue;
-                    }
-                }
-
-//				if(container == null && !fetch && smiles != null && !smiles.isEmpty()) {
-//					if(fetch) {
-//						System.out.println("container via fetch");
-//						//container = MassBankUtilities.getMolFromAny(id, basePath, smiles);
-//						container = MassBankUtilities.getContainer(id, basePath);
-//					}
-//					else {
-//						System.out.println("container via smiles");
-//						container = MassBankUtilities.getMolFromSmiles(smiles);
-//					}
-//				}
-
-//				IAtomContainer container = MassBankUtilities.getContainer(id, basePath);
-//				IAtomContainer container = MassBankUtilities.getContainer(mol);
-//				results.add(new Result("MassBank", id, name, score, container));
-
                 /**
                  *  if entry is not present yet, add it - else don't
                  */
@@ -863,16 +832,6 @@ public class MassBankLookupBean implements Runnable, Serializable {
 						emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
 					else emass = mbu.retrieveExactMass(id, site);
 					
-                	/**
-                	 * TODO: auskommentiert für Gridengine Evaluationsläufe
-                	 */
-//                    	if(stf != null)
-//							try {
-//								stf.writeMOL2PNGFile(container, id + ".png");
-//							} catch (Exception e) {
-//								// TODO Auto-generated catch block
-//								e.printStackTrace();
-//							}
                     duplicates.add(name);
                     //results.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
                     results.add(new Result("MassBank", id, name, score, container, url, tempPath + id + ".png", formula, emass));
