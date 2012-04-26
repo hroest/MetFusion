@@ -22,6 +22,8 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.smiles.SmilesGenerator;
+import org.openscience.cdk.tools.CDKHydrogenAdder;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import com.chemspider.www.ExtendedCompoundInfo;
@@ -359,21 +361,21 @@ public class MetFragBatchMode implements Runnable {
 					
 					// hydrogen handling
 	                if(container != null) {
-	                	try {
-	                		container = AtomContainerHandler.addExplicitHydrogens(container);
-	                	} catch (CDKException e) {
-                        System.err.println("error manipulating mol for " + mfr.getCandidateID());
-                        continue;
-	                	}
-//	                    try {
-//	                        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-//	                        CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-//	                        hAdder.addImplicitHydrogens(container);
-//	                        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-//	                    } catch (CDKException e) {
-//	                        System.err.println("error manipulating mol for " + mfr.getCandidateID());
-//	                        continue;
-//	                    }
+//	                	try {
+//	                		container = AtomContainerHandler.addExplicitHydrogens(container);
+//	                	} catch (CDKException e) {
+//                        System.err.println("error manipulating mol for " + mfr.getCandidateID());
+//                        continue;
+//	                	}
+	                    try {
+	                        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+	                        CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
+	                        hAdder.addImplicitHydrogens(container);
+	                        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
+	                    } catch (CDKException e) {
+	                        System.err.println("error manipulating mol for " + mfr.getCandidateID());
+	                        continue;
+	                    }
 	                }
 					
 					// remove hydrogens
