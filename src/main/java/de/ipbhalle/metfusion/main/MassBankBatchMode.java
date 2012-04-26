@@ -279,6 +279,7 @@ public class MassBankBatchMode implements Runnable {
         					}
         				}
         			}
+        			else cache = new File(dir, prefix);
         		}
         		//else dir = new File(tempDir);
         		
