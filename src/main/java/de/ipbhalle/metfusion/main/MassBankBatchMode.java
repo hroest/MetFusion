@@ -19,6 +19,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesGenerator;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import de.ipbhalle.CDK.AtomContainerHandler;
@@ -262,13 +263,26 @@ public class MassBankBatchMode implements Runnable {
 
                 String prefix = id.substring(0, 2);
                 File dir = null;
+                File cache = null;
         		if(os.startsWith("Windows")) {
         			dir = new File(tempDir);
+        			cache = new File(dir, prefix);
         		}
-        		//else dir = new File(cacheMassBank);
-        		else dir = new File(tempDir);
+        		else {
+        			dir = new File(cacheMassBank);
+        			
+        			String[] institutes = dir.list();
+        			if(institutes != null) {
+        				for (int inst = 0; inst < institutes.length; inst++) {
+        					if(institutes[inst].startsWith(prefix)) {
+        						cache = new File(dir, institutes[inst]);		//  + fileSeparator + "mol" + fileSeparator
+        						break;
+        					}
+        				}
+        			}
+        		}
+        		//else dir = new File(tempDir);
         		
-                File cache = new File(dir, prefix);
                 String basePath = "";
                 boolean createDir = false;
                 if(!cache.exists()) {		// cache folder does not exist, create it
@@ -324,23 +338,27 @@ public class MassBankBatchMode implements Runnable {
                 }
 
                 // hydrogen handling
-                if(container != null) {
-                    try {
-	                	container = AtomContainerHandler.addExplicitHydrogens(container);
+//                if(container != null) {
+                	// remove hydrogens
+//        			container = AtomContainerManipulator.removeHydrogens(container);
+        			
+//                    try {
+//	                	container = AtomContainerHandler.addExplicitHydrogens(container);
+	                	
 //                        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
 //                        CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
 //                        hAdder.addImplicitHydrogens(container);
 //                        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-                    } catch (CDKException e) {
-                        System.err.println("error manipulating mol for " + id);
-                        // add erroneous record to list of unuses entries
-                        Result r = new Result("MassBank", id, name, score, container, "", tempPath + id + ".png");
-                    	r.setSmiles(smiles);
-                    	unused.add(r);
-                    	
-                        continue;
-                    }
-                }
+//                    } catch (CDKException e) {
+//                        System.err.println("error manipulating mol for " + id);
+//                        // add erroneous record to list of unuses entries
+//                        Result r = new Result("MassBank", id, name, score, container, "", tempPath + id + ".png");
+//                    	r.setSmiles(smiles);
+//                    	unused.add(r);
+//                    	
+//                        continue;
+//                    }
+//                }
 
                 /**
                  *  if entry is not present yet, add it - else don't
