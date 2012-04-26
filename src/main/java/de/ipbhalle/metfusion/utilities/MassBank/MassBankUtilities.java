@@ -865,19 +865,7 @@ public class MassBankUtilities {
 		
 		try {
 			MDLV2000Writer writer = new MDLV2000Writer(new FileWriter(f));
-			
-			/**
-			 *  hydrogen handling
-			 */
-//			try {
-//				AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-//				CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-//                                hAdder.addImplicitHydrogens(container);
-//                                AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-//			} catch (CDKException e) {
-//				System.err.println("error manipulating mol for " + f.getAbsolutePath());
-//			}
-			
+
 			// remove hydrogens
 			container = AtomContainerManipulator.removeHydrogens(container);
 			
@@ -893,6 +881,22 @@ public class MassBankUtilities {
 			return false;
 		}
 	}
+	
+	private IAtomContainer hydrogenHandling(IAtomContainer container) {
+		/**
+		 *  hydrogen handling
+		 */
+		try {
+			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+			CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
+	        hAdder.addImplicitHydrogens(container);
+	        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
+		} catch (CDKException e) {
+			return container;
+		}
+		return container;
+	}
+	
 	
 	/**
 	 * Retrieves the IAtomContainer for a moldata string.
@@ -912,18 +916,8 @@ public class MassBankUtilities {
 		try {			
 			chemFile = (IChemFile) reader.read(chemFile);
 			container = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
-			
-			/**
-			 *  hydrogen handling
-			 */
-			try {
-				AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-				CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-		        hAdder.addImplicitHydrogens(container);
-		        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-			} catch (CDKException e) {
-				return container;
-			}
+			// hydrogen handling
+			container = hydrogenHandling(container);
 		} catch (NumberFormatException e) {
 			System.err.println("NumberFormatException occured while parsing mol file");
 			return null;
@@ -931,6 +925,7 @@ public class MassBankUtilities {
 			System.err.println("CDKException occured!");
 			return null;
 		}
+		
 		return container;
 	}
 	
@@ -957,7 +952,6 @@ public class MassBankUtilities {
 			return null;
 		}
 		InputStream is = fis;
-		//MDLV2000Reader reader = new MDLV2000Reader(is);
 		MDLReader reader = new MDLReader(is);
 		reader.setErrorHandler(new MyErrorHandler());
 
@@ -969,19 +963,8 @@ public class MassBankUtilities {
 			if (containers != null && containers.size() > 0)
 				container = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
 				
-			/**
-			 *  hydrogen handling
-			 */
-			try {
-				AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-				CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-		        hAdder.addImplicitHydrogens(container);
-		        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-			} catch (CDKException e) {
-				System.err.println("error manipulating mol for " + id);
-			}
-			// remove hydrogens
-//			container = AtomContainerManipulator.removeHydrogens(container);
+			// hydrogen handling
+			container = hydrogenHandling(container);
 		} catch (java.lang.NumberFormatException e) {
 			System.err.println("NumberFormatException occured while parsing mol file - " + f.getAbsolutePath());
 			f.delete();	// delete erroneous file if possible
@@ -1029,10 +1012,13 @@ public class MassBankUtilities {
 		IAtomContainer container = null;
 		try {			
 			chemFile = (IChemFile) reader.read(chemFile);
-            List<IAtomContainer> containers = ChemFileManipulator.getAllAtomContainers(chemFile);
-            if(containers != null && containers.size() > 0)
-                container = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
-            else return null;
+			List<IAtomContainer> containers = ChemFileManipulator
+					.getAllAtomContainers(chemFile);
+			if (containers != null && containers.size() > 0)
+				container = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
+
+			// hydrogen handling
+			container = hydrogenHandling(container);
 		} catch (java.lang.NumberFormatException e) {
 			System.err.println("NumberFormatException occured while parsing mol file - " + f);
 			f.delete();	// delete erroneous file if possible
@@ -1063,19 +1049,8 @@ public class MassBankUtilities {
 			IMolecule m = sp.parseSmiles(smiles);
 			container = m;
 			
-			/**
-             *  hydrogen handling
-             */
-            try {
-                AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-                CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-                hAdder.addImplicitHydrogens(container);
-                AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-            } catch (CDKException e) {
-                System.err.println("error manipulating mol for smiles");
-            }
-			// remove hydrogens
-//			container = AtomContainerManipulator.removeHydrogens(container);
+			// hydrogen handling
+			container = hydrogenHandling(container);
 		} catch (InvalidSmilesException ise) {
 			return null;
 		}
@@ -1110,17 +1085,8 @@ public class MassBankUtilities {
 
 		container = intostruct.getAtomContainer();
 		
-		/**
-		 *  hydrogen handling
-		 */
-		try {
-			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-			CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-	        hAdder.addImplicitHydrogens(container);
-	        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-		} catch (CDKException e) {
-			System.err.println("error manipulating mol for inchi");
-		}
+		// hydrogen handling
+		container = hydrogenHandling(container);
 		return container;
 	}
 	
