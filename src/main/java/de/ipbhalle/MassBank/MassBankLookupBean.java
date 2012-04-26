@@ -113,7 +113,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	private List<Result> unused;
 	
 	private Thread t;
-	private static final String cacheMassBank = "/vol/massbank/Cache/";
+	private String cacheMassBank = "/vol/massbank/Cache/";
 	
 //	private FacesContext fc = FacesContext.getCurrentInstance();
 //    private HttpSession session = (HttpSession) fc.getExternalContext().getSession(false);
@@ -134,7 +134,6 @@ public class MassBankLookupBean implements Runnable, Serializable {
     private int searchProgress = 0;
     private int searchCounter = 0;
     private boolean isRunning = false;
-//    private PortableRenderer renderer;
     
     private boolean done = Boolean.FALSE;
     public synchronized void notifyDone() {
@@ -153,6 +152,10 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		String propServerUrl = pb.getProperty("serverURL");		// read massbank server from properties file
 		if(propServerUrl != null && !propServerUrl.isEmpty())				// if this property is set, use the designated server rather the default
 			serverUrl = propServerUrl;
+		
+		String propCacheDir = pb.getProperty("databaseCache");	// read cache directory from properties file
+		if(propCacheDir != null && !propCacheDir.isEmpty())		// if this property is set, use the designated directory rather the default
+			cacheMassBank = propCacheDir;
 		
         this.serverUrl = (serverUrl.isEmpty() | !serverUrl.startsWith("http://") ? massbankJP : serverUrl);
         this.setMbCommon(new MassBankCommon());
@@ -619,71 +622,17 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		// retrieve result list
 		ArrayList<String> result = mbCommon.execMultiDispatcher(serverUrl, typeName, param);
 		
-		// only provide non-Hill records to result set
 		this.queryResults = new ArrayList<String>();
-		/**
-		 * konservativer Ansatz für Auswertung -> richtige compounds rauslassen
-		 */
-//		String prefix = getCurrentRecord();
-//		prefix = prefix.substring(0, 2);	// ersten zwei zeichen als präfix nutzen um zu filtern
-		for (int i = 0; i < result.size(); i++) {
-			/**
-			 * not needed if all spectra are added
-			 */
-//			String line = result.get(i);
-//			String[] split = line.split("\t");
-			
-			/**
-			 * skip HILL spectra for evaluation
-			 */
-//			if(!split[1].trim().startsWith("CO")) {	//&& !split[0].substring(0, split[0].indexOf(";")).equals("Salbutamol")
-//				this.queryResults.add(result.get(i));
-//			}
-			
-			/**
-			 * add all spectra for evaluation to show correct working on complete database 
-			 */
-			this.queryResults.add(result.get(i));
-			
-			/**
-			 * skip RIKEN spectra for evaluation - result set might get empty!
-			 */
-//			if(!split[1].trim().startsWith("PR10"))	//  && !(result.size() == 1)
-//				this.queryResults.add(result.get(i));
-			
-//			}
-			
-			/**
-			 * konservativer Ansatz für Auswertung -> richtige compounds rauslassen
-			 */
-//			if(!split[1].trim().startsWith(prefix))
-//				this.queryResults.add(result.get(i));
-			
-		}
-		
-		// if there are no entries after filtering, add all filtered entries back
-		/**
-		 * TODO: handle empty result set
-		 */
+		this.queryResults.addAll(result);
+
 		if(queryResults.size() == 0)
 			return;
-//		if(queryResults.size() == 0) {
-//			System.err.println("MassBank filtering resulted in 0 (zero) entries - adding all original entries\n");
-//			queryResults.addAll(result);
-//		}
-		/**
-		 * 
-		 */
 		
 		this.originalResults = result;
 		this.unused = new ArrayList<Result>();
 		
-		//this.queryResults = result;
 		this.showResult = true;
-		System.out.println(result.size() + "\n");
-		//for (String s : result) {
-		//	System.out.println(s);
-		//}
+		System.out.println("MassBank results#: " + result.size() + "\n");
 		
 		wrapResults();
 	}
