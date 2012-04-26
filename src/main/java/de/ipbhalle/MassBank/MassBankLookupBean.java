@@ -36,6 +36,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import de.ipbhalle.CDK.AtomContainerHandler;
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
 import de.ipbhalle.metfusion.web.controller.MetFragBean;
+import de.ipbhalle.metfusion.web.controller.PropertiesBean;
 import de.ipbhalle.metfusion.wrapper.Result;
 
 import massbank.GetConfig;
@@ -142,81 +143,86 @@ public class MassBankLookupBean implements Runnable, Serializable {
     }
     
 	public MassBankLookupBean() {
-		this(massbankJP);
-		//this("http://msbi.ipb-halle.de/MassBank/");
+		this(massbankJP);			// create instance with default massbank server JAPAN
 		t = new Thread(this, "massbank");
 	}
 	
 	public MassBankLookupBean(String serverUrl) {
-            this.serverUrl = (serverUrl.isEmpty() | !serverUrl.startsWith("http://") ? massbankJP : serverUrl);
-            this.setMbCommon(new MassBankCommon());
-            this.setConfig(new GetConfig(this.serverUrl));
-            this.setInstInfo(new GetInstInfo(this.serverUrl));
-            this.setInstruments(this.instInfo.getTypeGroup());
-            showResult = false;
-            System.out.println("serverUrl: " + this.serverUrl);
-            
-            Map<String, List<String>> instGroup = instInfo.getTypeGroup();
-            // store instrument groups with group identifier
-            this.instGroups = instGroup;
-            instTest = new ArrayList<SelectItem[]>();
-            
-            Iterator<String> it = instGroup.keySet().iterator();
-            int counter = 0;
-            StringBuilder sb = new StringBuilder();
-            //SelectItemGroup[] sig = new SelectItemGroup[instGroup.keySet().size()];
-            List<SelectItemGroup> sig = new ArrayList<SelectItemGroup>();
-            this.selectedGroupInstruments = new ArrayList<String[]>();
-            this.instrumentToGroup = new HashMap<String, String>();
-            
-            // iterate over instrument groups
-            while(it.hasNext()) {
-	        	String next = it.next();
-	        	//sig[counter] = new SelectItemGroup(next);
-	        	SelectItemGroup sigcur = new SelectItemGroup(next);
-	        	List<String> items = instGroup.get(next);	// retrieve instruments from current instrument group
-	        	String[] instruments = new String[items.size()];
-	        	
-	        	// add ESI instruments as default selected group to sessionmap
-	        	if(next.equals(ESI))
-	        		FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put(SESSIONMAPKEYINSTRUMENTS, items);
-	        	
-	        	if(next.equals(EI) && items.size() > 0)
-	        		presentEI = Boolean.TRUE;
-	        	if(next.equals(ESI) && items.size() > 0)
-	        		presentESI = Boolean.TRUE;
-	        	if(next.equals(OTHER) && items.size() > 0)
-	        		presentOther = Boolean.TRUE;
-	        	
-	        	SelectItem[] si = new SelectItem[items.size()];
-	        	for (int i = 0; i < si.length; i++) {
-	        		String s = items.get(i);
-					si[i] = new SelectItem(s, s);
-					sb.append(s).append(",");
-					
-					// add instrument to list for corresponding group
-					if(s.contains(ESI))
-						instruments[i] = s;		// preselect all ESI instruments
-					else instruments[i] = "";	// deselect all remaining instruments (EI, Others)
-					
-					// add instrument and corresponding group information
-					instrumentToGroup.put(s, next);
-				}
-	        	instTest.add(si);
-	        	selectedGroupInstruments.add(instruments);
-	        	
-	        	//sig[counter].setSelectItems(si);
-	        	sigcur.setSelectItems(si);
-	        	//if(next.equals(ESI))
-	        	//	sigcur.setDisabled(false);
-	        	//else sigcur.setDisabled(true);
-	        	
-	        	sig.add(sigcur);
-	        	//System.out.println();
-	        	counter++;
-	        	this.instruments.put(next, items);
-            }
-            
+		// retrieve application scoped PropertiesBean
+		PropertiesBean pb = (PropertiesBean) FacesContext.getCurrentInstance().getExternalContext().getApplicationMap().get("propertiesBean");
+		String propServerUrl = pb.getProperty("serverURL");		// read massbank server from properties file
+		if(propServerUrl != null && !propServerUrl.isEmpty())				// if this property is set, use the designated server rather the default
+			serverUrl = propServerUrl;
+		
+        this.serverUrl = (serverUrl.isEmpty() | !serverUrl.startsWith("http://") ? massbankJP : serverUrl);
+        this.setMbCommon(new MassBankCommon());
+        this.setConfig(new GetConfig(this.serverUrl));
+        this.setInstInfo(new GetInstInfo(this.serverUrl));
+        this.setInstruments(this.instInfo.getTypeGroup());
+        showResult = false;
+        System.out.println("serverUrl: " + this.serverUrl);
+        
+        Map<String, List<String>> instGroup = instInfo.getTypeGroup();
+        // store instrument groups with group identifier
+        this.instGroups = instGroup;
+        instTest = new ArrayList<SelectItem[]>();
+        
+        Iterator<String> it = instGroup.keySet().iterator();
+        int counter = 0;
+        StringBuilder sb = new StringBuilder();
+        //SelectItemGroup[] sig = new SelectItemGroup[instGroup.keySet().size()];
+        List<SelectItemGroup> sig = new ArrayList<SelectItemGroup>();
+        this.selectedGroupInstruments = new ArrayList<String[]>();
+        this.instrumentToGroup = new HashMap<String, String>();
+        
+        // iterate over instrument groups
+        while(it.hasNext()) {
+        	String next = it.next();
+        	//sig[counter] = new SelectItemGroup(next);
+        	SelectItemGroup sigcur = new SelectItemGroup(next);
+        	List<String> items = instGroup.get(next);	// retrieve instruments from current instrument group
+        	String[] instruments = new String[items.size()];
+        	
+        	// add ESI instruments as default selected group to sessionmap
+        	if(next.equals(ESI))
+        		FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put(SESSIONMAPKEYINSTRUMENTS, items);
+        	
+        	if(next.equals(EI) && items.size() > 0)
+        		presentEI = Boolean.TRUE;
+        	if(next.equals(ESI) && items.size() > 0)
+        		presentESI = Boolean.TRUE;
+        	if(next.equals(OTHER) && items.size() > 0)
+        		presentOther = Boolean.TRUE;
+        	
+        	SelectItem[] si = new SelectItem[items.size()];
+        	for (int i = 0; i < si.length; i++) {
+        		String s = items.get(i);
+				si[i] = new SelectItem(s, s);
+				sb.append(s).append(",");
+				
+				// add instrument to list for corresponding group
+				if(s.contains(ESI))
+					instruments[i] = s;		// preselect all ESI instruments
+				else instruments[i] = "";	// deselect all remaining instruments (EI, Others)
+				
+				// add instrument and corresponding group information
+				instrumentToGroup.put(s, next);
+			}
+        	instTest.add(si);
+        	selectedGroupInstruments.add(instruments);
+        	
+        	//sig[counter].setSelectItems(si);
+        	sigcur.setSelectItems(si);
+        	//if(next.equals(ESI))
+        	//	sigcur.setDisabled(false);
+        	//else sigcur.setDisabled(true);
+        	
+        	sig.add(sigcur);
+        	//System.out.println();
+        	counter++;
+        	this.instruments.put(next, items);
+        }
+        
 //            String temp = sb.toString();
 //            if(temp.endsWith(","))
 //            	temp = temp.substring(0, temp.length());
@@ -231,13 +237,13 @@ public class MassBankLookupBean implements Runnable, Serializable {
 //                	this.selectedInstruments[i] = split[i];
 //            }
 
-            // check MassBank availability - check if all instrument groups are present - EI, ESI, Other
-            if(instGroup.keySet().size() < NUM_INST_GROUPS)
-            	this.brokenMassBank = true;
-            
-            this.groupInstruments = sig;
+        // check MassBank availability - check if all instrument groups are present - EI, ESI, Other
+        if(instGroup.keySet().size() < NUM_INST_GROUPS)
+        	this.brokenMassBank = true;
+        
+        this.groupInstruments = sig;
 
-            t = new Thread(this, "massbank");
+        t = new Thread(this, "massbank");
 	}
 
 	public void loadInstruments(String[] instruments) {
