@@ -251,6 +251,7 @@ public class GenerateResultLists {
 		line = "";
 		List<String> duplicates = new ArrayList<String>();
 		boolean fetchmol = false;
+		MassBankUtilities mbu = new MassBankUtilities();
 		
 		while((line = br2.readLine()) != null) {
 			if(line.startsWith(startResults)) {
@@ -278,7 +279,7 @@ public class GenerateResultLists {
 					}
 					
 					//String MBrecord = MassBankUtilities.retrieveRecord(record, site);
-					Map<String, String> dbs = MassBankUtilities.retrieveLinks(record, site);
+					Map<String, String> dbs = mbu.retrieveLinks(record, site);
 					Set<String> keys = dbs.keySet();
 					for (Iterator<String> it = keys.iterator(); it.hasNext();) {
 						String db = (String) it.next();
@@ -288,14 +289,14 @@ public class GenerateResultLists {
 					}
 					
 					if(!record.startsWith("CO") && fetchmol) {
-						site = MassBankUtilities.retrieveSite(record);
+						site = mbu.retrieveSite(record);
 					}
 					//site = MassBankUtilities.retrieveSite(record);
 					File fmol = new File("./testdata/Hill/mol/" + record + ".mol");
 					if(!fmol.exists() && fetchmol) {
-						String mol = MassBankUtilities.retrieveMol(compoundName, site, record);
-						IAtomContainer ac = MassBankUtilities.getContainer(mol);
-						boolean write = MassBankUtilities.writeMolFile(record, mol, "./testdata/Hill/mol/");
+						String mol = mbu.retrieveMol(compoundName, site, record);
+						IAtomContainer ac = mbu.getContainer(mol);
+						boolean write = mbu.writeMolFile(record, mol, "./testdata/Hill/mol/");
 						if(write)
 							System.out.println("molfile written -> " + record);
 						else System.out.println("molfile not written -> " + record);
@@ -324,6 +325,8 @@ public class GenerateResultLists {
 		fw.write("\n");
 		fw.write("## MassBank\n");
 		
+		MassBankUtilities mbu = new MassBankUtilities();
+		
 		BufferedReader br = new BufferedReader(new FileReader(f));
 		String line = "";
 		while((line = br.readLine()) != null) {
@@ -344,7 +347,7 @@ public class GenerateResultLists {
 					String site = split[8].substring(split[8].indexOf("=") + 1).trim();
 					
 					//String MBrecord = MassBankUtilities.retrieveRecord(record, site);
-					Map<String, String> dbs = MassBankUtilities.retrieveLinks(record, site);
+					Map<String, String> dbs = mbu.retrieveLinks(record, site);
 					Set<String> keys = dbs.keySet();
 					for (Iterator<String> it = keys.iterator(); it.hasNext();) {
 						String db = (String) it.next();

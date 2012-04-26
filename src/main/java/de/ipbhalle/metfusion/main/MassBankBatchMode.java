@@ -5,7 +5,6 @@
 package de.ipbhalle.metfusion.main;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -14,15 +13,12 @@ import java.util.Map;
 
 import javax.faces.model.SelectItem;
 
-import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesGenerator;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-import de.ipbhalle.CDK.AtomContainerHandler;
 import de.ipbhalle.enumerations.Ionizations;
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
 import de.ipbhalle.metfusion.wrapper.Result;
@@ -33,8 +29,8 @@ import massbank.MassBankCommon;
 
 public class MassBankBatchMode implements Runnable {
 
-	private final String serverUrl = "http://www.massbank.jp/";	//"http://www.massbank.jp/";
-	private static final String cacheMassBank = "/vol/massbank/Cache/";
+	private String serverUrl = "http://www.massbank.jp/";	//"http://www.massbank.jp/";
+	private String cacheMassBank = "/vol/massbank/Cache/";
 	private static final String fileSeparator = System.getProperty("file.separator");
 	private static final String os = System.getProperty("os.name");
 	private static final String currentDir = System.getProperty("user.dir");
@@ -224,6 +220,8 @@ public class MassBankBatchMode implements Runnable {
         List<Result> results = new ArrayList<Result>();
         List<String> duplicates = new ArrayList<String>();
 
+        MassBankUtilities mbu = new MassBankUtilities(serverUrl, cacheMassBank);
+        
         String name = "";
         String id = "";
         double score = 0.0d;
@@ -306,7 +304,8 @@ public class MassBankBatchMode implements Runnable {
                 boolean fetch = false;
 
                 // create AtomContainer via SMILES
-                Map<String, String> links = MassBankUtilities.retrieveLinks(id, site);
+                //Map<String, String> links = MassBankUtilities.retrieveLinks(id, site);
+                Map<String, String> links = mbu.retrieveLinks(id, site);
                 String smiles = links.get("smiles");
                 if(smiles == null)
                 	smiles = "";
@@ -314,25 +313,27 @@ public class MassBankBatchMode implements Runnable {
                 //System.out.println("smiles -> " + smiles);
                 IAtomContainer container = null;
                 // first look if container is present, then download if not
-                container = MassBankUtilities.getContainer(id, basePath);
-                /**
-                 * TODO in-memory processing of mol files
-                 */
+                //container = MassBankUtilities.getContainer(id, basePath);
+                container = mbu.getContainer(id, basePath);
                 if(container == null) {
-                    fetch = MassBankUtilities.fetchMol(name, id, site, basePath);
+                    //fetch = MassBankUtilities.fetchMol(name, id, site, basePath);
+                	fetch = mbu.fetchMol(name, id, site, basePath);
                     if(fetch) {
                         System.out.println("container via fetch");
                         //container = MassBankUtilities.getMolFromAny(id, basePath, smiles);
-                        container = MassBankUtilities.getContainer(id, basePath);
+                        //container = MassBankUtilities.getContainer(id, basePath);
+                        container = mbu.getContainer(id, basePath);
                     }
                     else {
                         System.out.println("container via smiles");
-                        container = MassBankUtilities.getMolFromSmiles(smiles);
+                        //container = MassBankUtilities.getMolFromSmiles(smiles);
+                        container = mbu.getMolFromSmiles(smiles);
 
                         if(container != null) {
                             // write out molfile
                             File mol = new File(basePath, id + ".mol");
-                            MassBankUtilities.writeContainer(mol, container);
+                            //MassBankUtilities.writeContainer(mol, container);
+                            mbu.writeContainer(mol, container);
                         }
                     }
                 }
@@ -373,7 +374,8 @@ public class MassBankBatchMode implements Runnable {
 					double emass = 0.0d;
 					if(!formula.contains("R"))	// compute exact mass from formula only if NO residues "R" are present
 						emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
-					else emass = MassBankUtilities.retrieveExactMass(id, site);
+					//else emass = MassBankUtilities.retrieveExactMass(id, site);
+					else emass = mbu.retrieveExactMass(id, site);
 
 					if(smiles.isEmpty())	// create SMILES if empty
 						smiles = sg.createSMILES(container);

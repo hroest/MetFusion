@@ -115,8 +115,8 @@ public class EvalLog implements Runnable{
 							System.out.println("basePath for " + id + " -> " + basePath);
 						}
 					}
-					
-					IAtomContainer mol = MassBankUtilities.getContainer(id, basePath);
+					MassBankUtilities mbu = new MassBankUtilities();
+					IAtomContainer mol = mbu.getContainer(id, basePath);
 					if(mol == null)
 						continue;
 					

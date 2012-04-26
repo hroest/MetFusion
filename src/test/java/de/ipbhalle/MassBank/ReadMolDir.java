@@ -99,7 +99,9 @@ public class ReadMolDir extends Thread {
 				
 			if(check) {
 				//IAtomContainer container = MassBankUtilities.getContainer(id, dir);
-				IAtomContainer container = MassBankUtilities.getContainerUnmodified(id, dir);
+				//IAtomContainer container = MassBankUtilities.getContainerUnmodified(id, dir);
+				MassBankUtilities mbu = new MassBankUtilities();
+				IAtomContainer container = mbu.getContainerUnmodified(id, dir);
 				if(container != null) {
 					results.add(new Result("MassBank", id, id, 0, container));
 					filtered.add(mol);

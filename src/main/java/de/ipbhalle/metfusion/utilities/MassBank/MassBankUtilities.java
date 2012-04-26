@@ -59,11 +59,11 @@ import de.ipbhalle.CDK.MyErrorHandler;
 public class MassBankUtilities {
 
 	/** The Constant baseUrl. */
-	private final static String baseUrl = "http://www.massbank.jp/";	
+	private String baseUrl = "http://www.massbank.jp/";	
 	//"http://www.massbank.jp/";	//  http://msbi.ipb-halle.de/MassBank/
 	
 	/** The server url. */
-	private static String serverUrl;
+	private String serverUrl;
 
 	private static final String os = System.getProperty("os.name");
 	private static final String fileSeparator = System.getProperty("file.separator");
@@ -71,7 +71,7 @@ public class MassBankUtilities {
 	private static final String tempDir = System.getProperty("java.io.tmpdir");
 	
 	/** The Constant cacheMassBank. */
-	private static final String cacheMassBank = "/vol/massbank/Cache/";
+	private String cacheMassBank = "/vol/massbank/Cache/";
 	
 	private String cacheDir;
 	
@@ -87,6 +87,11 @@ public class MassBankUtilities {
 		this.cacheDir = cacheDir;
 	}
 	
+	public MassBankUtilities(String serverUrl, String cacheDir) {
+		this.baseUrl = serverUrl;
+		this.cacheDir = cacheDir;
+	}
+	
 	/**
 	 * Format a peaklist string into the appropriate format used for
 	 * MassBank web queries.
@@ -96,7 +101,7 @@ public class MassBankUtilities {
 	 * @return a formatted String, here all spaces have been converted to commas, and all
 	 * line breaks have been converted into @
 	 */
-	public static String formatPeaksForMassBank(String peaks) {
+	public String formatPeaksForMassBank(String peaks) {
 		peaks = peaks.replaceAll(" ", ",");
 		peaks = peaks.replaceAll("\n", "@");
 		return peaks;
@@ -110,7 +115,7 @@ public class MassBankUtilities {
 	 * @return an array of Strings, [0] contains the peaklist, [1] stores the exact mass
 	 * and [2] contains the compound name or identifier
 	 */
-	public static String[] getPeaklistFromFile(File f) {
+	public String[] getPeaklistFromFile(File f) {
 		StringBuilder sb = new StringBuilder();
 		String[] data = new String[4];
 		String mass = "";
@@ -215,7 +220,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return true, if successful
 	 */
-	public static boolean writeMolFile(String id, String mol, String basePath) {
+	public boolean writeMolFile(String id, String mol, String basePath) {
 		boolean success = false;
 		File f = new File(basePath, id + ".mol");
 //		if(f.exists()){
@@ -275,7 +280,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return true, if successful
 	 */
-	public static boolean writeMolFile(String id, String mol, String basePath, boolean overwrite) {
+	public boolean writeMolFile(String id, String mol, String basePath, boolean overwrite) {
 		boolean success = false;
 		File f = new File(basePath + id + ".mol");
 		if(f.exists() && !overwrite){
@@ -334,7 +339,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return true, if successful
 	 */
-	public static boolean fetchMol(String compound, String id, String site, String basePath) {
+	public boolean fetchMol(String compound, String id, String site, String basePath) {
 		File f = new File(basePath, id + ".mol");
 		if(f.exists()) {
 			System.out.println(f + " exists");
@@ -453,7 +458,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return the molfile as string
 	 */
-	public static String retrieveMol(String compound, String site, String record) {
+	public String retrieveMol(String compound, String site, String record) {
 		String reqStr = "";
 //		if(record.startsWith("CO") || record.startsWith("PB")) {
 //			reqStr = "http://msbi.ipb-halle.de/MassBank/" + "jsp/" + MassBankCommon.DISPATCHER_NAME;
@@ -549,7 +554,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return the site number as string, -1 if id not found, else >= 0
 	 */
-	public static String retrieveSite(String id) {
+	public String retrieveSite(String id) {
 		MassBankCommon mbcommon = new MassBankCommon();
 		GetConfig conf = new GetConfig(baseUrl);
 		serverUrl = conf.getServerUrl();
@@ -582,7 +587,7 @@ public class MassBankUtilities {
 	 * @param id the id
 	 * @param site the site
 	 */
-	public static void fetchRecord(String id, String site) {
+	public void fetchRecord(String id, String site) {
 		String prefix = id.substring(0, 2);
 		File dir = null;
 		if(os.startsWith("Windows"))
@@ -645,7 +650,7 @@ public class MassBankUtilities {
 	 * 
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public static String retrieveRecord(String id, String site) {
+	public String retrieveRecord(String id, String site) {
 		String content = "";
 		
 		String prefix = id.substring(0, 2);
@@ -770,7 +775,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return the map< string, string>
 	 */
-	public static Map<String, String> retrieveLinks(String id, String site) {
+	public Map<String, String> retrieveLinks(String id, String site) {
 		Map<String, String> dbs = new HashMap<String, String>();
 		
 //		File f = new File("/home/mgerlich/workspace-3.5/MassBankComparison/MBCache/" + id + ".txt");
@@ -940,7 +945,7 @@ public class MassBankUtilities {
 		return dbs;
 	}
 	
-	public static double retrieveExactMass(String id, String site) {
+	public double retrieveExactMass(String id, String site) {
 		double emass = 0.0d;
 		
 		String prefix = "";
@@ -1007,7 +1012,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return true, if successful
 	 */
-	public static boolean writeContainer(File f, IAtomContainer container) {
+	public boolean writeContainer(File f, IAtomContainer container) {
 		if(f.exists()) {
 			System.out.println("File " + f.getAbsolutePath() + " already exists - returning!");
 			return true;
@@ -1051,7 +1056,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return the container as IAtomContainer object, null if Exception occurs
 	 */
-	public static IAtomContainer getContainer(String mol) {
+	public IAtomContainer getContainer(String mol) {
 		if(mol.isEmpty() || mol.equals("0\n")) {
 			return null;
 		}
@@ -1092,7 +1097,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return the container
 	 */
-	public static IAtomContainer getContainer(String id, String basePath) {
+	public IAtomContainer getContainer(String id, String basePath) {
 		File f = new File(basePath, id + ".mol");
 		if(!f.exists()) {
 			System.out.println("mol path -> " + f + " does not exist!");
@@ -1158,7 +1163,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return the container
 	 */
-	public static IAtomContainer getContainerUnmodified(String id, String basePath) {
+	public IAtomContainer getContainerUnmodified(String id, String basePath) {
 		File f = new File(basePath, id + ".mol");
 		if(!f.exists()) {
 			System.out.println("mol path -> " + f + "\t=> exists ? " + f.exists());
@@ -1203,7 +1208,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return the mol from smiles
 	 */
-	public static IAtomContainer getMolFromSmiles(String smiles) {
+	public IAtomContainer getMolFromSmiles(String smiles) {
 		if (smiles == null || smiles.isEmpty())
 			return null;
 
@@ -1241,7 +1246,7 @@ public class MassBankUtilities {
 	 * 
 	 * @throws CDKException the CDK exception
 	 */
-	public static IAtomContainer getMolFromInchi(String inchi) throws CDKException {
+	public IAtomContainer getMolFromInchi(String inchi) throws CDKException {
 		IAtomContainer container = null;
 		// Generate factory - throws CDKException if native code does not load
 		InChIGeneratorFactory factory = InChIGeneratorFactory.getInstance();
@@ -1283,7 +1288,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return the mol from any
 	 */
-	public static IAtomContainer getMolFromAny(String id, String basePath, String smiles) {
+	public IAtomContainer getMolFromAny(String id, String basePath, String smiles) {
 		File f = new File(basePath, id + ".mol");
 		System.out.println("mol path -> " + f);
 		System.out.println("exists ? " + f.exists());
@@ -1327,7 +1332,7 @@ public class MassBankUtilities {
 	 * 
 	 * @return the mol from any
 	 */
-	public static IAtomContainer getMolFromAny(String id, String basePath, String smiles, String name, String site) {
+	public IAtomContainer getMolFromAny(String id, String basePath, String smiles, String name, String site) {
 		IAtomContainer container = getMolFromAny(id, basePath, smiles);
 		
 		if(container == null) {

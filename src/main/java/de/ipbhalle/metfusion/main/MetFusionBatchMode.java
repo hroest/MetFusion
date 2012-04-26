@@ -215,7 +215,9 @@ public class MetFusionBatchMode {
 		if(mfbm.checkRECORD) {			// overwrite default settings with record specific ones
 			File f = new File(mfbm.settings.get(ARGUMENTS.record));
 			prefix = f.getName().substring(0, f.getName().lastIndexOf("."));	// name of batch file - use as prefix for output files!
-			String[] result = MassBankUtilities.getPeaklistFromFile(f);		// read in record
+			MassBankUtilities mbu = new MassBankUtilities();
+			//String[] result = MassBankUtilities.getPeaklistFromFile(f);		// read in record
+			String[] result = mbu.getPeaklistFromFile(f);		// read in record
 			
 			mbbm.setInputSpectrum(result[0]);		// set peaks for MassBank
 			metfragbm.setInputSpectrum(result[0]);	// set peaks for MetFrag

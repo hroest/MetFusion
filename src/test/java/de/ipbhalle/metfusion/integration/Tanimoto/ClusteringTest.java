@@ -92,8 +92,9 @@ static String serverUrl = "http://msbi.ipb-halle.de/MassBank/";		//"http://www.m
         // start both threads in parallel
         ExecutorService threadExecutor = null;
         
-        String[] info = MassBankUtilities.getPeaklistFromFile(inputFile);
-        String mbPeaks = MassBankUtilities.formatPeaksForMassBank(info[0]);
+        MassBankUtilities mbu = new MassBankUtilities();
+        String[] info = mbu.getPeaklistFromFile(inputFile);
+        String mbPeaks = mbu.formatPeaksForMassBank(info[0]);
 		mfb.setInputSpectrum(info[0]);
 		mfb.setExactMass(Double.parseDouble(info[1]));
 		// let MetFrag search in PubChem

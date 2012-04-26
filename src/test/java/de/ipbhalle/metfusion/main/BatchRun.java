@@ -238,9 +238,10 @@ public class BatchRun {
 //		if(current.lastIndexOf("_") > 3)	// if name contains both _ and something like _10, be sure to cut the latter one out
 //			current = fileName.substring(0, fileName.lastIndexOf("_"));
 		
+		MassBankUtilities mbu = new MassBankUtilities();
 		// parse file for information
 		// String[] info = getPeaklistFromFile(inputFile);
-		String[] info = MassBankUtilities.getPeaklistFromFile(inputFile);
+		String[] info = mbu.getPeaklistFromFile(inputFile);
 		
 //		if(fileName.matches("[A-Z]{2}[0-9]{6}") || fileName.matches("[A-Z]{3}[0-9]{5}"));
 		current = info[2];	// change from filename to compound name or ID
@@ -268,7 +269,7 @@ public class BatchRun {
 		}
 		
 		//String mbPeaks = formatPeaksForMassBank(info[0]);
-		String mbPeaks = MassBankUtilities.formatPeaksForMassBank(info[0]);
+		String mbPeaks = mbu.formatPeaksForMassBank(info[0]);
 		mfb.setInputSpectrum(info[0]);
 		mfb.setExactMass(Double.parseDouble(info[1]));
 		// let MetFrag search in PubChem
@@ -339,7 +340,7 @@ public class BatchRun {
 			fw.write(r.getName() + "\t" + r.getId() + "\t" + r.getScore() + "\n");
 			
 			File mol = new File("/home/mgerlich/workspace-3.5/MetFusion2/testdata/Hill/mol/", r.getId() + ".mol");
-			boolean success = MassBankUtilities.writeContainer(mol, r.getMol());
+			boolean success = mbu.writeContainer(mol, r.getMol());
 			System.out.println("writing mol for " + mol + " successful ? " + success);
 		}
 		

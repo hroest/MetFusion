@@ -240,12 +240,13 @@ public class MassBankRIKENData {
 			System.exit(-1);
 		}
 		
+		MassBankUtilities mbu = new MassBankUtilities();
 		for (int i = 0; i < mfResults.size(); i++) {
 			Result r = mfResults.get(i);
 			fw.write(r.getName() + "\t" + r.getId() + "\t" + r.getScore() + "\n");
 			
 			File mol = new File("/home/mgerlich/workspace-3.5/MetFusion2/testdata/Hill/mol/", r.getId() + ".mol");
-			boolean success = MassBankUtilities.writeContainer(mol, r.getMol());
+			boolean success = mbu.writeContainer(mol, r.getMol());
 			System.out.println("writing mol for " + mol + " successful ? " + success);
 		}
 		

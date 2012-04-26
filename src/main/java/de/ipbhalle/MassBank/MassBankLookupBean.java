@@ -727,6 +727,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
         List<Result> results = new ArrayList<Result>();
         List<String> duplicates = new ArrayList<String>();
 
+        MassBankUtilities mbu = new MassBankUtilities(serverUrl, cacheMassBank);
         String name = "";
         String id = "";
         double score = 0.0d;
@@ -768,7 +769,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
                 	url += "jsp/Dispatcher.jsp?type=disp&id=" + id + "&site=" + site + "&qmz=" + getQmz() + "&CUTOFF=5";
                 
                 //String record = MassBankUtilities.retrieveRecord(id, site);
-                MassBankUtilities.fetchRecord(id, site);
+                mbu.fetchRecord(id, site);
                 //String mol = MassBankUtilities.retrieveMol(name, site, id);
 
                 String prefix = id.substring(0, 2);
@@ -791,27 +792,27 @@ public class MassBankLookupBean implements Runnable, Serializable {
                 //boolean write = MassBankUtilities.writeMolFile(id, mol, basePath);
 
                 // create AtomContainer via SMILES
-                Map<String, String> links = MassBankUtilities.retrieveLinks(id, site);
+                Map<String, String> links = mbu.retrieveLinks(id, site);
                 String smiles = links.get("smiles");
                 //System.out.println("smiles -> " + smiles);
                 IAtomContainer container = null;
                 // first look if container is present, then download if not
-                container = MassBankUtilities.getContainer(id, basePath);
+                container = mbu.getContainer(id, basePath);
                 if(container == null) {
-                    fetch = MassBankUtilities.fetchMol(name, id, site, basePath);
+                    fetch = mbu.fetchMol(name, id, site, basePath);
                     if(fetch) {
                         System.out.println("container via fetch");
                         //container = MassBankUtilities.getMolFromAny(id, basePath, smiles);
-                        container = MassBankUtilities.getContainer(id, basePath);
+                        container = mbu.getContainer(id, basePath);
                     }
                     else {
                         System.out.println("container via smiles");
-                        container = MassBankUtilities.getMolFromSmiles(smiles);
+                        container = mbu.getMolFromSmiles(smiles);
 
                         if(container != null) {
                             // write out molfile
                             File mol = new File(basePath, id + ".mol");
-                            MassBankUtilities.writeContainer(mol, container);
+                            mbu.writeContainer(mol, container);
                         }
                     }
                 }
@@ -860,7 +861,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 					double emass = 0.0d;
 					if(!formula.contains("R"))	// compute exact mass from formula only if NO residues "R" are present
 						emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
-					else emass = MassBankUtilities.retrieveExactMass(id, site);
+					else emass = mbu.retrieveExactMass(id, site);
 					
                 	/**
                 	 * TODO: auskommentiert für Gridengine Evaluationsläufe
