@@ -135,34 +135,6 @@ public class MassBankUtilities {
 					gotName = true;
 				}
 				
-				/**
-				 * RIKEN spectra
-				 */
-//				if(line.startsWith("ACCESSION: PR") && !gotName) {
-//					compound = line.substring(line.indexOf(":") + 1).trim();
-//					gotName = true;
-//				}
-				
-				/**
-				 * QSTAR spectra
-				 */
-//				if(line.startsWith("ACCESSION: PB") && !gotName) {
-//					compound = line.substring(line.indexOf(":") + 1).trim();
-//					gotName = true;
-//				}
-				
-				/**
-				 * Hill spectra
-				 */
-//				if(line.startsWith("CH$NAME:") && !gotName) {
-//					// if 102 unique merged spectra are used
-//					compound = line.substring(line.indexOf(":") + 1).trim();
-//					
-//					// if 510 single spectra are used with 5 spectra per compound
-//					//compound = f.getName().substring(0, f.getName().indexOf("."));
-//					gotName = true;
-//				}
-				
 				if(line.startsWith("RECORD_TITLE")) {
 					if(line.contains("[M+H]+") || line.contains("M+H"))
 						ion = "pos";
@@ -223,10 +195,6 @@ public class MassBankUtilities {
 	public boolean writeMolFile(String id, String mol, String basePath) {
 		boolean success = false;
 		File f = new File(basePath, id + ".mol");
-//		if(f.exists()){
-//			System.out.println("File " + f +  " exists!");
-//			return true;
-//		}
 		
 		/**
 		 *  check if mol String matches to standard
@@ -344,7 +312,6 @@ public class MassBankUtilities {
 		if(f.exists()) {
 			System.out.println(f + " exists");
 			return true;
-//			System.out.println("going to overwrite...");
 		}
 
 		String reqStr = baseUrl + "jsp/" + MassBankCommon.DISPATCHER_NAME;
@@ -407,7 +374,6 @@ public class MassBankUtilities {
 				for (int i = 0; i < dump.size()-additionalCount; i++) {
 					sb.append(dump.get(i)).append("\n");
 				}
-				//mol = sb.toString().trim();
 				mol = sb.toString();
 			}
 			method.releaseConnection();
@@ -415,10 +381,6 @@ public class MassBankUtilities {
 			if(mol.contains("M  EN") && !mol.contains("M  END")) {
 				mol = mol.replace("M  EN", "M  END");
 			}
-//			if(!mol.equals("0\n")) {	// (do not) change molfile properties block (first 3 rows)
-//				Pattern p = Pattern.compile("[0-9]+\n[0-9]+\n");
-//				mol = p.matcher(mol).replaceFirst("").trim();
-//			}
 			if(mol.contains("<!DOCTYPE html PUBLIC")) {	// reset mol mol data if encountered error on server
 				System.err.println(id + " contains html code - return false");
 				mol = "";
@@ -432,20 +394,17 @@ public class MassBankUtilities {
 				return false;
 			}
 		} catch (HttpException e) {
-			//e.printStackTrace();
 			System.err.println("Error for ["+compound+"] !!!");
 			System.err.println("HttpException occured.");
 			f.delete();
 			return false;
 		} catch (IOException e) {
-			//e.printStackTrace();
 			System.err.println("Error for ["+compound+"] !!!");
 			System.err.println("IOException occured.");
 			f.delete();
 			return false;
 		}
 		
-		//return writeMolFile(id, mol, basePath, false);
 		return writeMolFile(id, mol, basePath);
 	}
 	
@@ -460,23 +419,8 @@ public class MassBankUtilities {
 	 */
 	public String retrieveMol(String compound, String site, String record) {
 		String reqStr = "";
-//		if(record.startsWith("CO") || record.startsWith("PB")) {
-//			reqStr = "http://msbi.ipb-halle.de/MassBank/" + "jsp/" + MassBankCommon.DISPATCHER_NAME;
-//			if(record.startsWith("CO"))
-//				site = "1";
-//			else if(record.startsWith("PB"))
-//				site = "0";				
-//		}
-//		else reqStr = baseUrl + "jsp/" + MassBankCommon.DISPATCHER_NAME;
 		reqStr = baseUrl + "jsp/" + MassBankCommon.DISPATCHER_NAME;
 		
-//		try {
-//			compound = URLEncoder.encode(compound, "UTF-8");
-//			System.out.println("compound encoded -> " + compound);
-//		} catch (UnsupportedEncodingException e1) {
-//			e1.printStackTrace();
-//			compound = compound.replaceAll(" ", "%20");
-//		}
 		HttpClient client = new HttpClient();
 		PostMethod method = new PostMethod(reqStr);
 		method.addParameter("type", "mol");
@@ -514,13 +458,6 @@ public class MassBankUtilities {
 			if(mol.contains("M  EN") && !mol.contains("M  END")) {
 				mol = mol.replace("M  EN", "M  END");
 			}
-//			if(!mol.equals("0\n")) {	// (do not) change molfile properties block (first 3 rows)
-//				Pattern p = Pattern.compile("[0-9]+\n[0-9]+\n");
-//				Pattern p2 = Pattern.compile("[0-9]+\n[0-9]+\n\n");
-//				if(p2.matcher(mol).matches())
-//					mol = p2.matcher(mol).replaceFirst("");
-//				else mol = p.matcher(mol).replaceFirst("");
-//			}
 			if(mol.contains("<!DOCTYPE html PUBLIC")) {	// reset mol mol data if encountered error on server
 				mol = "";
 			}
@@ -528,11 +465,9 @@ public class MassBankUtilities {
 				mol = "";		// reset corrupt/missing mol data to empty string
 			}
 		} catch (HttpException e) {
-			//e.printStackTrace();
 			System.err.println("Error for ["+compound+"] !!!");
 			System.err.println("HttpException occured.");
 		} catch (IOException e) {
-			//e.printStackTrace();
 			System.err.println("Error for ["+compound+"] !!!");
 			System.err.println("IOException occured.");
 		}
@@ -603,7 +538,6 @@ public class MassBankUtilities {
 				if(institutes[i].startsWith(prefix)) {
 					f = new File(dir, institutes[i] +  fileSeparator + "records" + fileSeparator + id + ".txt");
 	                found = true;
-	                //break;
 	                return;     // return if record was found
 	            }
 			}
@@ -622,22 +556,8 @@ public class MassBankUtilities {
 				newDir = new File(f, fileSeparator + "mol" + fileSeparator);
 				newDir.mkdirs();
 			}
-			
-//			if (createDir)
-//				retrieveRecord(id, site);
-//			else
 				return;
 		}
-                
-//	    if(f == null) {
-//	        System.err.println("ID " + id + " cannot be retrieved!");
-//	        return;
-//	    }
-	    
-//	    else if(f != null && !f.exists()) {
-//			System.out.println(f + " does not exist - going to create it.");
-//			retrieveRecord(id, site);
-//		}
     }
 	
 	/**
@@ -671,7 +591,6 @@ public class MassBankUtilities {
 		if(!f.exists()) {
 			//String reqStr = "http://msbi.ipb-halle.de/MassBank/";
 			String reqStr = baseUrl;	//"http://www.massbank.jp/";
-			//f.setWritable(true, false);	// set writable for owner and everyone else
 			reqStr += "jsp/" + MassBankCommon.DISPATCHER_NAME;
 			
 			HttpClient client = new HttpClient();
@@ -706,26 +625,6 @@ public class MassBankUtilities {
 				}
 				
 				method.releaseConnection();
-				
-//				if(result1.contains("Chemical Structure") && result1.contains("<img src=")) {	// record provides gif image
-//					int first = result1.indexOf("<img src=");
-//					String sub = result1.substring(first, result1.indexOf(" style=", first));
-//					if(sub.contains("gif_large") && sub.contains("onClick")) {
-//						int second = sub.indexOf("'");
-//						String url = sub.substring(second + 1, sub.indexOf("'", second + 2));
-//						BufferedImage img = null;
-//						img = ImageIO.read(new URL(url));
-//						
-//						String path = f.getAbsolutePath();
-//						path = path.replace("records", "gif_large");	// replace subdirectory
-//						path = path.replace("txt", "gif");				// replace ending
-//						String file = path.substring(0, path.lastIndexOf("/") + 1);
-//						File subdir = new File(file);
-//						subdir.mkdir();
-//						File image = new File(subdir, id + ".gif");
-//						ImageIO.write(img, "gif", image);
-//					}
-//				}
 				
 				if(result1.contains("ACCESSION")) {
 					String result = result1.substring(result1.indexOf("ACCESSION"), result1.indexOf("</pre>"));
@@ -777,8 +676,6 @@ public class MassBankUtilities {
 	 */
 	public Map<String, String> retrieveLinks(String id, String site) {
 		Map<String, String> dbs = new HashMap<String, String>();
-		
-//		File f = new File("/home/mgerlich/workspace-3.5/MassBankComparison/MBCache/" + id + ".txt");
 		String prefix = "";
 		if(id.matches("[A-Z]{3}[0-9]{5}"))
 			prefix = id.substring(0, 3);
@@ -815,15 +712,7 @@ public class MassBankUtilities {
           System.out.println("molDir ? " + molDir.mkdirs() + "\trecDir ? " + recDir.mkdirs());
           
           f = new File(recDir, id + ".txt");
-         // if(createDir)
-         //     retrieveRecord(id, site);
-         // else return;
 		}
-		
-//		if(!f.canWrite()) {
-//			System.err.println("File [" + f.getAbsolutePath() + "] is not writable!");
-//			return dbs;
-//		}
 		
 		if(f != null && !f.exists()) {
 			String reqStr = baseUrl;	// "http://msbi.ipb-halle.de/MassBank/";
@@ -899,49 +788,7 @@ public class MassBankUtilities {
 				e.printStackTrace();
 			}
 		}
-		
-//		BufferedReader br = null;
-//		try {
-//			br = new BufferedReader(new FileReader(f));
-//		} catch (FileNotFoundException e) {
-//            System.err.println("File [" + f.getAbsolutePath() + "] not found!");
-//			e.printStackTrace();
-//            return dbs;     // cancel reading of file and return empty hashmap
-//		}
-//		String line = "";
-//		String db = "";
-//		String val = "";
-//		try {
-//			while((line = br.readLine()) != null) {
-//				if(line.startsWith("CH$LINK:")) {
-//					String[] split = line.split(" ");
-//					db = split[1];
-//					for (int i = 2; i < split.length; i++) {
-//						if(split[i].contains("</a>")) {
-//							val = split[i].substring(split[i].indexOf("\"_blank\">") + 9, split[i].indexOf("</a>"));
-//							break;
-//						}
-//					}
-//					dbs.put(db, val);
-//				}
-//				else if (line.startsWith("CH$SMILES")) {
-//					val = line.substring(line.indexOf(":") + 1).trim();
-//					dbs.put("smiles", val);
-//				}
-//				else if (line.startsWith("CH$IUPAC")) {
-//					val = line.substring(line.indexOf(":") + 1).trim();
-//					dbs.put("inchi", val);
-//				}
-//			}
-//		} catch (IOException e) {
-////			e.printStackTrace();
-//		}
-//		try {
-//			br.close();
-//		} catch (IOException e) {
-////			e.printStackTrace();
-//		}
-		
+
 		return dbs;
 	}
 	
@@ -963,11 +810,9 @@ public class MassBankUtilities {
 		//File dir = new File(cacheMassBank);
 		String[] institutes = dir.list();
 		File f = null;
-		boolean found = false;
 		for (int i = 0; i < institutes.length; i++) {
 			if(institutes[i].startsWith(prefix)) {
 				f = new File(dir, institutes[i] + fileSeparator + "records" + fileSeparator + id + ".txt");
-				found = true;
 				break;
 			}
 		}
@@ -993,12 +838,12 @@ public class MassBankUtilities {
 			return 0d;	// return zero mass
 		}
 		catch (IOException e) {
-			// e.printStackTrace();
+			System.err.println("IOException occured for file [" + f.getAbsolutePath() + "]");
 		}
 		try {
 			br.close();
 		} catch (IOException e) {
-			// e.printStackTrace();
+			System.err.println("Error closing reader for file [" + f.getAbsolutePath() + "]");
 		}
 		
 		return emass;
@@ -1083,7 +928,7 @@ public class MassBankUtilities {
 			System.err.println("NumberFormatException occured while parsing mol file");
 			return null;
 		} catch (CDKException e) {
-//			e.printStackTrace();
+			System.err.println("CDKException occured!");
 			return null;
 		}
 		return container;
@@ -1300,18 +1145,15 @@ public class MassBankUtilities {
 				writer.write(container);
 				writer.close();
 			} catch (FileNotFoundException e) {
-				//e.printStackTrace();
 				System.err.println("File not found - " + f);
 				return null;
 			} catch (NumberFormatException e) {
 				System.err.println("NumberFormatException occured while parsing mol file - " + f);
 				return null;
 			} catch (CDKException e) {
-				//e.printStackTrace();
 				System.err.println("CDKException occured for mol file - " + f);
 				return null;
 			} catch (IOException e) {
-				//e.printStackTrace();
 				System.err.println("IOException occured for mol file - " + f);
 				return null;
 			} 
