@@ -14,9 +14,12 @@ import java.util.Map;
 
 import org.openscience.cdk.interfaces.IAtomContainer;
 
+import de.ipbhalle.enumerations.Adducts;
+import de.ipbhalle.enumerations.Databases;
 import de.ipbhalle.enumerations.Ionizations;
 import de.ipbhalle.enumerations.OutputFormats;
 import de.ipbhalle.metfusion.threading.MetFusionThreadBatchMode;
+import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
 import de.ipbhalle.metfusion.web.controller.ResultExtGroupBean;
 import de.ipbhalle.metfusion.wrapper.ColorcodedMatrix;
 import de.ipbhalle.metfusion.wrapper.ResultExt;
@@ -26,9 +29,9 @@ public class MetFusionBatchMode {
 
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
-	public static enum ARGUMENTS {mf, sdf, out, format, proxy};
+	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
-	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY;
+	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD;
 	private Map<ARGUMENTS, String> settings;
 	
 	private final String os = System.getProperty("os.name");
@@ -77,6 +80,7 @@ public class MetFusionBatchMode {
 		if(args.length < 4) {	// at least -mf and -sdf OR -out needs to be specified
 			System.out.println("Please provide the following arguments:");
 			System.out.println("-mf /path/to/mf-file");
+			System.out.println("Alternatively: -record /path/to/MassBank-record");
 			System.out.println("optionally: -sdf /path/to/sdf-file");
 			System.out.println("-out /output/path");
 			System.out.print("-format ");
@@ -88,6 +92,7 @@ public class MetFusionBatchMode {
 			System.out.println("\nExample call: java -jar JARFILE -mf settings.mf #this uses the current directory for output!");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -out /tmp");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp");
+			System.out.println("Example call: java -jar JARFILE -record XX000001.txt -out /tmp -format SDF");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -proxy");
 			
@@ -112,6 +117,9 @@ public class MetFusionBatchMode {
 					this.checkPROXY = Boolean.TRUE;	// proxy does not have an additional property, mark as set/unset and continue
 					continue;
 				}
+				if(temp.equals(ARGUMENTS.record.toString())) {
+					this.checkRECORD = Boolean.TRUE;
+				}
 				
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
 				i++;	// skip value, iterate over new argument
@@ -121,7 +129,7 @@ public class MetFusionBatchMode {
 			settings.put(ARGUMENTS.out, currentDir);
 			checkOUT = Boolean.TRUE;
 		}
-		if(checkMF & checkSDF | checkMF & checkOUT)
+		if(checkMF & checkSDF | checkMF & checkOUT | checkRECORD & checkOUT)
 			success = true;
 		
 		return success;
@@ -152,29 +160,41 @@ public class MetFusionBatchMode {
 		
 		// decide whether or not to use SDF -> use SDF if -sdf was set
 		// if not, use defined database setting in -mf file
-		String mfFile = mfbm.settings.get(ARGUMENTS.mf);
-		File mfFileHandler = new File(mfFile);
-		String prefix = mfFileHandler.getName().substring(0, mfFileHandler.getName().lastIndexOf("."));	// name of batch file - use as prefix for output files!
+//		String mfFile = mfbm.settings.get(ARGUMENTS.mf);
+//		File mfFileHandler = new File(mfFile);
+//		String prefix = mfFileHandler.getName().substring(0, mfFileHandler.getName().lastIndexOf("."));	// name of batch file - use as prefix for output files!
 		
-		mfbm.batchFileHandler = new MetFusionBatchFileHandler(mfFileHandler);
-		try {
-			mfbm.batchFileHandler.readFile();
-		} catch (IOException e) {
-			System.err.println("Error while reading settings file [" + mfFile + "]");
-			System.exit(-1);
+		String prefix = "";
+		if(mfbm.checkMF) {
+			String mfFile = mfbm.settings.get(ARGUMENTS.mf);
+			File mfFileHandler = new File(mfFile);
+			prefix = mfFileHandler.getName().substring(0, mfFileHandler.getName().lastIndexOf("."));	// name of batch file - use as prefix for output files!
+			mfbm.batchFileHandler = new MetFusionBatchFileHandler(mfFileHandler);
+			try {
+				mfbm.batchFileHandler.readFile();
+			} catch (IOException e) {
+				System.err.println("Error while reading settings file [" + mfFile + "]");
+				System.exit(-1);
+			}
+			mfbm.batchFileHandler.printSettings();
 		}
-		mfbm.batchFileHandler.printSettings();
 		
 		// set parameters for fragmenter and database threads
 		String outPath = mfbm.settings.get(ARGUMENTS.out);
 		if(!outPath.endsWith(mfbm.fileSeparator))
 			outPath += mfbm.fileSeparator;
 		
-		MetFusionBatchSettings settings = mfbm.batchFileHandler.getBatchSettings();
+		MetFusionBatchSettings settings = null;
+		if(mfbm.checkMF)
+			settings = mfbm.batchFileHandler.getBatchSettings();
+		else if(mfbm.checkRECORD)
+			settings = new MetFusionBatchSettings();		// use default settings
+		
 		Ionizations ion = settings.getMbIonization();		// retrieve ionization for MassBank
 		
 		MetFragBatchMode metfragbm = new MetFragBatchMode(outPath);
 		MassBankBatchMode mbbm = new MassBankBatchMode(outPath, ion);
+		
 		
 		mbbm.setInputSpectrum(settings.getPeaks());
 		mbbm.setSelectedInstruments(settings.getMbInstruments());
@@ -191,6 +211,24 @@ public class MetFusionBatchMode {
 		metfragbm.setSearchppm(settings.getMfSearchPPM());
 		metfragbm.setLimit(settings.getMfLimit());
 		metfragbm.setDatabaseID(settings.getMfDatabaseIDs());
+		
+		if(mfbm.checkRECORD) {			// overwrite default settings with record specific ones
+			File f = new File(mfbm.settings.get(ARGUMENTS.record));
+			prefix = f.getName().substring(0, f.getName().lastIndexOf("."));	// name of batch file - use as prefix for output files!
+			String[] result = MassBankUtilities.getPeaklistFromFile(f);		// read in record
+			
+			mbbm.setInputSpectrum(result[0]);		// set peaks for MassBank
+			metfragbm.setInputSpectrum(result[0]);	// set peaks for MetFrag
+			
+			metfragbm.setExactMass(Double.valueOf(result[1]));	// set exact mass
+			metfragbm.setParentIon(Double.valueOf(result[1]));	// set parent ion same as exact mass
+			metfragbm.setSelectedAdduct(Adducts.Neutral.getDifference());	// default not neutral adduct
+			
+			ion = Ionizations.valueOf(result[3]);				// set correct ionization from record
+			
+			metfragbm.setSelectedDB(Databases.pubchem.toString());	// default to Pubchem database
+		}
+		
 		if(mfbm.checkPROXY)		// if proxy switch was set, use proxy in MetFrag
 			metfragbm.setProxy(Boolean.TRUE);
 		
