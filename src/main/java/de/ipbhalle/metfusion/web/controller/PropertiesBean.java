@@ -32,6 +32,9 @@ public class PropertiesBean {
 		this.webRoot = scontext.getRealPath(sep);
 		this.propFile = webRoot + "WEB-INF/settings.properties";
 		getConfig();
+		
+		// Store propertiesBean in application map
+		fc.getExternalContext().getApplicationMap().put("propertiesBean", this);
 	}
 	
 	private void getConfig()
