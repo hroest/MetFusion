@@ -45,9 +45,9 @@ public class PropertiesBean {
 		try {
 			is = new FileInputStream(propFile);
 			properties.load(is);
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			System.err.println("Properties file [" + propFile.getAbsolutePath() + "] not found!");
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.err.println("Properties file [" + propFile.getAbsolutePath() + "] not found!");
@@ -55,12 +55,15 @@ public class PropertiesBean {
 		finally {
 			try {
 				is.close();
+				System.out.println("Property file has been successfully loaded!");
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+				/**
+				 * TODO: handle fallback
+				 */
+				System.err.println("Property file was not loaded successfully!");
 			}
 		}
-		System.out.println("Property file has been successfully loaded!");
 	}
 	
 	public String getProperty(String key) {
