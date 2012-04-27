@@ -88,7 +88,7 @@ public class MetFusionBatchMode {
 			for (OutputFormats format : of) {
 				System.out.print("[" + format + "] ");
 			}
-			System.out.println("optionally: -proxy");
+			System.out.println("\noptionally: -proxy");
 			System.out.println("optionally: -server http://www.your-massbank.server/");
 			System.out.println("optionally: -cache /path/to/cache");
 			
