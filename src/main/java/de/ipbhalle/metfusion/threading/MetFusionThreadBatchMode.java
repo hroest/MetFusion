@@ -458,7 +458,8 @@ public class MetFusionThreadBatchMode implements Runnable {
 		System.out.println("list size -> " + clusters.size());
 		setActive(Boolean.FALSE);
 		long time2 = System.currentTimeMillis() - time1;
-		System.out.println("time spended -> " + time2 + " ms");
+		time2 = time2 / 1000;	// from milliseconds to seconds
+		System.out.println("time spent -> " + time2 + " s");
 	}
 
 	/**
