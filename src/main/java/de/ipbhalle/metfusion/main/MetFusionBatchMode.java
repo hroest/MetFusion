@@ -124,7 +124,7 @@ public class MetFusionBatchMode {
 					this.checkRECORD = Boolean.TRUE;
 				if(temp.equals(ARGUMENTS.server.toString()))
 					this.checkSERVER = Boolean.TRUE;
-				if(this.equals(ARGUMENTS.cache.toString()))
+				if(temp.equals(ARGUMENTS.cache.toString()))
 					this.checkCACHE = Boolean.TRUE;
 				
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
