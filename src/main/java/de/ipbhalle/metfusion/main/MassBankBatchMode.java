@@ -30,11 +30,14 @@ import massbank.MassBankCommon;
 public class MassBankBatchMode implements Runnable {
 
 	private String serverUrl = "http://www.massbank.jp/";	//"http://www.massbank.jp/";
-	private String cacheMassBank = "/vol/massbank/Cache/";
+	
 	private static final String fileSeparator = System.getProperty("file.separator");
 	private static final String os = System.getProperty("os.name");
 	private static final String currentDir = System.getProperty("user.dir");
 	private static final String tempDir = System.getProperty("java.io.tmpdir");
+	private String cacheMassBank = "";
+	public final String DEFAULT_CACHE = tempDir;
+	public final String DEFAULT_CACHE_LINUX = "/vol/massbank/Cache/";
 	
 	private MassBankCommon mbCommon;
 	private GetConfig config;
@@ -221,7 +224,18 @@ public class MassBankBatchMode implements Runnable {
         List<Result> results = new ArrayList<Result>();
         List<String> duplicates = new ArrayList<String>();
 
-        MassBankUtilities mbu = new MassBankUtilities(serverUrl, cacheMassBank);
+        File dir = null;
+        File cache = null;
+        if(!cacheMassBank.isEmpty()) {	// cache directory has been set
+        	dir = new File(cacheMassBank);
+        }
+        else {
+        	if(os.startsWith("Windows"))
+    			dir = new File(DEFAULT_CACHE);
+    		else
+    			dir = new File(DEFAULT_CACHE_LINUX);
+        }
+        MassBankUtilities mbu = new MassBankUtilities(serverUrl, dir.getAbsolutePath());
         
         String name = "";
         String id = "";
@@ -261,27 +275,7 @@ public class MassBankBatchMode implements Runnable {
                 //String mol = MassBankUtilities.retrieveMol(name, site, id);
 
                 String prefix = id.substring(0, 2);
-                File dir = null;
-                File cache = null;
-        		if(os.startsWith("Windows")) {
-        			dir = new File(tempDir);
-        			cache = new File(dir, prefix);
-        		}
-        		else {
-        			dir = new File(cacheMassBank);
-        			
-        			String[] institutes = dir.list();
-        			if(institutes != null) {
-        				for (int inst = 0; inst < institutes.length; inst++) {
-        					if(institutes[inst].startsWith(prefix)) {
-        						cache = new File(dir, institutes[inst]);		//  + fileSeparator + "mol" + fileSeparator
-        						break;
-        					}
-        				}
-        			}
-        			else cache = new File(dir, prefix);
-        		}
-        		//else dir = new File(tempDir);
+                cache = new File(dir, prefix);
         		
                 String basePath = "";
                 boolean createDir = false;
