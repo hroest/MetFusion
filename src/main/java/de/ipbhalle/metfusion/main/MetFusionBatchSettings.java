@@ -5,6 +5,7 @@
 package de.ipbhalle.metfusion.main;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -21,15 +22,11 @@ import de.ipbhalle.enumerations.Ionizations;
  */
 public class MetFusionBatchSettings {
 
-	/** Enumeration that holds all available/allowed parameter keywords. */
-//	public enum availableParameters {mbLimit, mbCutoff, mbIonization, mbInstruments,
-//				mfDatabase, mfDatabaseIDs, mfFormula, mfLimit, mfParentIon, mfAdduct, mfExactMass, mfSearchPPM, mfMZabs, mfMZppm, clustering, peaks};
-
 	/** defaults */
 	private int mbLimit = 100;
 	private int mbCutoff = 5;
 	private Ionizations mbIonization = Ionizations.pos;
-	private String mbInstruments = "CE-ESI-TOF,ESI-IT-MS/MS,ESI-QqIT-MS/MS,ESI-QqQ-MS/MS,ESI-QqTOF-MS/MS,LC-ESI-IT,LC-ESI-ITFT" +
+	private String mbInstruments = "CE-ESI-TOF,ESI-IT-MS/MS,ESI-QqIT-MS/MS,ESI-QqQ-MS/MS,ESI-QqTOF-MS/MS,LC-ESI-IT,LC-ESI-ITFT," +
 									"LC-ESI-ITTOF,LC-ESI-Q,LC-ESI-QIT,LC-ESI-QQ,LC-ESI-QTOF";
 	private Databases mfDatabase = Databases.kegg;
 	private String mfDatabaseIDs = "";
@@ -143,7 +140,23 @@ public class MetFusionBatchSettings {
 				case mfFormula: this.mfFormula = (String) settings.get(key);	break;
 				case mfLimit: this.mfLimit = (Integer.parseInt((String) settings.get(key)));	break;
 				case mfParentIon: this.mfParentIon = (Double.parseDouble((String) settings.get(key)));	break;
-				case mfAdduct: this.mfAdduct = Adducts.valueOf(((String) settings.get(key)));	break;
+				case mfAdduct: {
+					Adducts[] values = Adducts.values();
+					boolean found = false;
+					for (int i = 0; i < values.length; i++) {
+						if(values[i].getLabel().equals((String) settings.get(key))) {
+							this.mfAdduct = values[i];
+							found = true;
+							break;
+						}
+					}
+					// if no matching adduct was found, fall back to neutral adduct
+					//this.mfAdduct = Adducts.valueOf(((String) settings.get(key)));
+					if(!found) {
+						this.mfAdduct = Adducts.Neutral;
+						break;}
+					else break;
+					}
 				case mfExactMass: this.mfExactMass = (Double.parseDouble((String) settings.get(key)));	break;
 				case mfSearchPPM: this.mfSearchPPM = (Double.parseDouble((String) settings.get(key)));	break;
 				case mfMZabs: this.mfMZabs = (Double.parseDouble((String) settings.get(key)));	break;
