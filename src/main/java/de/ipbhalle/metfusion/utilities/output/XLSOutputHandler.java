@@ -158,7 +158,7 @@ public class XLSOutputHandler implements IOutputHandler {
 				WritableCell headerName = new Label(2, 0, "Compound Name", arial12format);
 				WritableCell headerOrigScore = new Label(3, 0, "Original Score", arial12format);
 				WritableCell headerNewScore = new Label(4, 0, "MetFusion Score", arial12format);
-//				WritableCell headerStructure = new Label(5, 0, "Structure", arial12format);
+				WritableCell headerStructure = new Label(5, 0, "Structure", arial12format);
 				try
 				{
 					sheet.addCell(headerRank);
@@ -166,7 +166,7 @@ public class XLSOutputHandler implements IOutputHandler {
 					sheet.addCell(headerName);
 					sheet.addCell(headerOrigScore);
 					sheet.addCell(headerNewScore);
-//					sheet.addCell(headerStructure);
+					sheet.addCell(headerStructure);
 				} catch (WriteException e) {
 					System.out.println("Could not write Excel sheet headers!");
 					e.printStackTrace();
@@ -183,7 +183,8 @@ public class XLSOutputHandler implements IOutputHandler {
 				WritableCell cellOrigScore = new Number(currentCol, currentRow, result.getScoreShort(), arial10format);
 				currentCol++;
 				WritableCell cellNewScore = new Number(currentCol, currentRow, result.getResultScore(), arial10format);
-//				currentCol++;
+				currentCol++;
+				WritableCell cellSmiles = new Label(currentCol, currentRow, result.getSmiles(), arial10format);
 //				File temp = new File(".", result.getImagePath());
 //				if(temp.exists())
 //					wi = new WritableImage(currentCol, currentRow, 1, 3, temp);
@@ -195,6 +196,7 @@ public class XLSOutputHandler implements IOutputHandler {
 					sheet.addCell(cellName);
 					sheet.addCell(cellOrigScore);
 					sheet.addCell(cellNewScore);
+					sheet.addCell(cellSmiles);
 //					sheet.addImage(wi);
 				} catch (WriteException e) {
 					System.out.println("Could not write excel cell");
@@ -208,14 +210,14 @@ public class XLSOutputHandler implements IOutputHandler {
 				WritableCell headerID = new Label(1, 0, "ID", arial12format);
 				WritableCell headerName = new Label(2, 0, "Compound Name", arial12format);
 				WritableCell headerOrigScore = new Label(3, 0, "Original Score", arial12format);
-//				WritableCell headerStructure = new Label(4, 0, "Structure", arial12format);
+				WritableCell headerStructure = new Label(4, 0, "Structure", arial12format);
 				try
 				{
 					sheet.addCell(headerRank);
 					sheet.addCell(headerID);
 					sheet.addCell(headerName);
 					sheet.addCell(headerOrigScore);
-//					sheet.addCell(headerStructure);
+					sheet.addCell(headerStructure);
 				} catch (WriteException e) {
 					System.out.println("Could not write Excel sheet headers!");
 					e.printStackTrace();
@@ -228,7 +230,8 @@ public class XLSOutputHandler implements IOutputHandler {
 				WritableCell cellName = new Label(currentCol, currentRow, result.getName(), arial10format);
 				currentCol++;
 				WritableCell cellOrigScore = new Number(currentCol, currentRow, result.getScoreShort(), arial10format);
-//				currentCol++;
+				currentCol++;
+				WritableCell cellSmiles = new Label(currentCol, currentRow, result.getSmiles(), arial10format);
 //				File temp = new File(".", result.getImagePath());
 //				if(temp.exists())
 //					wi = new WritableImage(currentCol, currentRow, 1, 3, temp);
@@ -239,6 +242,7 @@ public class XLSOutputHandler implements IOutputHandler {
 					sheet.addCell(cellID);
 					sheet.addCell(cellName);
 					sheet.addCell(cellOrigScore);
+					sheet.addCell(cellSmiles);
 //					sheet.addImage(wi);
 				} catch (WriteException e) {
 					System.out.println("Could not write excel cell");
