@@ -5,6 +5,8 @@
 package de.ipbhalle.metfusion.main;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.faces.model.SelectItem;
 
@@ -205,6 +208,7 @@ public class MetFragBatchMode implements Runnable {
 	private double selectedAdduct;
 	private double parentIon;
 	
+	private String fileSep = System.getProperty("file.separator");
 	
 	public MetFragBatchMode(String workDir) {
 		sessionPath = workDir;
@@ -289,6 +293,30 @@ public class MetFragBatchMode implements Runnable {
 		System.out.println("currentFolder -> " + currentFolder);
 		String tempPath = currentFolder;	//sep + "temp" + sep;
 		
+		Properties props = new Properties();
+		FileInputStream in;
+		try {
+			String file = System.getProperty("property.file.path");
+			if(file == null)
+				file = "";
+			if(!file.endsWith(fileSep))
+				file += fileSep;
+				
+			in = new FileInputStream(file + "settings.properties");
+			props.load(in);
+			in.close();
+		} catch (FileNotFoundException e1) {
+			System.err.println("Error loading properties file! - File not found.");
+		} catch (IOException e) {
+			System.err.println("Error reading properties file!");
+		}
+		// load required property values
+		String jdbc = "", username = "", password = "", token = "";
+		jdbc = props.getProperty("mfjdbc");
+		username = props.getProperty("mfusername");
+		password = props.getProperty("mfpassword");
+		token = props.getProperty("token");
+		
 		// short decimal format for score and/or exact mass
 		DecimalFormat threeDForm = new DecimalFormat("#.###");
 		
@@ -310,14 +338,6 @@ public class MetFragBatchMode implements Runnable {
 			boolean bondEnergyScoring = isBondEnergyScoring();
 			boolean breakOnlySelectedBonds = isBreakOnlySelectedBonds();
 			
-			String jdbc, username, password = "";
-			jdbc = "jdbc:mysql://rdbms/MetFrag";
-			username = "swolf";
-			password = "populusromanus";
-//			List<MetFragResult> result = MetFrag.startConvenience(database, databaseID, molecularFormula, exactMass, 
-//					spectrum, useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck, 
-//					breakAromaticRings, treeDepth, hydrogenTest, neutralLossInEveryLayer,
-//					bondEnergyScoring, breakOnlySelectedBonds, limit, false);
 			List<MetFragResult> result = new ArrayList<MetFragResult>();
 			if(database.equals(dbSDF))
 				result = MetFrag.startConvenienceSDF(spectrum, useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck,
@@ -361,21 +381,19 @@ public class MetFragBatchMode implements Runnable {
 					
 					// hydrogen handling
 	                if(container != null) {
-//	                	try {
-//	                		container = AtomContainerHandler.addExplicitHydrogens(container);
-//	                	} catch (CDKException e) {
-//                        System.err.println("error manipulating mol for " + mfr.getCandidateID());
-//                        continue;
-//	                	}
-	                    try {
-	                        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+	                	try {
+	                		// first method to add explicit hydrogens
+	                		AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
 	                        CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
 	                        hAdder.addImplicitHydrogens(container);
 	                        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-	                    } catch (CDKException e) {
-	                        System.err.println("error manipulating mol for " + mfr.getCandidateID());
-	                        continue;
-	                    }
+	                        
+	                        // second method to add explicit hydrogens
+	                		//container = AtomContainerHandler.addExplicitHydrogens(container);
+	                	} catch (CDKException e) {
+	                		System.err.println("error manipulating mol for " + mfr.getCandidateID());
+	                		continue;
+	                	}
 	                }
 					
 					// remove hydrogens
@@ -404,17 +422,21 @@ public class MetFragBatchMode implements Runnable {
 							name = names.get(0);
 					}
 					else if(database.equals(dbPUBCHEM)) {
-						// TODO: properties einlesen und nutzen
-						PubChemLocal pl = new PubChemLocal("jdbc:mysql://rdbms/MetFrag", "swolf", "populusromanus");
+						/**
+						 * local pubchem
+						 */
+						PubChemLocal pl = new PubChemLocal(jdbc, username, password);
 						names = pl.getNames(mfr.getCandidateID());
+						
+						/**
+						 * online pubchem
+						 */
+						
 						if(names.size() > 0)
 							name = names.get(0);	
 					}
 					else if(database.equals(dbCHEMSPIDER)) {
 						int id = Integer.parseInt(mfr.getCandidateID());
-						//String token = "4d6c67db-65d0-474e-9f5c-f70f5c85111c";
-						//String token = "a1004d0f-9d37-47e0-acdd-35e58e34f603";
-						String token = "eeca1d0f-4c03-4d81-aa96-328cdccf171a";
 						ExtendedCompoundInfo cpdInfo = chemSpiderProxy.getExtendedCompoundInfo(id, token);
 						name = cpdInfo.getCommonName();
 					}
