@@ -12,6 +12,8 @@ import java.util.Locale;
 
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.fingerprint.Fingerprinter;
+import org.openscience.cdk.inchi.InChIGenerator;
+import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
@@ -33,6 +35,12 @@ public class Result {
 	
 	/** The canonical SMILES, either from a record or generated from the mol-file/container. */
 	protected String smiles = "";
+	
+	/** The InChI string. */
+	protected String inchi = "";
+	
+	/** The InChI-Key string. */
+	protected String inchikey = "";
 	
 	/** The AtomContainer representing the molecular structure as provided
 	 * by SMILES, InChI or mol/sdf data. */
@@ -91,6 +99,7 @@ public class Result {
 		//this.setScoreShort(score);	// fix for windows
 		this.tiedRank = 1;
 		calculateBitSet();			// calculate the bitset for the AtomContainer
+		generateIUPAC();			// generate InChI and InChI-Key for AtomContainer
 	}
 	
 	/**
@@ -202,6 +211,40 @@ public class Result {
 		this.scoreShort = r.getScoreShort();
 		this.exactMass = r.getExactMass();
 		this.bitset = r.getBitset();
+	}
+	
+	/**
+	 * Generate InChI-String from current IAtomContainer
+	 */
+	protected void generateIUPAC() {
+		String inchi = "";
+		String inchikey = "";
+		// ensure that the InChI generation is only done once
+		if(this.inchi.isEmpty() || this.inchikey.isEmpty()) {
+			InChIGeneratorFactory igf = null;
+			try {
+				igf = InChIGeneratorFactory.getInstance();
+				InChIGenerator ig = igf.getInChIGenerator(getMol());
+				
+				try {
+					inchi = ig.getInchi();
+					setInchi(inchi);
+				} catch (IllegalArgumentException iae) {	// catch invalid argument
+					setInchi(inchi);
+				}
+				
+				try {
+					inchikey = ig.getInchiKey();
+					setInchikey(inchikey);
+				} catch (IllegalArgumentException iae) {	// catch invalid argument
+					setInchikey(inchikey);
+				}
+			} catch (CDKException e) {
+				// Error accessing current InChIGeneratorFactory instance
+				setInchi(inchi);
+				setInchikey(inchikey);
+			}
+		}
 	}
 	
 	/**
@@ -431,5 +474,21 @@ public class Result {
 
 	public void setSmiles(String smiles) {
 		this.smiles = smiles;
+	}
+
+	public String getInchi() {
+		return inchi;
+	}
+
+	public void setInchi(String inchi) {
+		this.inchi = inchi;
+	}
+
+	public String getInchikey() {
+		return inchikey;
+	}
+
+	public void setInchikey(String inchikey) {
+		this.inchikey = inchikey;
 	}
 }
