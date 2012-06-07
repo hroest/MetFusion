@@ -120,7 +120,7 @@ public class MassBankVSMassBank {
 			e.printStackTrace();
 		}
 		//TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, listMassBank, 3, 0.5f);
-		TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, kegg, 3, 0.5f);
+		TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, kegg);
 		sim.writeMatrix(sim.getMatrix(), new File("MB_vs_KEGG_MS2.mat"));
 		System.out.println("DONE!");
 	}
