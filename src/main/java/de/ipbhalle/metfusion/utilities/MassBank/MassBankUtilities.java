@@ -752,14 +752,15 @@ public class MassBankUtilities {
 										val = split[i].substring(split[i].indexOf("\"_blank\">") + 9, split[i].indexOf("</a>"));
 										break;
 									}
+									else val = split[i];	// store unmodified entry if there is no link
 								}
 								dbs.put(db, val);
 							}
-							else if (line.startsWith("CH$SMILES")) {
+							else if (line.startsWith("CH$SMILES")) {	// retrieve SMILES if present
 								val = line.substring(line.indexOf(":") + 1).trim();
 								dbs.put("smiles", val);
 							}
-							else if (line.startsWith("CH$IUPAC")) {
+							else if (line.startsWith("CH$IUPAC")) {		// retrieve InChI if present
 								val = line.substring(line.indexOf(":") + 1).trim();
 								dbs.put("inchi", val);
 							}
@@ -789,6 +790,53 @@ public class MassBankUtilities {
 			}
 		}
 
+		return dbs;
+	}
+	
+	/**
+	 * Retrieve links directly from a record file.
+	 * 
+	 * @param id the id
+	 * @param site the site
+	 * 
+	 * @return the map< string, string>
+	 */
+	public Map<String, String> retrieveLinks(File f) {
+		Map<String, String> dbs = new HashMap<String, String>();
+		
+		if(f.exists()) {
+			String line = "";
+			String db = "";
+			String val = "";
+			try {
+				BufferedReader reader = new BufferedReader(new FileReader(f));
+				while ((line = reader.readLine()) != null) {
+					if(line.startsWith("CH$LINK:")) {
+						String[] split = line.split(" ");
+						db = split[1];
+						for (int i = 2; i < split.length; i++) {
+							if(split[i].contains("</a>")) {
+								val = split[i].substring(split[i].indexOf("\"_blank\">") + 9, split[i].indexOf("</a>"));
+								break;
+							}
+							else val = split[i];	// store unmodified entry if there is no link
+						}
+						dbs.put(db, val);
+					}
+					else if (line.startsWith("CH$SMILES")) {	// retrieve SMILES if present
+						val = line.substring(line.indexOf(":") + 1).trim();
+						dbs.put("smiles", val);
+					}
+					else if (line.startsWith("CH$IUPAC")) {		// retrieve InChI if present
+						val = line.substring(line.indexOf(":") + 1).trim();
+						dbs.put("inchi", val);
+					}
+				}
+				reader.close();
+			} catch (IOException e) {
+				System.err.println("Error while reading links from [" + f.getAbsolutePath() + "]");
+			}
+		}
 		return dbs;
 	}
 	
