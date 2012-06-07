@@ -346,7 +346,7 @@ public class MetFragBatchMode implements Runnable {
 			else if(database.equals(Databases.chebi.toString())) {
 				jdbc = "jdbc:postgresql://rdbms2:5432/metchem";
 				username = "mgerlich";
-				password = "unreal9";
+				password = "unreal0";
 				result = MetFrag.startConvenienceLocal(database, databaseID, molecularFormula, exactMass, spectrum,
 						useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, 
 						hydrogenTest, neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, 
