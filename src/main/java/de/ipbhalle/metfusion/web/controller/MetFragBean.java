@@ -5,8 +5,6 @@
  */
 package de.ipbhalle.metfusion.web.controller;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -30,6 +28,7 @@ import org.icefaces.component.fileentry.FileEntry;
 import org.icefaces.component.fileentry.FileEntryEvent;
 import org.icefaces.component.fileentry.FileEntryResults;
 import org.icefaces.component.fileentry.FileEntryResults.FileInfo;
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -40,7 +39,6 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPISoapProxy;
 
-import de.ipbhalle.CDK.AtomContainerHandler;
 import de.ipbhalle.metfrag.keggWebservice.KeggWebservice;
 import de.ipbhalle.metfrag.main.MetFrag;
 import de.ipbhalle.metfrag.main.MetFragResult;
@@ -246,6 +244,7 @@ public class MetFragBean implements Runnable, Serializable {
 	private double selectedAdduct;
 	private double parentIon;
 	
+	private boolean viaFormula = Boolean.FALSE;
 	
 	public MetFragBean() {
 		//t = new Thread(this, "metfrag");
@@ -325,6 +324,22 @@ public class MetFragBean implements Runnable, Serializable {
 			renderSDF = Boolean.TRUE;
 		}
 		else renderSDF = Boolean.FALSE;
+	}
+	
+	public void changeFormula(ValueChangeEvent event) {
+		String newVal = (String) event.getNewValue();
+		this.molecularFormula = newVal;
+		if(this.molecularFormula == null || this.molecularFormula.isEmpty() || newVal.isEmpty()) {		// allow change of precursor mass
+			setViaFormula(Boolean.FALSE);
+			setMolecularFormula("");
+		}
+		else {		// compute new mass according to sum formula
+			IMolecularFormula mf = MolecularFormulaManipulator.getMolecularFormula(newVal, DefaultChemObjectBuilder.getInstance());
+			this.exactMass = MolecularFormulaManipulator.getNaturalExactMass(mf);
+			this.parentIon = this.exactMass;		// set parent ion to match exact mass
+			setViaFormula(Boolean.TRUE);
+			setMolecularFormula(newVal);
+		}
 	}
 	
 	public void listener(FileEntryEvent event) {
@@ -881,6 +896,14 @@ public class MetFragBean implements Runnable, Serializable {
 
 	public String getNoteSDF() {
 		return noteSDF;
+	}
+
+	public void setViaFormula(boolean viaFormula) {
+		this.viaFormula = viaFormula;
+	}
+
+	public boolean isViaFormula() {
+		return viaFormula;
 	}
 
 }

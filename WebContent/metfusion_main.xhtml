@@ -283,30 +283,10 @@
 		    							</f:facet>
 	    							</ice:panelTooltip>
 								</ice:panelGroup>
-								<ice:inputText id="sumFormula" value="#{appBean.mfb.molecularFormula}" rendered="#{!appBean.mfb.renderSDF}"></ice:inputText>
+								<ice:inputText id="sumFormula" value="#{appBean.mfb.molecularFormula}" rendered="#{!appBean.mfb.renderSDF}"
+									valueChangeListener="#{appBean.mfb.changeFormula}"></ice:inputText>
 								<ice:panelGroup effect="#{appBean.effectOutputText}" rendered="#{!appBean.mfb.renderSDF}">
 									<ice:message id="errsumFormula" for="sumFormula"></ice:message>
-								</ice:panelGroup>
-								
-								<!-- limit the number of MetFrag results -->
-								<ice:panelGroup id="lblMFLimit" panelTooltip="lblMFLimitTooltip" rendered="#{!appBean.mfb.renderSDF}">
-									<ice:outputLabel for="candLimit" value="Limit # of Structures:"></ice:outputLabel>
-									<ice:panelTooltip id="lblMFLimitTooltip">
-		    							<f:facet name="header">
-		    								<ice:outputText value="Limit # of Structures"></ice:outputText>
-		    							</f:facet>
-		    							<f:facet name="body">
-		    								<ice:outputText value="Required maximum value of candidates. The limit
-		    									ranges from 1 to 10000."></ice:outputText>
-		    							</f:facet>
-	    							</ice:panelTooltip>
-								</ice:panelGroup>
-								<ice:inputText id="candLimit" value="#{appBean.mfb.limit}" rendered="#{!appBean.mfb.renderSDF}"
-									validatorMessage="Please enter a number between 1 and 10000.">
-									<f:validateLongRange minimum="1" maximum="10000" for="candLimit"></f:validateLongRange>
-								</ice:inputText>
-								<ice:panelGroup effect="#{appBean.effectOutputText}" rendered="#{!appBean.mfb.renderSDF}">
-									<ice:message id="errcandLimit" for="candLimit"></ice:message>
 								</ice:panelGroup>
 								
 								<!-- specify the mass of the parent ion and adduct -->
@@ -324,11 +304,12 @@
 								</ice:panelGroup>
 								<ice:panelGroup rendered="#{!appBean.mfb.renderSDF}">
 									<ice:inputText id="parentIon" value="#{appBean.mfb.parentIon}" partialSubmit="true" required="true"									
-										validatorMessage="Value is not between 10 and 10000.0" valueChangeListener="#{appBean.mfb.changeParentIon}">
+										validatorMessage="Value is not between 10 and 10000.0" valueChangeListener="#{appBean.mfb.changeParentIon}"
+										disabled="#{appBean.mfb.viaFormula}">
 										<f:validateDoubleRange minimum="10.0" maximum="10000.0"/>
 									</ice:inputText>
 									<ice:selectOneMenu id="selectAdduct" valueChangeListener="#{appBean.mfb.changeAdduct}"
-										value="#{appBean.mfb.selectedAdduct}">
+										value="#{appBean.mfb.selectedAdduct}" disabled="#{appBean.mfb.viaFormula}">
 										<f:selectItems value="#{appBean.mfb.adductList}" var="adduct"
 											itemLabel="#{adduct.label}" itemValue="#{adduct.value}"/>
 									</ice:selectOneMenu>
@@ -358,6 +339,27 @@
 								</ice:inputText>
 								<ice:panelGroup effect="#{appBean.effectOutputText}" rendered="#{!appBean.mfb.renderSDF}">
 									<ice:message id="errexactMass" for="exactMass"></ice:message>
+								</ice:panelGroup>
+								
+								<!-- limit the number of MetFrag results -->
+								<ice:panelGroup id="lblMFLimit" panelTooltip="lblMFLimitTooltip" rendered="#{!appBean.mfb.renderSDF}">
+									<ice:outputLabel for="candLimit" value="Limit # of Structures:"></ice:outputLabel>
+									<ice:panelTooltip id="lblMFLimitTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="Limit # of Structures"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Required maximum value of candidates. The limit
+		    									ranges from 1 to 10000."></ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+								</ice:panelGroup>
+								<ice:inputText id="candLimit" value="#{appBean.mfb.limit}" rendered="#{!appBean.mfb.renderSDF}"
+									validatorMessage="Please enter a number between 1 and 10000.">
+									<f:validateLongRange minimum="1" maximum="10000" for="candLimit"></f:validateLongRange>
+								</ice:inputText>
+								<ice:panelGroup effect="#{appBean.effectOutputText}" rendered="#{!appBean.mfb.renderSDF}">
+									<ice:message id="errcandLimit" for="candLimit"></ice:message>
 								</ice:panelGroup>
 								
 								<!-- specifiy search ppm parameter -->
