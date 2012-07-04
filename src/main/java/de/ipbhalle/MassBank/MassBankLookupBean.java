@@ -25,7 +25,9 @@ import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 import javax.faces.model.SelectItemGroup;
 
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
@@ -728,6 +730,15 @@ public class MassBankLookupBean implements Runnable, Serializable {
         List<String> duplicates = new ArrayList<String>();
 
         MassBankUtilities mbu = new MassBankUtilities(serverUrl, cacheMassBank);
+        InChIGeneratorFactory igf = null;
+        try {
+			igf = InChIGeneratorFactory.getInstance();
+		} catch (CDKException e) {
+			// TODO Auto-generated catch block
+			// no inchi generation possible
+			// rely on information stored in MassBank records
+		}
+		
         String name = "";
         String id = "";
         double score = 0.0d;
@@ -793,10 +804,18 @@ public class MassBankLookupBean implements Runnable, Serializable {
                 // create AtomContainer via SMILES
                 Map<String, String> links = mbu.retrieveLinks(id, site);
                 String smiles = links.get("smiles");
+                String inchi = links.get("inchi");	// IUPAC InChI from MassBank record
                 //System.out.println("smiles -> " + smiles);
                 IAtomContainer container = null;
                 // first look if container is present, then download if not
                 container = mbu.getContainer(id, basePath);
+                if(inchi != null && !inchi.isEmpty()) {	// check if InChI string is present
+	                try {	// create container via InChI
+						container = igf.getInChIToStructure(inchi, DefaultChemObjectBuilder.getInstance()).getAtomContainer();
+					} catch (CDKException e) {
+						container = null;
+					}
+                }
                 if(container == null) {
                     fetch = mbu.fetchMol(name, id, site, basePath);
                     if(fetch) {
@@ -824,7 +843,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
                 	// compute molecular formula
 					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
 					if(iformula == null)	// fallback to MassBank sum formula
-						iformula = MolecularFormulaManipulator.getMolecularFormula(sumFormula, NoNotificationChemObjectBuilder.getInstance());
+						iformula = MolecularFormulaManipulator.getMolecularFormula(sumFormula, DefaultChemObjectBuilder.getInstance());
 					String formula = MolecularFormulaManipulator.getHTML(iformula);
 					// compute molecular mass
 					double emass = 0.0d;
@@ -836,6 +855,14 @@ public class MassBankLookupBean implements Runnable, Serializable {
                     //results.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
                     results.add(new Result("MassBank", id, name, score, container, url, tempPath + id + ".png", formula, emass));
                     limitCounter++;
+                    
+                    if(inchi == null || inchi.isEmpty()) {
+	                    try {
+							inchi = igf.getInChIGenerator(container).getInchi();
+						} catch (CDKException e) {
+							inchi = "";
+						}
+                    }
                 }
 
                 // add unused results (duplicate or no mol container) to list
