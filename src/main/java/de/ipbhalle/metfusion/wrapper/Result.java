@@ -15,6 +15,7 @@ import org.openscience.cdk.fingerprint.Fingerprinter;
 import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.smiles.SmilesGenerator;
 
 /**
  * The Class Result. It contains information about the name of the tool the
@@ -100,6 +101,7 @@ public class Result {
 		this.tiedRank = 1;
 		calculateBitSet();			// calculate the bitset for the AtomContainer
 		generateIUPAC();			// generate InChI and InChI-Key for AtomContainer
+		generateSMILES();			// generate SMILES for AtomContainer
 	}
 	
 	/**
@@ -220,7 +222,7 @@ public class Result {
 		String inchi = "";
 		String inchikey = "";
 		// ensure that the InChI generation is only done once
-		if(this.inchi.isEmpty() || this.inchikey.isEmpty()) {
+		if((this.inchi.isEmpty() || this.inchikey.isEmpty()) && getMol() != null) {
 			InChIGeneratorFactory igf = null;
 			try {
 				igf = InChIGeneratorFactory.getInstance();
@@ -244,6 +246,18 @@ public class Result {
 				setInchi(inchi);
 				setInchikey(inchikey);
 			}
+		}
+	}
+	
+	/**
+	 * Generates a SMILES from current IAtomContainer. 
+	 */
+	protected void generateSMILES() {
+		String smiles = "";
+		if(this.smiles.isEmpty() && getMol() != null) {
+			SmilesGenerator sg = new SmilesGenerator();
+			smiles = sg.createSMILES(getMol());
+			setSmiles(smiles);
 		}
 	}
 	

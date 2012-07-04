@@ -889,6 +889,8 @@ public class MetFusionBean implements Serializable {
 			WritableCell headerOrigScore = new Label(3, 0, "Original Score", arial12format);
 			WritableCell headerNewScore = new Label(4, 0, "MetFusion Score", arial12format);
 			WritableCell headerStructure = new Label(5, 0, "Structure", arial12format);
+			WritableCell headerSmiles = new Label(6, 0, "SMILES", arial12format);
+			WritableCell headerInchi = new Label(7, 0, "InChI", arial12format);
 			try
 			{
 				sheet.addCell(headerRank);
@@ -897,6 +899,8 @@ public class MetFusionBean implements Serializable {
 				sheet.addCell(headerOrigScore);
 				sheet.addCell(headerNewScore);
 				sheet.addCell(headerStructure);
+				sheet.addCell(headerSmiles);
+				sheet.addCell(headerInchi);
 			} catch (WriteException e) {
 				System.out.println("Could not write Excel sheet headers!");
 				e.printStackTrace();
@@ -926,9 +930,16 @@ public class MetFusionBean implements Serializable {
 				currentCol++;
 				//wi = new WritableImage(5, currentRow, 1, 3, new File(appPath, result.getImagePath()));
 				File temp = new File(webRoot, result.getImagePath());
-				if(temp.exists())
+				if(temp.exists()) {
 					wi = new WritableImage(currentCol, currentRow, 1, 3, temp);
+					currentCol++;
+				}
 				//wi = new WritableImage(5, currentRow, 1, 3, new File(webRoot, result.getImagePath()));
+				
+				WritableCell cellSmiles = new Label(currentCol, currentRow, result.getSmiles(), arial10format);
+				currentCol++;
+				WritableCell cellInchi = new Label(currentCol, currentRow, result.getInchi(), arial10format);
+				currentCol++;
 				
 				try
 				{
@@ -938,6 +949,8 @@ public class MetFusionBean implements Serializable {
 					sheet.addCell(cellOrigScore);
 					sheet.addCell(cellNewScore);
 					sheet.addImage(wi);
+					sheet.addCell(cellSmiles);
+					sheet.addCell(cellInchi);
 				} catch (WriteException e) {
 					System.out.println("Could not write excel cell");
 					e.printStackTrace();
@@ -962,6 +975,8 @@ public class MetFusionBean implements Serializable {
 			WritableCell headerName = new Label(2, 0, "Compound Name", arial12format);
 			WritableCell headerOrigScore = new Label(3, 0, "Original Score", arial12format);
 			WritableCell headerStructure = new Label(4, 0, "Structure", arial12format);
+			WritableCell headerSmiles = new Label(5, 0, "SMILES", arial12format);
+			WritableCell headerInchi = new Label(6, 0, "InChI", arial12format);
 			try
 			{
 				sheet.addCell(headerRank);
@@ -969,6 +984,8 @@ public class MetFusionBean implements Serializable {
 				sheet.addCell(headerName);
 				sheet.addCell(headerOrigScore);
 				sheet.addCell(headerStructure);
+				sheet.addCell(headerSmiles);
+				sheet.addCell(headerInchi);
 			} catch (WriteException e) {
 				System.out.println("Could not write Excel sheet headers!");
 				e.printStackTrace();
@@ -997,9 +1014,16 @@ public class MetFusionBean implements Serializable {
 				currentCol++;
 				//wi = new WritableImage(4, currentRow, 1, 3, new File(appPath, result.getImagePath()));
 				File temp = new File(webRoot, result.getImagePath());
-				if(temp.exists())
+				if(temp.exists()) {
 					wi = new WritableImage(currentCol, currentRow, 1, 3, temp);
+					currentCol++;
+				}
 				//wi = new WritableImage(5, currentRow, 1, 3, new File(webRoot, result.getImagePath()));
+				
+				WritableCell cellSmiles = new Label(currentCol, currentRow, result.getSmiles(), arial10format);
+				currentCol++;
+				WritableCell cellInchi = new Label(currentCol, currentRow, result.getInchi(), arial10format);
+				currentCol++;
 				
 				try
 				{
@@ -1008,6 +1032,8 @@ public class MetFusionBean implements Serializable {
 					sheet.addCell(cellName);
 					sheet.addCell(cellOrigScore);
 					sheet.addImage(wi);
+					sheet.addCell(cellSmiles);
+					sheet.addCell(cellInchi);
 				} catch (WriteException e) {
 					System.out.println("Could not write excel cell");
 					e.printStackTrace();
@@ -1032,6 +1058,8 @@ public class MetFusionBean implements Serializable {
 			WritableCell headerName = new Label(2, 0, "Compound Name", arial12format);
 			WritableCell headerOrigScore = new Label(3, 0, "Original Score", arial12format);
 			WritableCell headerStructure = new Label(4, 0, "Structure", arial12format);
+			WritableCell headerSmiles = new Label(5, 0, "SMILES", arial12format);
+			WritableCell headerInchi = new Label(6, 0, "InChI", arial12format);
 			try
 			{
 				sheet.addCell(headerRank);
@@ -1039,6 +1067,8 @@ public class MetFusionBean implements Serializable {
 				sheet.addCell(headerName);
 				sheet.addCell(headerOrigScore);
 				sheet.addCell(headerStructure);
+				sheet.addCell(headerSmiles);
+				sheet.addCell(headerInchi);
 			} catch (WriteException e) {
 				System.out.println("Could not write Excel sheet headers!");
 				e.printStackTrace();
@@ -1064,8 +1094,15 @@ public class MetFusionBean implements Serializable {
 				currentCol++;
 				//wi = new WritableImage(4, currentRow, 1, 3, new File(appPath, result.getImagePath()));
 				File temp = new File(webRoot, result.getImagePath());
-				if(temp.exists())
+				if(temp.exists()) {
 					wi = new WritableImage(currentCol, currentRow, 1, 3, temp);
+					currentCol++;
+				}
+				
+				WritableCell cellSmiles = new Label(currentCol, currentRow, result.getSmiles(), arial10format);
+				currentCol++;
+				WritableCell cellInchi = new Label(currentCol, currentRow, result.getInchi(), arial10format);
+				currentCol++;
 				
 				try
 				{
@@ -1074,6 +1111,8 @@ public class MetFusionBean implements Serializable {
 					sheet.addCell(cellName);
 					sheet.addCell(cellOrigScore);
 					sheet.addImage(wi);
+					sheet.addCell(cellSmiles);
+					sheet.addCell(cellInchi);
 				} catch (WriteException e) {
 					System.out.println("Could not write excel cell");
 					e.printStackTrace();
