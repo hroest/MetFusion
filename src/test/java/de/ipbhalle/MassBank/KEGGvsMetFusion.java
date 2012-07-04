@@ -6,16 +6,11 @@ package de.ipbhalle.MassBank;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,25 +39,29 @@ public class KEGGvsMetFusion {
 	public static void main(String[] args) {
 		boolean createfiles = false;
 		boolean evalute = true;
-		boolean uniqueOnly = false;
+		boolean uniqueOnly = true;
 		
 		String spectraPath = "/home/mgerlich/Datasets/allSpectra/";
 		String outDir = "/home/mgerlich/projects/KEGG_vs_Massbank/";
 		String outDirunique = "/home/mgerlich/projects/KEGG_vs_Massbank/unique/";
+		String dir = "";
+		if(uniqueOnly)
+			dir = outDirunique;
+		else dir = outDir;
 		
 		if (createfiles) {
 			File[] list = pickKEGGSpectra(spectraPath, uniqueOnly);
 			System.out.println("#files -> " + list.length);
 
 			for (int i = 0; i < list.length; i++) {
-				boolean success = writeShellScript(list[i], outDirunique);
+				boolean success = writeShellScript(list[i], dir);
 				if (!success)
 					System.err.println("Error writing shell script for [" + list[i].getName() + "]");
 			}
 		}
 		
 		if(evalute) {
-			evaluateResults(spectraPath, uniqueOnly, outDir);
+			evaluateResults(spectraPath, uniqueOnly, dir);
 		}
 	}
 
@@ -102,7 +101,7 @@ public class KEGGvsMetFusion {
 		KEGGFileFilter ff = new KEGGFileFilter(uniqueOnly);	// FileFilter implementation für Suche nach KEGG ID in der Datei
 		File[] list = specDir.listFiles(ff);
 		Map<String, String> recordToID = ff.getIdMap();		// Map die zu jedem Record die KEGG ID speichert
-		
+		System.out.println("# Spectra of interest: " + list.length);
 		File dir = new File(outDir);
 		KEGGFilenameFilter fnf = new KEGGFilenameFilter("resultsOrig");		// resultsNew,   resultsCluster
 		File[] results = dir.listFiles(fnf);
@@ -122,6 +121,16 @@ public class KEGGvsMetFusion {
 		}
 		
 		MassBankUtilities mbu = new MassBankUtilities();
+		
+		File stats = new File(outDir, "kegg.stats");
+		FileWriter statsWriter = null;
+		try {
+			statsWriter = new FileWriter(stats);
+			statsWriter.write("Record\tKEGG\tCID\n");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		for (int i = 0; i < results.length; i++) {
 			File f = results[i];
@@ -153,6 +162,21 @@ public class KEGGvsMetFusion {
 //			for (String key : keys) {
 //				System.out.println("key [" + key + "] -> " + links.get(key));
 //			}
+			
+			try {
+				statsWriter.write(record + "\t" + KEGGID + "\t" + CID + "\n");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		try {
+			statsWriter.flush();
+			statsWriter.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
