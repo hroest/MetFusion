@@ -30,7 +30,7 @@ public class PropertiesBean {
 		FacesContext fc = FacesContext.getCurrentInstance();
 		ServletContext scontext = (ServletContext) fc.getExternalContext().getContext();
 		this.webRoot = scontext.getRealPath(sep);
-		this.propFile = webRoot + "WEB-INF/settings.properties";
+		this.propFile = webRoot + "/WEB-INF/settings.properties";
 		getConfig();
 		
 		// Store propertiesBean in application map
