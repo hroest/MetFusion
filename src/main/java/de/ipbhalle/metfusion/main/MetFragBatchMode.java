@@ -193,6 +193,12 @@ public class MetFragBatchMode implements Runnable {
 	private boolean showResult = false;
 	
 	/**
+	 * boolean indicating whether candidates should be filtered according to their InChI-Key 1 (true)
+	 * or not (false). This filter step would reduce the list of candidates by removing stereoisomers.
+	 */
+	private boolean uniqueInchi = false;
+	
+	/**
 	 * the list of results
 	 */
 	private List<Result> results;
@@ -337,6 +343,7 @@ public class MetFragBatchMode implements Runnable {
 			boolean neutralLossInEveryLayer = isNeutralLossLayer();
 			boolean bondEnergyScoring = isBondEnergyScoring();
 			boolean breakOnlySelectedBonds = isBreakOnlySelectedBonds();
+			boolean uniqueInchi = isUniqueInchi();
 			
 			List<MetFragResult> result = new ArrayList<MetFragResult>();
 			if(database.equals(dbSDF))
@@ -355,7 +362,7 @@ public class MetFragBatchMode implements Runnable {
 			else  result = MetFrag.startConvenienceMetFusion(database, databaseID, 
 					molecularFormula, exactMass, spectrum, useProxy, mzabs, mzppm, searchPPM, 
 					molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, hydrogenTest,
-					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password);
+					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password, uniqueInchi);
 			this.mfResults = result;
 			System.out.println("MetFrag result#: " + result.size() + "\n");
 			this.results = new ArrayList<Result>();
@@ -732,6 +739,14 @@ public class MetFragBatchMode implements Runnable {
 
 	public void setParentIon(double parentIon) {
 		this.parentIon = parentIon;
+	}
+
+	public boolean isUniqueInchi() {
+		return uniqueInchi;
+	}
+
+	public void setUniqueInchi(boolean uniqueInchi) {
+		this.uniqueInchi = uniqueInchi;
 	}
 
 }

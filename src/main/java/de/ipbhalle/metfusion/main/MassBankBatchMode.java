@@ -7,12 +7,18 @@ package de.ipbhalle.metfusion.main;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import javax.faces.model.SelectItem;
 
+import net.sf.jniinchi.INCHI_RET;
+
+import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.inchi.InChIGenerator;
+import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
@@ -48,6 +54,8 @@ public class MassBankBatchMode implements Runnable {
 
 	private ArrayList<String> queryResults;
 
+	/** indicator for filtering duplicate entries */
+	private boolean uniqueInchi = Boolean.FALSE;
 	private ArrayList<Result> unused;
 
 	private static final String EI = "EI";
@@ -237,6 +245,16 @@ public class MassBankBatchMode implements Runnable {
         }
         MassBankUtilities mbu = new MassBankUtilities(serverUrl, dir.getAbsolutePath());
         
+        InChIGeneratorFactory igf = null;
+        try {
+			igf = InChIGeneratorFactory.getInstance();
+		} catch (CDKException e) {
+			// TODO Auto-generated catch block
+			// no inchi generation possible
+			// rely on information stored in MassBank records
+		}
+		Map<String, String> inchiMap = new HashMap<String, String>();	// maps InChI-Key 1 onto image path
+		
         String name = "";
         String id = "";
         double score = 0.0d;
@@ -305,6 +323,7 @@ public class MassBankBatchMode implements Runnable {
                 String smiles = links.get("smiles");
                 if(smiles == null)
                 	smiles = "";
+                String inchi = links.get("inchi");
                 
                 //System.out.println("smiles -> " + smiles);
                 IAtomContainer container = null;
@@ -378,11 +397,51 @@ public class MassBankBatchMode implements Runnable {
 					
 					duplicates.add(name);
                     //results.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
-					Result r = new Result("MassBank", id, name, score, container, "", tempPath + id + ".png", formula, emass);
-					r.setSmiles(smiles);
-					
-                    results.add(r);
-                    limitCounter++;
+					//Result r = new Result("MassBank", id, name, score, container, "", tempPath + id + ".png", formula, emass);
+					//r.setSmiles(smiles);
+					String imgPath = tempPath + id + ".png";
+                    Result r = new Result("MassBank", id, name, score, container, "", imgPath, formula, emass);
+                    //results.add(r);
+                    //limitCounter++;
+                    
+                    if(uniqueInchi) {		// if filter for unique InChI is on
+	                    String inchikey = r.getInchikey().split("-")[0];
+	                    if(inchi == null || inchi.isEmpty() || inchikey == null || inchikey.isEmpty()) {
+		                    try {
+		                    	InChIGenerator ig = igf.getInChIGenerator(container);
+		                    	if(ig.getReturnStatus() == INCHI_RET.ERROR) {
+		                    		inchi = "";
+		                    		inchikey = "";
+		                    	}
+		                    	else {
+		                    		inchi = ig.getInchi();
+									inchikey = ig.getInchiKey().split("-")[0];
+		                    	}
+							} catch (CDKException e) {
+								inchi = "";
+								inchikey = "";
+							}
+	                    }
+	                    
+	                    if(inchikey.isEmpty()) {	// add record if no InChI-key present
+	                    	results.add(r);			// add result
+	                    	limitCounter++;			// increase limit counter
+	                    }
+	                    else if(!inchiMap.containsKey(inchikey)) {		
+	                    	inchiMap.put(inchikey, imgPath);		// store InChI-Key with image path
+	                    	results.add(r);							// add result
+	                    	limitCounter++;							// increase limit counter
+	                    }
+	                    else {			// InChI-Key already present in map -> skip entry
+	                    	System.out.println(id + " not used! InChI-Key present");
+	                    	r.setImagePath(inchiMap.get(inchikey));	// use original structure image for duplicate
+	                    	unused.add(r);				// add result to unused list
+	                    }
+                    }
+                    else {		// if filter for unique InChI is off, stick to normal behaviour and add all results
+                    	results.add(r);
+                    	limitCounter++;
+                    }
                 }
 
                 // add unused results (duplicate or no mol container) to list
@@ -524,6 +583,14 @@ public class MassBankBatchMode implements Runnable {
 
 	public void setCacheMassBank(String cacheMassBank) {
 		this.cacheMassBank = cacheMassBank;
+	}
+
+	public void setUniqueInchi(boolean uniqueInchi) {
+		this.uniqueInchi = uniqueInchi;
+	}
+
+	public boolean isUniqueInchi() {
+		return uniqueInchi;
 	}
 
 }

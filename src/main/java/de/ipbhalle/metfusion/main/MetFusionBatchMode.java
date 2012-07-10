@@ -29,9 +29,9 @@ public class MetFusionBatchMode {
 
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
-	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache};
+	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
-	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE;
+	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, checkUNIQUE;
 	private Map<ARGUMENTS, String> settings;
 	private final static String DEFAULT_SERVER = "http://www.massbank.jp/";
 	
@@ -88,9 +88,10 @@ public class MetFusionBatchMode {
 			for (OutputFormats format : of) {
 				System.out.print("[" + format + "] ");
 			}
-			System.out.println("\noptionally: -proxy");
+			System.out.println("\noptionally: -proxy\t\t(use proxy if provided)");
 			System.out.println("optionally: -server http://www.your-massbank.server/");
 			System.out.println("optionally: -cache /path/to/cache");
+			System.out.println("optionally: -unique\t\t(filter out duplicates)");
 			
 			System.out.println("\nExample call: java -jar JARFILE -mf settings.mf #this uses the current directory for output!");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -out /tmp");
@@ -98,6 +99,7 @@ public class MetFusionBatchMode {
 			System.out.println("Example call: java -jar JARFILE -record XX000001.txt -out /tmp -format SDF");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -proxy");
+			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -proxy -unique");
 			
 			return success;
 		}
@@ -126,6 +128,10 @@ public class MetFusionBatchMode {
 					this.checkSERVER = Boolean.TRUE;
 				if(temp.equals(ARGUMENTS.cache.toString()))
 					this.checkCACHE = Boolean.TRUE;
+				if(temp.equals(ARGUMENTS.unique.toString())) {
+					this.checkUNIQUE = Boolean.TRUE;	// proxy does not have an additional property, mark as set/unset and continue
+					continue;
+				}
 				
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
 				i++;	// skip value, iterate over new argument
@@ -245,6 +251,11 @@ public class MetFusionBatchMode {
 		if(mfbm.checkPROXY)		// if proxy switch was set, use proxy in MetFrag
 			metfragbm.setProxy(Boolean.TRUE);
 		
+		if(mfbm.checkUNIQUE) {	// filter out duplicate
+			metfragbm.setUniqueInchi(Boolean.TRUE);
+			mbbm.setUniqueInchi(Boolean.TRUE);
+		}
+			
 		// sdf path
 		if(mfbm.isCheckSDF()) {
 			String sdfFile = mfbm.settings.get(ARGUMENTS.sdf);
