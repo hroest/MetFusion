@@ -789,7 +789,8 @@ public class MassBankUtilities {
 				e.printStackTrace();
 			}
 		}
-
+		else return retrieveLinks(f);	// found file, search file for links
+		
 		return dbs;
 	}
 	
