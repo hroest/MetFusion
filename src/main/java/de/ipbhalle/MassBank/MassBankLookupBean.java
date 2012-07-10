@@ -25,8 +25,11 @@ import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 import javax.faces.model.SelectItemGroup;
 
+import net.sf.jniinchi.INCHI_RET;
+
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -108,6 +111,8 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	private String missingEntriesNote = "Note: Some entries from the original MassBank query are left out because of missing structure information!";
 	private boolean showNote = Boolean.FALSE;
 	
+	/** indicator for filtering duplicate entries */
+	private boolean uniqueInchi = Boolean.FALSE;
 	private List<Result> unused;
 	
 	private Thread t;
@@ -734,6 +739,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 			// no inchi generation possible
 			// rely on information stored in MassBank records
 		}
+		Map<String, String> inchiMap = new HashMap<String, String>();	// maps InChI-Key 1 onto InChI
 		
         String name = "";
         String id = "";
@@ -805,7 +811,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
                 IAtomContainer container = null;
                 // first look if container is present, then download if not
                 container = mbu.getContainer(id, basePath);
-                if(inchi != null && !inchi.isEmpty()) {	// check if InChI string is present
+                if(container == null && inchi != null && !inchi.isEmpty()) {	// check if InChI string is present
 	                try {	// create container via InChI
 						container = igf.getInChIToStructure(inchi, DefaultChemObjectBuilder.getInstance()).getAtomContainer();
 					} catch (CDKException e) {
@@ -849,22 +855,55 @@ public class MassBankLookupBean implements Runnable, Serializable {
 					
                     duplicates.add(name);
                     //results.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
-                    results.add(new Result("MassBank", id, name, score, container, url, tempPath + id + ".png", formula, emass));
-                    limitCounter++;
+                    String imgPath = tempPath + id + ".png";
+                    Result r = new Result("MassBank", id, name, score, container, url, imgPath, formula, emass);
+                    //results.add(r);
+                    //limitCounter++;
                     
-                    if(inchi == null || inchi.isEmpty()) {
-	                    try {
-							inchi = igf.getInChIGenerator(container).getInchi();
-						} catch (CDKException e) {
-							inchi = "";
-						}
+                    if(uniqueInchi) {		// if filter for unique InChI is on
+	                    String inchikey = r.getInchikey().split("-")[0];
+	                    if(inchi == null || inchi.isEmpty() || inchikey == null || inchikey.isEmpty()) {
+		                    try {
+		                    	InChIGenerator ig = igf.getInChIGenerator(container);
+		                    	if(ig.getReturnStatus() == INCHI_RET.ERROR) {
+		                    		inchi = "";
+		                    		inchikey = "";
+		                    	}
+		                    	else {
+		                    		inchi = ig.getInchi();
+									inchikey = ig.getInchiKey().split("-")[0];
+		                    	}
+							} catch (CDKException e) {
+								inchi = "";
+								inchikey = "";
+							}
+	                    }
+	                    
+	                    if(inchikey.isEmpty()) {	// add record if no InChI-key present
+	                    	results.add(r);			// add result
+	                    	limitCounter++;			// increase limit counter
+	                    }
+	                    else if(!inchiMap.containsKey(inchikey)) {		
+	                    	inchiMap.put(inchikey, imgPath);		// store InChI-Key with image path
+	                    	results.add(r);							// add result
+	                    	limitCounter++;							// increase limit counter
+	                    }
+	                    else {			// InChI-Key already present in map -> skip entry
+	                    	System.out.println(id + " not used! InChI-Key present");
+	                    	r.setImagePath(inchiMap.get(inchikey));	// use original structure image for duplicate
+	                    	unused.add(r);				// add result to unused list
+	                    }
+                    }
+                    else {		// if filter for unique InChI is off, stick to normal behaviour and add all results
+                    	results.add(r);
+                    	limitCounter++;
                     }
                 }
 
                 // add unused results (duplicate or no mol container) to list
                 if(!fetch && container == null) {
-                    //unused.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
                 	unused.add(new Result("MassBank", id, name, score, container, url, tempPath + id + ".png"));
+                	System.out.println("unused -> " + id);
                 }
             }
             else if(split.length == 7) {
@@ -881,7 +920,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
         
         System.out.println("entries after duplicate removal -> " + results.size());
         this.results = results;
-        if(unused.size() > 0  | this.results.size() < this.originalResults.size()) {	// entries are left out because of missing structure information
+        if(unused.size() > 0) {	// entries are left out because of missing structure information
         	System.out.println(missingEntriesNote);
         	setShowNote(Boolean.TRUE);
         }
@@ -1324,6 +1363,14 @@ public class MassBankLookupBean implements Runnable, Serializable {
 
 	public boolean isShowNote() {
 		return showNote;
+	}
+
+	public void setUniqueInchi(boolean uniqueInchi) {
+		this.uniqueInchi = uniqueInchi;
+	}
+
+	public boolean isUniqueInchi() {
+		return uniqueInchi;
 	}
 
 }

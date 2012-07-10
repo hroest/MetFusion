@@ -208,6 +208,12 @@ public class MetFragBean implements Runnable, Serializable {
 	private boolean showResult = false;
 	
 	/**
+	 * boolean indicating whether candidates should be filtered according to their InChI-Key 1 (true)
+	 * or not (false). This filter step would reduce the list of candidates by removing stereoisomers.
+	 */
+	private boolean uniqueInchi = false;
+	
+	/**
 	 * the list of results
 	 */
 	private List<Result> results;
@@ -438,6 +444,7 @@ public class MetFragBean implements Runnable, Serializable {
 			boolean neutralLossInEveryLayer = isNeutralLossLayer();
 			boolean bondEnergyScoring = isBondEnergyScoring();
 			boolean breakOnlySelectedBonds = isBreakOnlySelectedBonds();
+			boolean uniqueInchi = isUniqueInchi();
 			
 			String jdbc, username, password = "";
 			jdbc = "jdbc:mysql://rdbms/MetFrag";
@@ -455,7 +462,7 @@ public class MetFragBean implements Runnable, Serializable {
 			else  result = MetFrag.startConvenienceMetFusion(database, databaseID, 
 					molecularFormula, exactMass, spectrum, useProxy, mzabs, mzppm, searchPPM, 
 					molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, hydrogenTest,
-					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password);
+					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password, uniqueInchi);
 			this.mfResults = result;
 			System.out.println("MetFrag result#: " + result.size() + "\n");
 			this.results = new ArrayList<Result>();
@@ -904,6 +911,14 @@ public class MetFragBean implements Runnable, Serializable {
 
 	public boolean isViaFormula() {
 		return viaFormula;
+	}
+
+	public void setUniqueInchi(boolean uniqueInchi) {
+		this.uniqueInchi = uniqueInchi;
+	}
+
+	public boolean isUniqueInchi() {
+		return uniqueInchi;
 	}
 
 }

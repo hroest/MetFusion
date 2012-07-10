@@ -147,6 +147,12 @@ public class MetFusionBean implements Serializable {
 	 */
 	private boolean useClustering = true;
 	
+	/**
+	 * boolean indicating whether candidates should be filtered according to their InChI-Key 1 (true)
+	 * or not (false). This filter step would reduce the list of candidates by removing stereoisomers.
+	 */
+	private boolean useInChIFiltering = false;
+	
 	private String selectedResult = "cluster";	// allows switching of panels in panelStacking of ICEFaces
 	// other values are "fragmenter", "database", "list"
 	
@@ -266,6 +272,10 @@ public class MetFusionBean implements Serializable {
     	mfb.setProgress(0);
     	mblb.setDone(Boolean.FALSE);
     	mfb.setDone(Boolean.FALSE);
+    	
+    	// set usage of InChI-based filtering
+    	mfb.setUniqueInchi(useInChIFiltering);
+    	mblb.setUniqueInchi(useInChIFiltering);
     	
     	this.tanimotoClusters = new ArrayList<ResultExtGroupBean>();
     	this.secondOrder = new ArrayList<ResultExt>();
@@ -1563,6 +1573,14 @@ public class MetFusionBean implements Serializable {
 
 	public Highlight getEffectNote() {
 		return effectNote;
+	}
+
+	public void setUseInChIFiltering(boolean useInChIFiltering) {
+		this.useInChIFiltering = useInChIFiltering;
+	}
+
+	public boolean isUseInChIFiltering() {
+		return useInChIFiltering;
 	}
 
 }

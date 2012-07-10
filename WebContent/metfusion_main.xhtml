@@ -454,6 +454,21 @@
 					    		</ice:panelGroup>
 								<ice:selectBooleanCheckbox id="SlctClstr" partialSubmit="true" value="#{appBean.useClustering}" disabled="true"/>
 		    					
+		    					<ice:panelGroup id="lblMetFusionFilter" panelTooltip="lblMetFusionFilterTooltip">
+					    			<ice:outputLabel for="SlctFltr" value="Filter Unique:" style="line-height:200%"></ice:outputLabel>
+					    			<ice:panelTooltip id="lblMetFusionFilterTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="InChI-based Filtering"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Optionally choose if results shall be filtered. This step removes 
+		    								steroeisomeric compounds from MetFrag and duplicate spectra from MassBank.">
+		    								</ice:outputText>
+		    							</f:facet>
+	    							</ice:panelTooltip>
+					    		</ice:panelGroup>
+								<ice:selectBooleanCheckbox id="SlctFltr" partialSubmit="true" value="#{appBean.useInChIFiltering}"/>
+		    					
 		    					<ice:panelGroup id="lblMetFusionPeaks" panelTooltip="lblMetFusionPeaksTooltip">
 		    						<ice:outputLabel value="Peaks:"></ice:outputLabel>
 		    						<ice:panelTooltip id="lblMetFusionPeaksTooltip">
@@ -621,7 +636,7 @@
 						<f:selectItem itemLabel="MetFusion Cluster" itemValue="cluster" itemDisabled="#{!appBean.showClusterResults}"/>
 						<f:selectItem itemLabel="Fragmenter List" itemValue="fragmenter" itemDisable="#{!appBean.showResultsFragmenter}"/>
 						<f:selectItem itemLabel="Database List" itemValue="database" itemDisabled="#{!appBean.showResultsDatabase}"/>
-						<f:selectItem itemLabel="Unused Database Entries" itemValue="unused" itemDisabled="#{!appBean.showResultsDatabase}"/>
+						<f:selectItem itemLabel="Unused Database Entries" itemValue="unused" rendered="#{!appBean.mblb.showNote}"/>
 					</ice:selectOneRadio>
 					
 					<ice:panelGroup style="background-color: MintCream; border: 1px solid ForestGreen;" rendered="#{appBean.createdResource}">
@@ -765,7 +780,8 @@
 								<ice:column>
 									<f:facet name="header">Compound Name</f:facet>
 									#{entry.name}
-									#{entry.smiles}
+<!--									<br/>-->
+<!--									#{entry.smiles}-->
 								</ice:column>
 								<ice:column>
 									<f:facet name="header">Exact Mass</f:facet>
@@ -853,7 +869,7 @@
 								<ice:column>
 									<f:facet name="header">Compound Name</f:facet>
 									#{entry.name}
-									#{entry.smiles}
+<!--									#{entry.smiles}-->
 								</ice:column>
 								<ice:column>
 									<f:facet name="header">Exact Mass</f:facet>
@@ -912,7 +928,7 @@
 						</ice:panelGroup>
 						
 						<ice:panelGroup id="unused">
-			    			<ice:dataTable value="#{appBean.mblb.unused}" var="entry" id="unusedMassBankEntries">
+			    			<ice:dataTable value="#{appBean.mblb.unused}" var="entry" id="unusedMassBankEntries" rows="20">
 			    				<f:facet name="header">
 			    					<ice:outputText value="Unused MassBank Entries"/>
 			    				</f:facet>
@@ -929,7 +945,7 @@
 								<ice:column>
 									<f:facet name="header">Compound Name</f:facet>
 									#{entry.name}
-									#{entry.smiles}
+<!--									#{entry.smiles}-->
 								</ice:column>
 								<ice:column>
 									<f:facet name="header">Exact Mass</f:facet>
@@ -946,6 +962,45 @@
 									#{entry.score}
 								</ice:column>
 			    			</ice:dataTable>
+			    			
+			    			<ice:panelGrid columns="1" styleClass="scrollerTable2" columnClasses="standardTable_ColumnCentered" >
+						        <ice:dataPaginator id="scroll_1_unused" for="unusedMassBankEntries" fastStep="10"
+						                         pageCountVar="pageCount" pageIndexVar="pageIndex"
+						                         paginator="true" paginatorMaxPages="9" rendered="#{appBean.mfb.showResult}" >
+						                <f:facet name="first" >
+						                         <ice:graphicImage url="#{msgs.xpDataPaginatorFirst}" style="border:none;"/>
+						                </f:facet>
+						                <f:facet name="last">
+						                        <ice:graphicImage url="#{msgs.xpDataPaginatorLast}" style="border:none;" />
+						                </f:facet>
+						                <f:facet name="previous">
+						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-previous.gif" style="border:none;" />
+						                </f:facet>
+						                <f:facet name="next">
+						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-next.gif" style="border:none;" />
+						                </f:facet>
+						                <f:facet name="fastforward">
+						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-ff.gif" style="border:none;" />
+						                </f:facet>
+						                <f:facet name="fastrewind">
+						                        <ice:graphicImage url="xmlhttp/css/xp/css-images/arrow-fr.gif" style="border:none;" />
+						                </f:facet>
+						        </ice:dataPaginator>
+						 
+						        <ice:dataPaginator id="scroll_2_unused" for="unusedMassBankEntries" rendered="#{appBean.mfb.showResult}" 
+						                        rowsCountVar="rowsCount" displayedRowsCountVar="displayedRowsCountVar"
+						                        firstRowIndexVar="firstRowIndex" lastRowIndexVar="lastRowIndex"
+						                        pageCountVar="pageCount" pageIndexVar="pageIndex">
+						                 <ice:outputFormat value="{0} results unused, displaying {1} results from {2} to {3}. Page {4} / {5}" styleClass="standard" >
+						                        <f:param value="#{rowsCount}" />
+						                        <f:param value="#{displayedRowsCountVar}" />
+						                        <f:param value="#{firstRowIndex}" />
+						                        <f:param value="#{lastRowIndex}" />
+						                        <f:param value="#{pageIndex}" />
+						                        <f:param value="#{pageCount}" />
+						                </ice:outputFormat>
+						        </ice:dataPaginator>
+						    </ice:panelGrid>
 						</ice:panelGroup>
 					</ice:panelStack>
 					
