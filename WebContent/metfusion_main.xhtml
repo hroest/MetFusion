@@ -1103,6 +1103,20 @@
 									<ice:graphicImage url="#{msgs.xpDataPaginatorFastrewind}" style="border:none;"/>
 								</f:facet>
 							</ice:dataPaginator>
+							<ice:dataPaginator id="scroll_2_tan" for="dataTbl" rendered="#{appBean.mfb.showResult}" 
+		                        rowsCountVar="rowsCount" displayedRowsCountVar="displayedRowsCountVar"
+		                        firstRowIndexVar="firstRowIndex" lastRowIndexVar="lastRowIndex"
+		                        pageCountVar="pageCount" pageIndexVar="pageIndex">
+				                 <ice:outputFormat value="{0} candidates found, displaying {1} candidates from {2} to {3}. Page {4} / {5}" 
+				                 	styleClass="standard" >
+			                        <f:param value="#{rowsCount}" />
+			                        <f:param value="#{displayedRowsCountVar}" />
+			                        <f:param value="#{firstRowIndex}" />
+			                        <f:param value="#{lastRowIndex}" />
+			                        <f:param value="#{pageIndex}" />
+			                        <f:param value="#{pageCount}" />
+				                </ice:outputFormat>
+					        </ice:dataPaginator>
 			    		</ice:panelGroup>
 			    		
 			    		<!-- newly computed MetFusion Tanimoto similarity matrix -->
@@ -1164,7 +1178,7 @@
 									</ice:columns>
 								</ice:dataTable>
 								</div>
-								<ice:dataPaginator id="scroll_2_tan" for="dataTbl2" fastStep="10"
+								<ice:dataPaginator id="scroll_1_tan2" for="dataTbl2" fastStep="10"
 									pageCountVar="pageCount" pageIndexVar="pageIndex"
 									paginator="true" paginatorMaxPages="9" rendered="#{appBean.mblb.showResult}">
 									<f:facet name="first">
@@ -1186,6 +1200,20 @@
 										<ice:graphicImage url="#{msgs.xpDataPaginatorFastrewind}" style="border:none;"/>
 									</f:facet>
 								</ice:dataPaginator>
+								<ice:dataPaginator id="scroll_2_tan2" for="dataTbl2" rendered="#{appBean.mfb.showResult}" 
+			                        rowsCountVar="rowsCount" displayedRowsCountVar="displayedRowsCountVar"
+			                        firstRowIndexVar="firstRowIndex" lastRowIndexVar="lastRowIndex"
+			                        pageCountVar="pageCount" pageIndexVar="pageIndex">
+				                	<ice:outputFormat value="{0} candidates found, displaying {1} candidates from {2} to {3}. Page {4} / {5}" 
+					                 	styleClass="standard" >
+				                        <f:param value="#{rowsCount}" />
+				                        <f:param value="#{displayedRowsCountVar}" />
+				                        <f:param value="#{firstRowIndex}" />
+				                        <f:param value="#{lastRowIndex}" />
+				                        <f:param value="#{pageIndex}" />
+				                        <f:param value="#{pageCount}" />
+				                	</ice:outputFormat>
+					        </ice:dataPaginator>
 			    		</ice:panelGroup>
 			    	</ice:panelStack>
 			    </ice:panelTab>
