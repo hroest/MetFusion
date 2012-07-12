@@ -130,6 +130,9 @@ public class MassBankUtilities {
 				/**
 				 * all spectra
 				 */
+				if(line.contains("<") & line.contains(">")) {	// remove HTML tag
+					line = line.replace(line.substring(line.indexOf("<"), line.indexOf(">") + 1), "");
+				}
 				if(line.startsWith("ACCESSION:") && !gotName) {
 					compound = line.substring(line.indexOf(":") + 1).trim();
 					gotName = true;
@@ -147,7 +150,7 @@ public class MassBankUtilities {
 					mass = line.substring(line.indexOf(":") + 1).trim();
 				}
 				
-				if(line.startsWith("PK$NUM_PEAK:")) {
+				if(line.startsWith("PK$NUM_PEAK:") | line.contains("PK$NUM_PEAK:")) {
 					counter = Integer.parseInt(line.substring(line.indexOf(":") + 1).trim());
 					// skip peak header line
 					br.readLine();
@@ -523,7 +526,12 @@ public class MassBankUtilities {
 	 * @param site the site
 	 */
 	public void fetchRecord(String id, String site) {
-		String prefix = id.substring(0, 2);
+//		String prefix = id.substring(0, 2);
+		String prefix = "";
+		if(id.matches("[A-Z]{3}[0-9]{5}"))
+			prefix = id.substring(0, 3);
+		else prefix = id.substring(0, 2);
+		
 		File dir = null;
 		if(os.startsWith("Windows"))
 			dir = new File(tempDir);
@@ -535,7 +543,7 @@ public class MassBankUtilities {
         System.out.println("ID -> " + id + "  site -> " + site);
         if(institutes != null) {
 			for (int i = 0; i < institutes.length; i++) {
-				if(institutes[i].startsWith(prefix)) {
+				if(institutes[i].equals(prefix)) {
 					f = new File(dir, institutes[i] +  fileSeparator + "records" + fileSeparator + id + ".txt");
 	                found = true;
 	                return;     // return if record was found
@@ -573,7 +581,11 @@ public class MassBankUtilities {
 	public String retrieveRecord(String id, String site) {
 		String content = "";
 		
-		String prefix = id.substring(0, 2);
+//		String prefix = id.substring(0, 2);
+		String prefix = "";
+		if(id.matches("[A-Z]{3}[0-9]{5}"))
+			prefix = id.substring(0, 3);
+		else prefix = id.substring(0, 2);
 		File dir = null;
 		if(os.startsWith("Windows")) {
 			dir = new File(currentDir);
@@ -583,7 +595,7 @@ public class MassBankUtilities {
 		String[] institutes = dir.list();
 		File f = null;
 		for (int i = 0; i < institutes.length; i++) {
-			if(institutes[i].startsWith(prefix)) {
+			if(institutes[i].equals(prefix)) {
 				f = new File(dir, institutes[i] + "/records/" + id + ".txt");
 				break;
 			}
@@ -692,7 +704,7 @@ public class MassBankUtilities {
 		boolean found = false;
 		if(institutes != null) {
 			for (int i = 0; i < institutes.length; i++) {
-				if(institutes[i].startsWith(prefix)) {
+				if(institutes[i].equals(prefix)) {
 					f = new File(dir, institutes[i] + fileSeparator + "records" + fileSeparator);
 					found = true;
 					f = new File(f, id + ".txt");
@@ -860,7 +872,7 @@ public class MassBankUtilities {
 		String[] institutes = dir.list();
 		File f = null;
 		for (int i = 0; i < institutes.length; i++) {
-			if(institutes[i].startsWith(prefix)) {
+			if(institutes[i].equals(prefix)) {
 				f = new File(dir, institutes[i] + fileSeparator + "records" + fileSeparator + id + ".txt");
 				break;
 			}
