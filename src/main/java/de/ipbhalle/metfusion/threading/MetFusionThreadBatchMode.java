@@ -277,7 +277,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 
 		String sessionPath = massbank.getSessionPath();
 		// fork new thread for generating ColorCodedMatrix
-		ColoredMatrixGeneratorThread cmT = new ColoredMatrixGeneratorThread(sim);
+//		ColoredMatrixGeneratorThread cmT = new ColoredMatrixGeneratorThread(sim);
 		TanimotoIntegrationWeighted tiw = new TanimotoIntegrationWeighted(sim);
 		// fork new thread for generating compound images
 		//ImageGeneratorThread igT = new ImageGeneratorThread(listMetFrag, sessionPath, tempPath);
@@ -291,21 +291,21 @@ public class MetFusionThreadBatchMode implements Runnable {
 //        threadExecutor.shutdown();
         
         tiw.run();
-        cmT.run();
+//        cmT.run();
         //igT.run();
         //igT2.run();
         
         /**
 		 * MetFrag cluster ranks
 		 */
-        while(!tiw.isDone() && !cmT.isDone()) { // && !igT.isDone() && !igT2.isDone()) {
+        while(!tiw.isDone() ) {//&& !cmT.isDone()) { // && !igT.isDone() && !igT2.isDone()) {
 			try {
 				wait();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
-        metfusion.setColorMatrix(cmT.getCcm());
+//        metfusion.setColorMatrix(cmT.getCcm());
         
         /**
 		 * TODO: check output
@@ -371,19 +371,19 @@ public class MetFusionThreadBatchMode implements Runnable {
 		 */
 		TanimotoSimilarity after = new TanimotoSimilarity(listMassBank, redraw);	//, 3, 0.5f);
 		// fork new thread for generating ColorCodedMatrix
-		ColoredMatrixGeneratorThread cmtAfter = new ColoredMatrixGeneratorThread(after);
-		cmtAfter.run();
-		while(!cmtAfter.isDone()) {
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-        metfusion.setColorMatrixAfter(cmtAfter.getCcm());
+//		ColoredMatrixGeneratorThread cmtAfter = new ColoredMatrixGeneratorThread(after);
+//		cmtAfter.run();
+//		while(!cmtAfter.isDone()) {
+//			try {
+//				wait();
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//        metfusion.setColorMatrixAfter(cmtAfter.getCcm());
         
-        cmT.getCcm().writeColorMatrix(new File(tempPath, addPrefixToFile("color.mat")));
-        cmtAfter.getCcm().writeColorMatrix(new File(tempPath, addPrefixToFile("colorAfter.mat")));
+        //cmT.getCcm().writeColorMatrix(new File(tempPath, addPrefixToFile("color.mat")));
+        //cmtAfter.getCcm().writeColorMatrix(new File(tempPath, addPrefixToFile("colorAfter.mat")));
         
         metfusion.setSecondOrder(resultingOrder);	// assign results to metfusion bean
 		SimilarityMetFusion sm = new SimilarityMetFusion();
@@ -428,6 +428,21 @@ public class MetFusionThreadBatchMode implements Runnable {
         	sdfhandler.writeClusterResults(clusters);
         }
         else if(this.format.equals(OutputFormats.XLS)) {
+        	// run color matrix threads if needed
+        	ColoredMatrixGeneratorThread cmT = new ColoredMatrixGeneratorThread(sim);
+        	ColoredMatrixGeneratorThread cmtAfter = new ColoredMatrixGeneratorThread(after);
+        	cmT.run();
+    		cmtAfter.run();
+        	while(!cmT.isDone() && !cmtAfter.isDone()) {
+    			try {
+    				wait();
+    			} catch (InterruptedException e) {
+    				e.printStackTrace();
+    			}
+    		}
+        	metfusion.setColorMatrix(cmT.getCcm());
+        	metfusion.setColorMatrixAfter(cmtAfter.getCcm());
+        	
 	        XLSOutputHandler xlsHandler = new XLSOutputHandler(tempPath + prefix + ".xls");
 	        xlsHandler.writeAllResults(listMetFrag, listMassBank, resultingOrder, null);
 	        xlsHandler.writeOriginalMatrix(cmT.getCcm(), "Original Matrix");
