@@ -636,7 +636,7 @@
 						<f:selectItem itemLabel="MetFusion Cluster" itemValue="cluster" itemDisabled="#{!appBean.showClusterResults}"/>
 						<f:selectItem itemLabel="Fragmenter List" itemValue="fragmenter" itemDisable="#{!appBean.showResultsFragmenter}"/>
 						<f:selectItem itemLabel="Database List" itemValue="database" itemDisabled="#{!appBean.showResultsDatabase}"/>
-						<f:selectItem itemLabel="Unused Database Entries" itemValue="unused" rendered="#{!appBean.mblb.showNote}"/>
+						<f:selectItem itemLabel="Unused Database Entries" itemValue="unused" itemDisabled="#{!appBean.mblb.showNote}"/>
 					</ice:selectOneRadio>
 					
 					<ice:panelGroup style="background-color: MintCream; border: 1px solid ForestGreen;" rendered="#{appBean.createdResource}">
