@@ -381,7 +381,7 @@ public class MetFragBatchMode implements Runnable {
 
 					// compute molecular formula
 					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
-					String formula = MolecularFormulaManipulator.getHTML(iformula);
+					String formula = MolecularFormulaManipulator.getString(iformula);
 					// compute molecular mass
 					double emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
 					emass = roundThreeDecimals(emass);	//Double.valueOf(threeDForm.format(emass));	// shorten exact mass to 3 decimal places
