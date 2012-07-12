@@ -785,13 +785,17 @@ public class MassBankLookupBean implements Runnable, Serializable {
                 mbu.fetchRecord(id, site);
                 //String mol = MassBankUtilities.retrieveMol(name, site, id);
 
-                String prefix = id.substring(0, 2);
+//                String prefix = id.substring(0, 2);
+                String prefix = "";
+        		if(id.matches("[A-Z]{3}[0-9]{5}"))
+        			prefix = id.substring(0, 3);
+        		else prefix = id.substring(0, 2);
                 File dir = new File(cacheMassBank);
                 String[] institutes = dir.list();
                 File f = null;
                 String basePath = "";
                 for (int j = 0; j < institutes.length; j++) {
-                    if(institutes[j].startsWith(prefix)) {
+                    if(institutes[j].equals(prefix)) {
                         f = new File(dir, institutes[j] + "/mol/");
                         basePath = f.getAbsolutePath();
                         if(!basePath.endsWith("/"))
