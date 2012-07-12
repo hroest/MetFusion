@@ -384,7 +384,7 @@ public class MassBankBatchMode implements Runnable {
 					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
 					if(iformula == null)	// fallback to MassBank sum formula
 						iformula = MolecularFormulaManipulator.getMolecularFormula(sumFormula, NoNotificationChemObjectBuilder.getInstance());
-					String formula = MolecularFormulaManipulator.getHTML(iformula);
+					String formula = MolecularFormulaManipulator.getString(iformula);
 					// compute molecular mass
 					double emass = 0.0d;
 					if(!formula.contains("R"))	// compute exact mass from formula only if NO residues "R" are present
