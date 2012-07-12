@@ -292,7 +292,11 @@ public class MassBankBatchMode implements Runnable {
 //                MassBankUtilities.fetchRecord(id, site);
                 //String mol = MassBankUtilities.retrieveMol(name, site, id);
 
-                String prefix = id.substring(0, 2);
+                //String prefix = id.substring(0, 2);
+                String prefix = "";
+        		if(id.matches("[A-Z]{3}[0-9]{5}"))
+        			prefix = id.substring(0, 3);
+        		else prefix = id.substring(0, 2);
                 cache = new File(dir, prefix);
         		
                 String basePath = "";
