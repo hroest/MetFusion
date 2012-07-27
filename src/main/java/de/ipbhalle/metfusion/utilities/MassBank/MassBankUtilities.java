@@ -112,15 +112,17 @@ public class MassBankUtilities {
 	 * peaklist, exact mass and compound name/id for further use.
 	 * 
 	 * @param f - the file containing the MassBank record
-	 * @return an array of Strings, [0] contains the peaklist, [1] stores the exact mass
-	 * and [2] contains the compound name or identifier
+	 * @return an array of Strings, [0] contains the peaklist, [1] stores the exact mass,
+	 * [2] contains the compound name or identifier, [3] contains the ionization (pos/neg) and
+	 * [4] contains the sum formula
 	 */
 	public String[] getPeaklistFromFile(File f) {
 		StringBuilder sb = new StringBuilder();
-		String[] data = new String[4];
+		String[] data = new String[5];
 		String mass = "";
 		String compound = "";
 		String ion = "";
+		String sumFormula = "";
 		boolean gotName = false;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(f));
@@ -144,6 +146,10 @@ public class MassBankUtilities {
 					else if(line.contains("[M-H]-") || line.contains("M-H")) 
 						ion = "neg";
 					else ion = "pos";
+				}
+				
+				if(line.startsWith("CH$FORMULA:")) {
+					sumFormula = line.substring(line.indexOf(":") + 1).trim();
 				}
 				
 				if(line.startsWith("CH$EXACT_MASS:")) {
@@ -182,6 +188,7 @@ public class MassBankUtilities {
 		data[1] = mass;
 		data[2] = compound;
 		data[3] = ion;
+		data[4] = sumFormula;
 		
 		return data;
 	}
