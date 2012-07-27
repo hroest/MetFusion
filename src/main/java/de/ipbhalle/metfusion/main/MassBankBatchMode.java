@@ -16,17 +16,20 @@ import javax.faces.model.SelectItem;
 
 import net.sf.jniinchi.INCHI_RET;
 
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
+import chemaxon.descriptors.ECFP;
+
 import de.ipbhalle.enumerations.Ionizations;
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
+import de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities;
 import de.ipbhalle.metfusion.wrapper.Result;
 
 import massbank.GetConfig;
@@ -244,6 +247,7 @@ public class MassBankBatchMode implements Runnable {
     			dir = new File(DEFAULT_CACHE_LINUX);
         }
         MassBankUtilities mbu = new MassBankUtilities(serverUrl, dir.getAbsolutePath());
+        ChemAxonUtilities cau = new ChemAxonUtilities(false);
         
         InChIGeneratorFactory igf = null;
         try {
@@ -387,7 +391,7 @@ public class MassBankBatchMode implements Runnable {
                 	// compute molecular formula
 					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
 					if(iformula == null)	// fallback to MassBank sum formula
-						iformula = MolecularFormulaManipulator.getMolecularFormula(sumFormula, NoNotificationChemObjectBuilder.getInstance());
+						iformula = MolecularFormulaManipulator.getMolecularFormula(sumFormula, DefaultChemObjectBuilder.getInstance());
 					String formula = MolecularFormulaManipulator.getString(iformula);
 					// compute molecular mass
 					double emass = 0.0d;
@@ -405,6 +409,12 @@ public class MassBankBatchMode implements Runnable {
 					//r.setSmiles(smiles);
 					String imgPath = tempPath + id + ".png";
                     Result r = new Result("MassBank", id, name, score, container, "", imgPath, formula, emass);
+                    
+                    // generate ECFP
+                    File f = new File(basePath, id + ".mol");	// path to mol file
+                    ECFP ecfp = cau.generateECFPFromMol(f);		// generate ECFP from mol file
+                    r.setEcfp(ecfp);							// store ECFP in result
+                    
                     //results.add(r);
                     //limitCounter++;
                     
