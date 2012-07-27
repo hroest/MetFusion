@@ -122,6 +122,12 @@ public class TanimotoSimilarity implements ISimilarity, Runnable {
 		}
 	}
 	
+	/**
+	 * Default constructor for CDK fingerprint based similarity computation.
+	 * 
+	 * @param primaries - the result list of primaries from a spectral DB 
+	 * @param candidates - the result list of candidates from a fragmenter
+	 */
 	public TanimotoSimilarity(List<Result> primaries, List<Result> candidates) {
 		this.setData(new double[candidates.size()][primaries.size()]);
 		
@@ -135,6 +141,29 @@ public class TanimotoSimilarity implements ISimilarity, Runnable {
 		
 		//writeVector(colScores, new File("/tmp/colScores.txt"));
 		//writeVector(rowScores, new File("/tmp/rowScores.txt"));
+	}
+	
+	/**
+	 * Default constructor for ChemAxon ECFP-based similarity computation.
+	 * 
+	 * @param primaries - the result list of primaries from a spectral DB 
+	 * @param candidates - the result list of candidates from a fragmenter
+	 */
+	public TanimotoSimilarity(List<Result> primaries, List<Result> candidates, boolean useECFP) {
+		this.setData(new double[candidates.size()][primaries.size()]);
+		
+		this.primaries = primaries;
+		this.candidates = candidates;
+		if(!useECFP) {		// default CDK
+			calculateSimilarity();
+		}
+		else {				// use ECFP
+			calculateSimilarityECFP();
+		}
+		matrix =  new BlockRealMatrix(data);
+		
+		rowScores = generateListScores(candidates);
+		colScores = generateListScores(primaries);
 	}
 	
 	/**
@@ -185,10 +214,19 @@ public class TanimotoSimilarity implements ISimilarity, Runnable {
 					float sim = Tanimoto.calculate(BitSet1, BitSet2);
 					data[i][j] = Double.valueOf(sim);
 				} catch (CDKException e) {
-					//e.printStackTrace();
 					System.err.println("Error computing Tanimoto similarity at index [" + i + "," + j + "] -> using 0.0 instead.");
 					data[i][j] = 0d;
 				}
+			}
+		}
+	}
+	
+	private void calculateSimilarityECFP() {
+		for (int i = 0; i < data.length; i++) {
+			for (int j = 0; j < data[i].length; j++) {
+				float sim = primaries.get(j).getEcfp().getTanimoto(candidates.get(i).getEcfp());	// ECFP Tanimoto computes dissimilarity!
+				sim = 1f - sim;	// similarity = 1 - dissimilarity
+				data[i][j] = Double.valueOf(sim);
 			}
 		}
 	}
