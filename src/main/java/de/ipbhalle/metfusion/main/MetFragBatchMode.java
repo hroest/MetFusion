@@ -134,7 +134,7 @@ public class MetFragBatchMode implements Runnable {
 	/**
 	 * variable holding the limit of result entries for database lookup
 	 */
-	private int limit = 500;		// result limit for upstream DB lookup
+	private int limit = 5000;		// result limit for upstream DB lookup
 	
 	/**
 	 * variable describing the mode of ionization
