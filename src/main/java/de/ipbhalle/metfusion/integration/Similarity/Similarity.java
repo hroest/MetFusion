@@ -30,6 +30,7 @@ import java.util.Map;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
+import org.openscience.cdk.fingerprint.ExtendedFingerprinter;
 import org.openscience.cdk.fingerprint.Fingerprinter;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecule;
@@ -119,6 +120,7 @@ public class Similarity {
 		{
 			for (String strCandidate : candidateToStructure.keySet()) {
 				Fingerprinter f = new Fingerprinter();
+				//ExtendedFingerprinter f = new ExtendedFingerprinter();
 				BitSet fp = f.getFingerprint(candidateToStructure.get(strCandidate));
 				candidateToFingerprint.put(strCandidate, fp);
 			}
@@ -131,6 +133,7 @@ public class Similarity {
 				{
 					IMolecule mol = sp.parseSmiles(candidatesToSmiles.get(string));
 					Fingerprinter f = new Fingerprinter();
+					//ExtendedFingerprinter f = new ExtendedFingerprinter();
 					BitSet fp = f.getFingerprint(mol);
 					candidateToFingerprint.put(string, fp);
 				}
