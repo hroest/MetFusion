@@ -272,7 +272,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 			return;
 		}
 		
-		TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, listMetFrag);	//, 3, 0.5f);
+		TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, listMetFrag, true);	//, 3, 0.5f);
 		sim.writeMatrix(sim.getMatrix(), new File(tempPath, addPrefixToFile("sim.mat")));
 
 		String sessionPath = massbank.getSessionPath();
