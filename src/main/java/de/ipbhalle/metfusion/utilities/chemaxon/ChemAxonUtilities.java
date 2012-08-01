@@ -6,8 +6,10 @@ package de.ipbhalle.metfusion.utilities.chemaxon;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 
+import org.apache.commons.io.IOUtils;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
@@ -109,20 +111,44 @@ public class ChemAxonUtilities {
 	 */
 	public ChemAxonUtilities(boolean generateFCFP) {
 		if(generateFCFP) {		// generate FCFP, use fcfp.xml
-			URL url = this.getClass().getResource("fcfp.xml");
-			paramConfig = new ECFPParameters(new File(url.getPath())); // generate FCFP, default fcfp.xml
+			//URL url = this.getClass().getResource("fcfp.xml");
+			InputStream is = getClass().getResourceAsStream("fcfp.xml");
+			try {
+				String xml = IOUtils.toString(is, "UTF-8");
+				paramConfig = new ECFPParameters(xml); // generate FCFP, default fcfp.xml
+			} catch (IOException e) {
+				e.printStackTrace();
+				//paramConfig = new ECFPParameters(new File(url.getPath())); // generate FCFP, default fcfp.xml
+			}
+			//paramConfig = new ECFPParameters(new File(url.getPath())); // generate FCFP, default fcfp.xml
 		}
 		else {					// generate ECFP, use ecfp.xml
-			URL url = this.getClass().getResource("ecfp.xml");
-			paramConfig = new ECFPParameters(new File(url.getPath())); // generate ECFP, default ecfp.xml
+			//URL url = this.getClass().getResource("ecfp.xml");
+			InputStream is = getClass().getResourceAsStream("ecfp.xml");
+			try {
+				String xml = IOUtils.toString(is, "UTF-8");
+				paramConfig = new ECFPParameters(xml); // generate FCFP, default fcfp.xml
+			} catch (IOException e) {
+				e.printStackTrace();
+				//paramConfig = new ECFPParameters(new File(url.getPath())); // generate ECFP, default ecfp.xml
+			}
+			//paramConfig = new ECFPParameters(new File(url.getPath())); // generate ECFP, default ecfp.xml
 		}
 		
-		URL license = this.getClass().getResource("license.cxl");
-		try {
-			LicenseManager.setLicenseFile(license.getFile());
-		} catch (LicenseProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		// read in license file if no property is given
+		if(System.getProperty("chemaxon.license.url") == null) {
+			//URL license = this.getClass().getResource("license.cxl");
+			InputStream is = getClass().getResourceAsStream("license.cxl");
+			try {
+				String xml = IOUtils.toString(is, "UTF-8");
+				LicenseManager.setLicense(xml);
+				//LicenseManager.setLicenseFile(license.getFile());
+			} catch (LicenseProcessingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -144,12 +170,20 @@ public class ChemAxonUtilities {
 
 		paramConfig = new ECFPParameters(path); // generate ECFP
 		
-		URL license = this.getClass().getResource("license.cxl");
-		try {
-			LicenseManager.setLicenseFile(license.getFile());
-		} catch (LicenseProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		// read in license file if no property is given
+		if(System.getProperty("chemaxon.license.url") == null) {
+			//URL license = this.getClass().getResource("license.cxl");
+			InputStream is = getClass().getResourceAsStream("license.cxl");
+			try {
+				String xml = IOUtils.toString(is, "UTF-8");
+				LicenseManager.setLicense(xml);
+				//LicenseManager.setLicenseFile(license.getFile());
+			} catch (LicenseProcessingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
