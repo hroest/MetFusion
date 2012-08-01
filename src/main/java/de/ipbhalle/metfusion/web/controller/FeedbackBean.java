@@ -27,6 +27,7 @@ import javax.faces.component.UIInput;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
+import javax.faces.model.SelectItem;
 import javax.faces.validator.FacesValidator;
 import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
@@ -35,6 +36,7 @@ import javax.mail.internet.AddressException;
 
 import com.mysql.jdbc.Driver;
 
+import de.ipbhalle.MassBank.MassBankLookupBean;
 import de.ipbhalle.metfusion.wrapper.FeedbackEntry;
 import de.ipbhalle.metfusion.wrapper.MailClient;
 
@@ -200,8 +202,8 @@ public class FeedbackBean implements Validator {
 	        
 	        String sql = "INSERT INTO Feedback (Name, Email, Comment, Spectrum, massbankLimit, massbankThreshold, massbankIonization, "
 	        		+ "massbankInstruments, metfragExactMass, metfragParentIon, metfragAdduct, metfragDatabase, metfragIdentifier, "
-	        		+ "metfragFormula, metfragLimit, metfragSearchPPM, metfragMzabs, metfragMzppm, Date) "
-	        		+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now())";
+	        		+ "metfragFormula, metfragLimit, metfragSearchPPM, metfragMzabs, metfragMzppm, Date, massbankServer, metfusionFilter) "
+	        		+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now(),?,?)";
 			
 	        PreparedStatement pst = con.prepareStatement(sql);
 	        
@@ -260,13 +262,22 @@ public class FeedbackBean implements Validator {
 	        pst.setDouble(position, appBean.getMfb().getMzppm());
 	        position++;
 			
+	        /** add additional information */
+	        pst.setString(position, appBean.getMblb().getServerUrl());
+	        position++;
+	        pst.setInt(position, (appBean.getMblb().isUniqueInchi() & appBean.getMfb().isUniqueInchi()) ? 1 : 0);
+	        position++;
+	        
 			pst.executeUpdate();
 			pst.close();
 			
 			sb.append("Name:\t").append(this.name + "\n");
 			sb.append("Email:\t").append(this.email + "\n");
 			sb.append("Comment:\t").append(this.comment + "\n");
+			sb.append("Unique Filter MassBank:\t").append(appBean.getMblb().isUniqueInchi() + "\n");
+			sb.append("Unique Filter MetFrag:\t").append(appBean.getMfb().isUniqueInchi() + "\n");
 			sb.append("Spectrum:\n").append(appBean.getInputSpectrum() + "\n");	// newline after spectrum for proper view
+			sb.append("MassBank Server:\t").append(appBean.getMblb().getServerUrl() + "\n");
 			sb.append("MassBank Limit:\t").append(appBean.getMblb().getLimit() + "\n");
 			sb.append("MassBank Threshold:\t").append(appBean.getMblb().getCutoff() + "\n");
 			sb.append("MassBank Ionization:\t").append(appBean.getMblb().getSelectedIon() + "\n");
@@ -280,7 +291,7 @@ public class FeedbackBean implements Validator {
 			sb.append("MetFrag Adduct:\t").append(appBean.getMfb().getSelectedAdduct() + "\n");
 			sb.append("MetFrag Search PPM:\t").append(appBean.getMfb().getSearchppm() + "\n");
 			sb.append("MetFrag m/z abs:\t").append(appBean.getMfb().getMzabs() + "\n");
-			sb.append("MetFRag m/z ppm:\t").append(appBean.getMfb().getMzppm() + "\n");
+			sb.append("MetFrag m/z ppm:\t").append(appBean.getMfb().getMzppm() + "\n");
 			
 			success = true;
 		} catch (SQLException e) {
@@ -402,6 +413,8 @@ public class FeedbackBean implements Validator {
 	        	parameters.put("metfragMzppm", rs.getDouble("metfragMzppm"));
 	        	parameters.put("metfragParentIon", rs.getDouble("metfragParentIon"));
 	        	parameters.put("metfragAdduct", rs.getDouble("metfragAdduct"));
+	        	parameters.put("massbankServer", rs.getString("massbankServer"));
+	        	parameters.put("metfusionFilter", rs.getBoolean("metfusionFilter"));
 	        	
 	        	feedbackEntries.add(new FeedbackEntry(_ID, _Name, _Email, _Comment, parameters, _answered, _fixed, _Date));
 	        }
@@ -460,7 +473,15 @@ public class FeedbackBean implements Validator {
 		
 		Map<String, Object> settings = entry.getSettings();
 		// set data into beans
+		// MetFusion settings
+		appBean.setUseInChIFiltering((Boolean) settings.get("metfusionFilter"));
+		
 		// MassBank settings
+		String storedServer = (String) settings.get("massbankServer");
+		if(!appBean.getMblb().getServerUrl().equals(storedServer)) {
+			appBean.getMblb().setAllowOtherServer(Boolean.TRUE);	// allow setup of other servers
+			appBean.getMblb().setServerUrl(storedServer);		// setup serverUrl and MassBank
+		}
 		appBean.getMblb().setLimit((Integer) settings.get("massbankLimit"));
 		appBean.getMblb().setCutoff((Integer) settings.get("massbankThreshold"));
 		appBean.getMblb().setSelectedIon((String) settings.get("massbankIonization"));
@@ -469,7 +490,7 @@ public class FeedbackBean implements Validator {
 		String selected = (String) settings.get("massbankInstruments");
 		String[] selectedInstruments = selected.split(escape);
 		appBean.getMblb().setSelectedInstruments(selectedInstruments);
-		appBean.getMblb().loadInstruments(selectedInstruments);	// lush instruments to correct selectedInstrumentGroups
+		appBean.getMblb().loadInstruments(selectedInstruments);	// flush instruments to correct selectedInstrumentGroups
 
 		// load spectrum
 		String peaks = (String) settings.get("Spectrum");
