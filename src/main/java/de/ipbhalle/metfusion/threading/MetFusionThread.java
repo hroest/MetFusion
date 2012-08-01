@@ -32,6 +32,9 @@ public class MetFusionThread implements Runnable {
 	private int steps = 0;
 	private final int totalSteps = 8;
 	
+	/** The index of the result tab. This depends on the number and order of available tabs in the JSF page. */
+	private String numResultTab = "1";
+	
 	/** The index of the error tab. This depends on the number and order of available tabs in the JSF page. */
 	private String numErrorTab = "3";
 	
@@ -95,7 +98,7 @@ public class MetFusionThread implements Runnable {
     		metfusion.setEnableStart(Boolean.TRUE);
     		
     		metfusion.setShowTable(true);
-			metfusion.setSelectedTab(numErrorTab);
+			metfusion.setSelectedTab(numResultTab);
 			metfusion.setErrorMessage(errMessage);
 			massbank.setShowResult(false);
 			
@@ -119,7 +122,7 @@ public class MetFusionThread implements Runnable {
     		metfusion.setEnableStart(Boolean.TRUE);
     		
     		metfusion.setShowTable(true);
-			metfusion.setSelectedTab(numErrorTab);
+			metfusion.setSelectedTab(numResultTab);
 			metfusion.setErrorMessage(errMessage);
 			massbank.setShowResult(false);
 			
@@ -143,7 +146,7 @@ public class MetFusionThread implements Runnable {
     		stepsDonePercent(totalSteps);
 			
     		metfusion.setShowTable(true);
-			metfusion.setSelectedTab(numErrorTab);
+			metfusion.setSelectedTab(numResultTab);
 			metfusion.setErrorMessage(errMessage);
 			metfrag.setShowResult(false);
 			
@@ -167,7 +170,7 @@ public class MetFusionThread implements Runnable {
 			setActive(Boolean.FALSE);
 			
 			metfusion.setShowTable(true);
-			metfusion.setSelectedTab(numErrorTab);
+			metfusion.setSelectedTab(numResultTab);
 			metfusion.setErrorMessage(errMessage);
 			metfrag.setShowResult(false);
 			
