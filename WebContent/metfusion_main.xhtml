@@ -34,7 +34,38 @@
 				    	<ice:panelGroup style="margin-left: 10px; margin-right: 10px;">
 		    				<ice:outputLabel value="MassBank Parameters" style="text-decoration: underline;"></ice:outputLabel>
 		    				<br/>
+		    				<ice:outputLabel value="#{appBean.mblb.serverUrl}"/>
+		    				<br/>
 		    				<ice:panelGrid columns="3" style="margin-left: 10px; margin-right: 10px;">
+		    					<ice:panelGroup id="lblMBDB" panelTooltip="lblMBDBTooltip">
+		    						<ice:outputLabel value="MassBank Server:"/>
+		    						<ice:panelTooltip id="lblMBDBTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="MassBank Server"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Specify a MassBank server. Default is the japanese one
+		    								at www.massbank.jp."></ice:outputText>
+		    							</f:facet>
+		    						</ice:panelTooltip>
+		    					</ice:panelGroup>
+		    					<ice:panelGroup>
+		    						<ice:selectOneMenu valueChangeListener="#{appBean.mblb.changeDatabase}" value="#{appBean.mblb.selectedServer}">
+		    							<f:selectItems itemLabel="#{n}" itemValue="#{n}" var="n" 
+											value="#{appBean.mblb.availableServers}" />
+		    						</ice:selectOneMenu>
+		    						<ice:panelGroup effect="#{appBean.effectOutputText}" style="float: right;" 
+		    							rendered="#{appBean.mblb.selectOtherServer}">
+			    						<ice:inputText id="mbServerUrl" rendered="#{appBean.mblb.selectOtherServer}" 
+			    							valueChangeListener="#{appBean.mblb.changeDatabase}" value="#{appBean.mblb.otherServer}"
+			    							partialSubmit="true" immediate="true">
+			    						</ice:inputText>
+		    						</ice:panelGroup>
+		    					</ice:panelGroup>
+		    					<ice:panelGroup effect="#{appBean.effectOutputText}">
+		    						<ice:message id="errmbServer" for="mbServer"></ice:message>
+		    					</ice:panelGroup>
+		    					
 		    					<ice:panelGroup id="lblMBRslt" panelTooltip="lblMBRsltTooltip">
 		    						<ice:outputLabel value="Number of Results:"></ice:outputLabel>
 		    						<ice:panelTooltip id="lblMBRsltTooltip">
@@ -121,9 +152,9 @@
 			    							</f:facet>
 		    							</ice:panelTooltip>
 									</ice:panelGroup>
-									<ice:panelGrid columns="3" columnClasses="gridSelectItems" id="instruments"
+									<ice:panelGrid columns="#{appBean.mblb.NUM_INST_GROUPS}" columnClasses="gridSelectItems" id="instruments"
 										style="text-align: left; margin-left: 187px; border: 1px dotted silver;">
-										<ice:panelGroup rendered="#{databaseBean.presentEI}">
+										<ice:panelGroup rendered="#{appBean.mblb.presentEI}">
 <!--											<ice:outputLabel value="EI"/>-->
 <!--											<ice:selectBooleanCheckbox label="EI" value="#{appBean.mblb.useEIOnly}" style="margin-left: 5px;"-->
 <!--												valueChangeListener="#{appBean.mblb.toggleInstrumentsEI}">-->
@@ -135,7 +166,7 @@
 												<f:param value="#{appBean.mblb.getEi()}" name="group"/>
 											</ice:commandLink>
 										</ice:panelGroup>
-										<ice:panelGroup rendered="#{databaseBean.presentESI}">
+										<ice:panelGroup rendered="#{appBean.mblb.presentESI}">
 <!--											<ice:outputLabel value="ESI"/>-->
 <!--											<ice:selectBooleanCheckbox label="ESI" value="#{appBean.mblb.useESIOnly}" style="margin-left: 5px;"-->
 <!--												valueChangeListener="#{appBean.mblb.toggleInstrumentsESI}">-->
@@ -147,7 +178,7 @@
 												<f:param value="#{appBean.mblb.getEsi()}" name="group"/>
 											</ice:commandLink>
 										</ice:panelGroup>
-										<ice:panelGroup rendered="#{databaseBean.presentOther}">
+										<ice:panelGroup rendered="#{appBean.mblb.presentOther}">
 <!--											<ice:outputLabel value="Other"/>-->
 <!--											<ice:selectBooleanCheckbox label="Other" value="#{appBean.mblb.useOtherOnly}" style="margin-left: 5px;">-->
 <!--												valueChangeListener="#{appBean.mblb.toggleInstrumentsOther}">-->
@@ -161,26 +192,29 @@
 										</ice:panelGroup>
 										
 										<!-- Select instruments of group EI -->
-										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[0]}"
-											valueChangeListener="#{appBean.mblb.changeInstruments}" immediate="true">
+										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[appBean.mblb.indexEI]}"
+											valueChangeListener="#{appBean.mblb.changeInstruments}" immediate="true"
+											rendered="#{appBean.mblb.presentEI}">
 <!--											validator="de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator">-->
-											<f:selectItems value="#{appBean.mblb.instTest[0]}"/>
+											<f:selectItems value="#{appBean.mblb.instTest[appBean.mblb.indexEI]}"/>
 											<f:attribute name="attrGroup" value="#{appBean.mblb.getEi()}"/>
 										</ice:selectManyCheckbox>
 										
 										<!-- Select instruments of group ESI -->
-										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[1]}"
-											valueChangeListener="#{appBean.mblb.changeInstruments}" immediate="true">
+										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[appBean.mblb.indexESI]}"
+											valueChangeListener="#{appBean.mblb.changeInstruments}" immediate="true"
+											rendered="#{appBean.mblb.presentESI}">
 <!--											validator="de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator">-->
-											<f:selectItems value="#{appBean.mblb.instTest[1]}"/>
+											<f:selectItems value="#{appBean.mblb.instTest[appBean.mblb.indexESI]}"/>
 											<f:attribute name="attrGroup" value="#{appBean.mblb.getEsi()}"/>
 										</ice:selectManyCheckbox>
 										
 										<!-- Select instruments of group Other -->
-										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[2]}"
-											valueChangeListener="#{appBean.mblb.changeInstruments}" immediate="true">
+										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[appBean.mblb.indexOther]}"
+											valueChangeListener="#{appBean.mblb.changeInstruments}" immediate="true"
+											rendered="#{appBean.mblb.presentOther}">
 <!--											validator="de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator">-->
-											<f:selectItems value="#{appBean.mblb.instTest[2]}"/>
+											<f:selectItems value="#{appBean.mblb.instTest[appBean.mblb.indexOther]}"/>
 											<f:attribute name="attrGroup" value="#{appBean.mblb.getOther()}"/>
 										</ice:selectManyCheckbox>
 									</ice:panelGrid>
