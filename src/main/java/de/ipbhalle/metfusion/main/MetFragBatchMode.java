@@ -29,6 +29,8 @@ import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
+import chemaxon.descriptors.ECFP;
+
 import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPISoapProxy;
 
@@ -39,6 +41,7 @@ import de.ipbhalle.metfrag.main.MetFrag;
 import de.ipbhalle.metfrag.main.MetFragResult;
 import de.ipbhalle.metfrag.molDatabase.PubChemLocal;
 import de.ipbhalle.metfrag.spectrum.WrapperSpectrum;
+import de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities;
 import de.ipbhalle.metfusion.wrapper.Result;
 
 public class MetFragBatchMode implements Runnable {
@@ -374,6 +377,7 @@ public class MetFragBatchMode implements Runnable {
 			
 			int current = 0;
 			SmilesGenerator sg = new SmilesGenerator();
+			ChemAxonUtilities cau = new ChemAxonUtilities(false);
 			
 			for (MetFragResult mfr : result) {
 				if(mfr.getStructure() != null) {
@@ -457,9 +461,14 @@ public class MetFragBatchMode implements Runnable {
 					// create SMILES from IAtomContainer
 					String smiles = sg.createSMILES(container);
 					
+					// create ECFP from SMILES
+					ECFP ecfp = cau.generateECFPFromName(smiles);
+					
 					Result r = new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename,
 							"", formula, emass, mfr.getPeaksExplained());
 					r.setSmiles(smiles);
+					r.setEcfp(ecfp);
+					
 					results.add(r);
 
 					current++;
