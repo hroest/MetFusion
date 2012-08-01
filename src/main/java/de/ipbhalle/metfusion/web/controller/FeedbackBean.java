@@ -27,7 +27,6 @@ import javax.faces.component.UIInput;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
-import javax.faces.model.SelectItem;
 import javax.faces.validator.FacesValidator;
 import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
@@ -36,7 +35,6 @@ import javax.mail.internet.AddressException;
 
 import com.mysql.jdbc.Driver;
 
-import de.ipbhalle.MassBank.MassBankLookupBean;
 import de.ipbhalle.metfusion.wrapper.FeedbackEntry;
 import de.ipbhalle.metfusion.wrapper.MailClient;
 
