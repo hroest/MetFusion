@@ -7,6 +7,8 @@ package de.ipbhalle.MassBank;
 
 import java.io.File;
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -81,10 +83,13 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	private static final String ESI = "ESI";
 	private static final String OTHER = "Others";
 	 /** EI, ESI, Other */
-    public static final int NUM_INST_GROUPS = 3;
+    public int NUM_INST_GROUPS = 3;
     private boolean presentEI = Boolean.FALSE;
     private boolean presentESI = Boolean.FALSE;
     private boolean presentOther = Boolean.FALSE;
+    private int indexEI = 0;
+    private int indexESI = 1;
+    private int indexOther = 2;
 	private Map<String, List<String>> instGroups;
 	private static final String SESSIONMAPKEYINSTRUMENTS = "instruments";
 	private static final String SELECT = "Select";
@@ -97,7 +102,26 @@ public class MassBankLookupBean implements Runnable, Serializable {
 	private String selectedIon = "1";
 	private SelectItem[] ionisations = {new SelectItem("1", "positive"), new SelectItem("-1", "negative"), new SelectItem("0", "both")};
 	
-	private static final String massbankJP = "http://www.massbank.jp/";
+	public static final String varOTHER = "other";
+	public static final String massbankJP = "http://www.massbank.jp/";
+	private SelectItem[] availableServers = {new SelectItem(massbankJP, "MassBank JP"), 
+			new SelectItem("http://msbi.ipb-halle.de/MassBank/", "MassBank DE"), 
+			new SelectItem("http://massbank.normandata.eu/MassBank/", "NORMAN-MassBank"),
+//			new SelectItem("http://pfos.jp/MassBank/", "Pfos"),
+			new SelectItem(varOTHER, varOTHER)};
+	private String selectedServer = "";
+	
+	/** Allow to use another server besides the default one. */
+	private boolean selectOtherServer = Boolean.FALSE;
+	
+	/** A user-defined web adress for another MassBank server instance. */
+	private String otherServer = "";
+	
+	/** previously selected server in case of fall back */
+	private String previousServer = "";
+	
+	/** Allow to specify another server besides the default ones. */
+	private boolean allowOtherServer = Boolean.FALSE;
 	
 	private String inputSpectrum = "273.096 22\n289.086 107\n290.118 14\n291.096 999\n292.113 162\n293.054 34\n579.169 37\n580.179 15";
 	
@@ -146,27 +170,89 @@ public class MassBankLookupBean implements Runnable, Serializable {
     
 	public MassBankLookupBean() {
 		this(massbankJP);			// create instance with default massbank server JAPAN
-		t = new Thread(this, "massbank");
+		//t = new Thread(this, "massbank");
 	}
 	
 	public MassBankLookupBean(String serverUrl) {
+		this.setMbCommon(new MassBankCommon());		// only create new MassBankCommon once
+		setupMassBank(serverUrl);
+	}
+
+	private void setupMassBank(String serverUrl) {
 		// retrieve application scoped PropertiesBean
 		PropertiesBean pb = (PropertiesBean) FacesContext.getCurrentInstance().getExternalContext().getApplicationMap().get("propertiesBean");
 		String propServerUrl = pb.getProperty("serverURL");		// read massbank server from properties file
-		if(propServerUrl != null && !propServerUrl.isEmpty())				// if this property is set, use the designated server rather the default
+		// if another server is not selected and if this property is set, use the designated server rather the default
+		if(!allowOtherServer && propServerUrl != null && !propServerUrl.isEmpty())	{			
 			serverUrl = propServerUrl;
+		}
 		
 		String propCacheDir = pb.getProperty("databaseCache");	// read cache directory from properties file
 		if(propCacheDir != null && !propCacheDir.isEmpty())		// if this property is set, use the designated directory rather the default
 			cacheMassBank = propCacheDir;
 		
         this.serverUrl = (serverUrl.isEmpty() | !serverUrl.startsWith("http://") ? massbankJP : serverUrl);
-        this.setMbCommon(new MassBankCommon());
-        this.setConfig(new GetConfig(this.serverUrl));
-        this.setInstInfo(new GetInstInfo(this.serverUrl));
+        
+        if(previousServer.equals(this.serverUrl)) {	// if previous server was the same
+        	SelectItem[] availableServers = getAvailableServers();
+	    	boolean standard = false;
+	    	for (int i = 0; i < availableServers.length; i++) {
+				if(availableServers[i].getValue().equals(getServerUrl())) {
+					setSelectedServer((String) availableServers[i].getValue());
+					setSelectOtherServer(Boolean.FALSE);	// disable input field for other server
+		        	setOtherServer("");
+					standard = true;
+					break;
+				}
+			}
+	    	if(!standard) {		// server is other
+	    		setSelectedServer(MassBankLookupBean.varOTHER);
+	    		setSelectOtherServer(Boolean.TRUE);	// enable input field for other server
+	    		setOtherServer(this.serverUrl);
+	    	}
+        	return;									// skip instrument parsing
+        }
+        
+    	this.setConfig(new GetConfig(this.serverUrl));
+    	this.setInstInfo(new GetInstInfo(this.serverUrl));
+        
+        // fall back to default server if provided server is no correct MassBank instance
+        if(getInstInfo().getName() == null || getInstInfo().getName().length == 0 || getInstInfo().getName()[0].length() == 0) {
+        	this.serverUrl = massbankJP;
+        	this.setConfig(new GetConfig(this.serverUrl));
+        	this.setInstInfo(new GetInstInfo(this.serverUrl));
+        	
+        	setSelectedServer((String) availableServers[0].getValue());		// default to massbank japan
+        	setSelectOtherServer(Boolean.FALSE);	// disable input field for other server
+        	setOtherServer("");
+        	
+        	if(previousServer.equals(this.serverUrl))	// if previous server was the same
+        		return;									// skip instrument parsing
+        }
         this.setInstruments(this.instInfo.getTypeGroup());
         showResult = false;
         System.out.println("serverUrl: " + this.serverUrl);
+        previousServer = this.serverUrl;		// update previous server to current one
+        
+        if(allowOtherServer) {
+	        // set up server Url 
+	    	SelectItem[] availableServers = getAvailableServers();
+	    	boolean standard = false;
+	    	for (int i = 0; i < availableServers.length; i++) {
+				if(availableServers[i].getValue().equals(getServerUrl())) {
+					setSelectedServer((String) availableServers[i].getValue());
+					setSelectOtherServer(Boolean.FALSE);	// disable input field for other server
+		        	setOtherServer("");
+					standard = true;
+					break;
+				}
+			}
+	    	if(!standard) {		// server is other
+	    		setSelectedServer(MassBankLookupBean.varOTHER);
+	    		setSelectOtherServer(Boolean.TRUE);	// enable input field for other server
+	    		setOtherServer(this.serverUrl);
+	    	}
+        }
         
         Map<String, List<String>> instGroup = instInfo.getTypeGroup();
         // store instrument groups with group identifier
@@ -176,15 +262,18 @@ public class MassBankLookupBean implements Runnable, Serializable {
         Iterator<String> it = instGroup.keySet().iterator();
         int counter = 0;
         StringBuilder sb = new StringBuilder();
-        //SelectItemGroup[] sig = new SelectItemGroup[instGroup.keySet().size()];
         List<SelectItemGroup> sig = new ArrayList<SelectItemGroup>();
         this.selectedGroupInstruments = new ArrayList<String[]>();
         this.instrumentToGroup = new HashMap<String, String>();
         
+        // reset presence indicators for instrument groups
+        presentEI = Boolean.FALSE;
+        presentESI = Boolean.FALSE;
+        presentOther = Boolean.FALSE;
+        
         // iterate over instrument groups
         while(it.hasNext()) {
         	String next = it.next();
-        	//sig[counter] = new SelectItemGroup(next);
         	SelectItemGroup sigcur = new SelectItemGroup(next);
         	List<String> items = instGroup.get(next);	// retrieve instruments from current instrument group
         	String[] instruments = new String[items.size()];
@@ -193,12 +282,26 @@ public class MassBankLookupBean implements Runnable, Serializable {
         	if(next.equals(ESI))
         		FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put(SESSIONMAPKEYINSTRUMENTS, items);
         	
-        	if(next.equals(EI) && items.size() > 0)
+        	if(next.equals(EI) && items.size() > 0) {
         		presentEI = Boolean.TRUE;
-        	if(next.equals(ESI) && items.size() > 0)
+        		indexEI = counter;
+        	}
+        	else if(next.equals(EI) && (items == null || items.size() == 0))
+        		presentEI = Boolean.FALSE;
+        	
+        	if(next.equals(ESI) && items.size() > 0) {
         		presentESI = Boolean.TRUE;
-        	if(next.equals(OTHER) && items.size() > 0)
+        		indexESI = counter;
+        	}
+        	else if(next.equals(ESI) && (items == null || items.size() == 0))
+        		presentESI = Boolean.FALSE;
+        	
+        	if(next.equals(OTHER) && items.size() > 0) {
         		presentOther = Boolean.TRUE;
+        		indexOther = counter;
+        	}
+        	else if(next.equals(OTHER) && (items == null || items.size() == 0))
+        		presentOther = Boolean.FALSE;
         	
         	SelectItem[] si = new SelectItem[items.size()];
         	for (int i = 0; i < si.length; i++) {
@@ -217,41 +320,28 @@ public class MassBankLookupBean implements Runnable, Serializable {
         	instTest.add(si);
         	selectedGroupInstruments.add(instruments);
         	
-        	//sig[counter].setSelectItems(si);
         	sigcur.setSelectItems(si);
-        	//if(next.equals(ESI))
-        	//	sigcur.setDisabled(false);
-        	//else sigcur.setDisabled(true);
-        	
         	sig.add(sigcur);
-        	//System.out.println();
+
         	counter++;
         	this.instruments.put(next, items);
         }
         
-//            String temp = sb.toString();
-//            if(temp.endsWith(","))
-//            	temp = temp.substring(0, temp.length());
-//            String[] split = sb.toString().split(",");
-//            this.insts = new SelectItem[sb.toString().split(",").length];
-//            this.selectedInstruments = new String[split.length];	//split;
-//            for (int i = 0; i < this.insts.length; i++) {
-//           		this.insts[i] = new SelectItem(split[i], split[i]);
-//            	
-//                // let only be ESI instruments be preselected
-//                if(split[i].contains(ESI))
-//                	this.selectedInstruments[i] = split[i];
-//            }
-
+        // keep number of instrument groups for actual database
+        NUM_INST_GROUPS = counter;
+//        FacesContext.getCurrentInstance().renderResponse();
+        
         // check MassBank availability - check if all instrument groups are present - EI, ESI, Other
         if(instGroup.keySet().size() < NUM_INST_GROUPS)
         	this.brokenMassBank = true;
         
         this.groupInstruments = sig;
 
-        t = new Thread(this, "massbank");
+        if(t == null)	// only create new thread for the first time!
+        	t = new Thread(this, "massbank");
+        
 	}
-
+	
 	public void loadInstruments(String[] instruments) {
 		List<String[]> selected = new ArrayList<String[]>();
 		Set<String> groups = instGroups.keySet();
@@ -281,13 +371,13 @@ public class MassBankLookupBean implements Runnable, Serializable {
 			List<String> insts = loaded.get(key);
 			int slot = 0;
 			if(key.equals(EI)) {
-				slot = 0;
+				slot = indexEI;
 			}
 			else if(key.equals(ESI)) {
-				slot = 1;
+				slot = indexESI;
 			}
 			else if(key.equals(OTHER)) {
-				slot = 2;
+				slot = indexOther;
 			}
 			else {
 				System.err.println("loadInstruments - Could not find matching Instrument Group!");
@@ -299,6 +389,49 @@ public class MassBankLookupBean implements Runnable, Serializable {
 				newInstruments[i] = insts.get(i);
 			}
 			selectedGroupInstruments.set(slot, newInstruments);
+		}
+	}
+	
+	public void changeDatabase(ValueChangeEvent event) {
+		
+		String oldVal = ((String) event.getOldValue()).trim();
+		String newVal = ((String) event.getNewValue()).trim();
+		
+		// skip re-loading of values after constructor setup
+		if((oldVal == null | oldVal.isEmpty()) && newVal.equals(massbankJP) && serverUrl.equals(massbankJP))
+			return;
+		
+		if(newVal == null | newVal.isEmpty() | newVal.length() == 0)		// default back to massbank.jp
+			newVal = massbankJP;	
+		
+		if(newVal.equals(varOTHER) && !isSelectOtherServer())	{
+			setSelectOtherServer(Boolean.TRUE);	// enable text input field it other is selected
+			return;			// skip new server lookup before something was entered
+		}
+		else if(newVal.equals(varOTHER) && isSelectOtherServer())	{
+			newVal = otherServer.trim();			// use value from text input field it other is selected
+		}
+		//else setSelectOtherServer(Boolean.FALSE);	// otherwise disable it
+		
+		System.out.println("old DB -> " + oldVal);
+		System.out.println("new DB -> " + newVal);
+		if(!newVal.startsWith("http://"))
+			newVal = "http://" + newVal;
+		
+		if(!newVal.endsWith("/"))
+			newVal = newVal + "/";
+		
+		if(!newVal.equals(oldVal)) {	// only parse MassBank new if new server is given
+			//this.serverUrl = newVal;
+			setAllowOtherServer(Boolean.TRUE);
+			try {
+				URL url = new URL(newVal);
+				System.out.println("url -> " + url.toExternalForm());
+				setupMassBank(url.toExternalForm());
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -314,7 +447,6 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		for (int i = 0; i < currentSelected.size(); i++) {
 			String[] temp = currentSelected.get(i);
 			for (int j = 0; j < temp.length; j++) {
-				//System.out.println("currentSelected -> " + temp[j]);
 				if(temp[j] != null && !temp[j].isEmpty()) {
 					remaining.add(temp[j]);
 					numSelected++;
@@ -322,14 +454,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 			}
 		}
 		
-//		String[] old = (String[]) event.getOldValue();
-//		for (int i = 0; i < old.length; i++) {
-//			System.out.println("old -> " + old[i]);
-//		}
 		String[] newInstruments = (String[]) event.getNewValue();
-//		for (int i = 0; i < newInstruments.length; i++) {
-//			System.out.println("newInstruments -> " + newInstruments[i]);
-//		}
 		String lastInst = "";
 		if(remaining.size() == 1 && newInstruments.length == 0) {
 			numSelected = 0;	// reset selected instruments to 0 as the last instrument was deselected
@@ -339,15 +464,15 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		int slot = 0;
 		String grp = "";
 		if(group.equals(EI)) {
-			slot = 0;
+			slot = indexEI;
 			grp = EI;
 		}
 		else if(group.equals(ESI)) {
-			slot = 1;
+			slot = indexESI;
 			grp = ESI;
 		}
 		else if(group.equals(OTHER)) {
-			slot = 2;
+			slot = indexOther;
 			grp = OTHER;
 		}
 		else {
@@ -392,9 +517,12 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		}
 		
 		System.out.println("collected.length -> " + collected.length);
+		Set<String> instKeys = instGroups.keySet();
+		Iterator<String> it = instKeys.iterator();
+		String firstGroup = it.next();
 		if(collected.length == 0) {
 			collected = new String[1];
-			collected[0] = instGroups.get(EI).get(0);
+			collected[0] = instGroups.get(firstGroup).get(0);
         	String errMessage = "Error - no instruments were selected!";
             System.err.println(errMessage);
             selectedGroupInstruments.set(0, collected);
@@ -438,19 +566,19 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		boolean check = false;
 		
 		if(group.equals(EI)) {
-			slot = 0;
+			slot = indexEI;
 			check = !this.useEIOnly;	// switch from off to on as EI was not preselected before
 			this.useEIOnly = check;
 			this.linkGroupEI = generateLinkText(group, !check);
 		}
 		else if(group.equals(ESI)) {
-			slot = 1;
+			slot = indexESI;
 			check = !this.useESIOnly;	// switch from on to off as ESI was preselected before
 			this.useESIOnly = check;
 			this.linkGroupESI = generateLinkText(group, !check);
 		}
 		else if(group.equals(OTHER)) {
-			slot = 2;
+			slot = indexOther;
 			check = !this.useOtherOnly;	// switch from off to on as Other was not preselected before
 			this.useOtherOnly = check;
 			this.linkGroupOTHER = generateLinkText(group, !check);
@@ -1004,6 +1132,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 
 	public void setServerUrl(String serverUrl) {
 		this.serverUrl = serverUrl;
+		setupMassBank(serverUrl);		// after new serverUrl been set, setup MassBank
 	}
 
 
@@ -1375,6 +1504,86 @@ public class MassBankLookupBean implements Runnable, Serializable {
 
 	public boolean isUniqueInchi() {
 		return uniqueInchi;
+	}
+
+	public void setSelectOtherServer(boolean selectOtherServer) {
+		this.selectOtherServer = selectOtherServer;
+	}
+
+	public boolean isSelectOtherServer() {
+		return selectOtherServer;
+	}
+
+	public boolean isAllowOtherServer() {
+		return allowOtherServer;
+	}
+
+	public void setAllowOtherServer(boolean allowOtherServer) {
+		this.allowOtherServer = allowOtherServer;
+	}
+
+	public void setOtherServer(String otherServer) {
+		this.otherServer = otherServer;
+	}
+
+	public String getOtherServer() {
+		return otherServer;
+	}
+
+	public int getNUM_INST_GROUPS() {
+		return NUM_INST_GROUPS;
+	}
+
+	public void setNUM_INST_GROUPS(int nUM_INST_GROUPS) {
+		NUM_INST_GROUPS = nUM_INST_GROUPS;
+	}
+
+	public int getIndexEI() {
+		return indexEI;
+	}
+
+	public void setIndexEI(int indexEI) {
+		this.indexEI = indexEI;
+	}
+
+	public int getIndexESI() {
+		return indexESI;
+	}
+
+	public void setIndexESI(int indexESI) {
+		this.indexESI = indexESI;
+	}
+
+	public int getIndexOther() {
+		return indexOther;
+	}
+
+	public void setIndexOther(int indexOther) {
+		this.indexOther = indexOther;
+	}
+
+	public void setAvailableServers(SelectItem[] availableServers) {
+		this.availableServers = availableServers;
+	}
+
+	public SelectItem[] getAvailableServers() {
+		return availableServers;
+	}
+
+	public void setSelectedServer(String selectedServer) {
+		this.selectedServer = selectedServer;
+	}
+
+	public String getSelectedServer() {
+		return selectedServer;
+	}
+
+	public void setPreviousServer(String previousServer) {
+		this.previousServer = previousServer;
+	}
+
+	public String getPreviousServer() {
+		return previousServer;
 	}
 
 }
