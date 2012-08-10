@@ -23,6 +23,7 @@ import chemaxon.descriptors.ECFP;
 import chemaxon.descriptors.ECFPFeature;
 import chemaxon.descriptors.ECFPFeatureLookup;
 import chemaxon.descriptors.ECFPParameters;
+import chemaxon.descriptors.GenerateMD;
 import chemaxon.descriptors.MDGeneratorException;
 import chemaxon.formats.MolExporter;
 import chemaxon.formats.MolFormatException;
@@ -43,6 +44,9 @@ public class ChemAxonUtilities {
 
 	/** The parameter configuration for ECFP generation. */
 	private ECFPParameters paramConfig;
+	
+	private ECFPParameters paramECFP;
+	private ECFPParameters paramFCFP;
 	
 	public static void main(String[] args) {
 		ChemAxonUtilities cau = new ChemAxonUtilities(true);
@@ -102,6 +106,30 @@ public class ChemAxonUtilities {
 	}
 	
 	/**
+	 * Generate a descriptor set with both ECFP and FCFP.
+	 */
+	public ChemAxonUtilities() {
+		InputStream is = getClass().getResourceAsStream("fcfp.xml");
+		InputStream is2 = getClass().getResourceAsStream("ecfp.xml");
+		try {
+			String xml = IOUtils.toString(is, "UTF-8");
+			paramFCFP = new ECFPParameters(xml); // generate FCFP, default fcfp.xml
+			
+			xml = IOUtils.toString(is2, "UTF-8");
+			paramECFP = new ECFPParameters(xml); // generate ECFP, default ecfp.xml
+		} catch (IOException e) {
+			System.err.println("Error reading config files.");
+		}
+		finally{
+			try {
+				is.close();
+				is2.close();
+			} catch (IOException e) {
+			}
+		}
+	}
+	
+	/**
 	 * The default constructor for this utility class.
 	 * Specify whether to use ECFP or FCFP default configuration file.
 	 * Default would be ecfp.xml. Alternative for FCFP generation would be fcfp.xml.
@@ -110,44 +138,43 @@ public class ChemAxonUtilities {
 	 * default ECFP
 	 */
 	public ChemAxonUtilities(boolean generateFCFP) {
+		String config = "ecfp.xml";		// default to ECFP generation
 		if(generateFCFP) {		// generate FCFP, use fcfp.xml
-			//URL url = this.getClass().getResource("fcfp.xml");
-			InputStream is = getClass().getResourceAsStream("fcfp.xml");
-			try {
-				String xml = IOUtils.toString(is, "UTF-8");
-				paramConfig = new ECFPParameters(xml); // generate FCFP, default fcfp.xml
-			} catch (IOException e) {
-				e.printStackTrace();
-				//paramConfig = new ECFPParameters(new File(url.getPath())); // generate FCFP, default fcfp.xml
-			}
-			//paramConfig = new ECFPParameters(new File(url.getPath())); // generate FCFP, default fcfp.xml
+			config = "fcfp.xml";
 		}
 		else {					// generate ECFP, use ecfp.xml
-			//URL url = this.getClass().getResource("ecfp.xml");
-			InputStream is = getClass().getResourceAsStream("ecfp.xml");
+			config = "ecfp.xml";
+		}
+		
+		InputStream is = getClass().getResourceAsStream(config);
+		try {
+			String xml = IOUtils.toString(is, "UTF-8");
+			paramConfig = new ECFPParameters(xml); // generate FCFP, default fcfp.xml
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		finally {
 			try {
-				String xml = IOUtils.toString(is, "UTF-8");
-				paramConfig = new ECFPParameters(xml); // generate FCFP, default fcfp.xml
+				is.close();
 			} catch (IOException e) {
-				e.printStackTrace();
-				//paramConfig = new ECFPParameters(new File(url.getPath())); // generate ECFP, default ecfp.xml
 			}
-			//paramConfig = new ECFPParameters(new File(url.getPath())); // generate ECFP, default ecfp.xml
 		}
 		
 		// read in license file if no property is given
 		if(System.getProperty("chemaxon.license.url") == null) {
-			//URL license = this.getClass().getResource("license.cxl");
-			InputStream is = getClass().getResourceAsStream("license.cxl");
+			is = getClass().getResourceAsStream("license.cxl");
 			try {
 				String xml = IOUtils.toString(is, "UTF-8");
 				LicenseManager.setLicense(xml);
-				//LicenseManager.setLicenseFile(license.getFile());
 			} catch (LicenseProcessingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
+			}finally {
+				try {
+					is.close();
+				} catch (IOException e) {
+				}
 			}
 		}
 	}
@@ -179,7 +206,6 @@ public class ChemAxonUtilities {
 				LicenseManager.setLicense(xml);
 				//LicenseManager.setLicenseFile(license.getFile());
 			} catch (LicenseProcessingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -238,5 +264,16 @@ public class ChemAxonUtilities {
 		}
 		
 		return ecfp;
+	}
+	
+	public void generateDescriptorSet() throws MDGeneratorException, IOException {
+		GenerateMD generator = new GenerateMD(2);
+		generator.setInput("molecules.sdf");
+		generator.setSDfileInput(true);
+		generator.setDescriptor(0, "molecules.ecfp", "ECFP", paramECFP, "");
+		generator.setDescriptor(1, "molecules.fcfp", "ECFP", paramFCFP, "");
+		generator.init();
+		generator.run();
+		generator.close();
 	}
 }
