@@ -36,6 +36,7 @@ import com.chemspider.www.MassSpecAPISoapProxy;
 
 import de.ipbhalle.CDK.AtomContainerHandler;
 import de.ipbhalle.enumerations.Databases;
+import de.ipbhalle.enumerations.Fingerprints;
 import de.ipbhalle.metfrag.keggWebservice.KeggWebservice;
 import de.ipbhalle.metfrag.main.MetFrag;
 import de.ipbhalle.metfrag.main.MetFragResult;
@@ -219,6 +220,9 @@ public class MetFragBatchMode implements Runnable {
 	
 	private String fileSep = System.getProperty("file.separator");
 	
+	
+	private Fingerprints fingerprinter = Fingerprints.CDK;		// default to CDK standard fingerprinter
+	
 	public MetFragBatchMode(String workDir) {
 		sessionPath = workDir;
 		fillAdductList();
@@ -377,7 +381,16 @@ public class MetFragBatchMode implements Runnable {
 			
 			int current = 0;
 			SmilesGenerator sg = new SmilesGenerator();
-			ChemAxonUtilities cau = new ChemAxonUtilities(false);
+			ChemAxonUtilities cau = null;	// instantiate ChemAxon utilities only when appropriate Fingerprinter is used
+	        boolean useChemAxon = Boolean.FALSE;
+	        if(getFingerprinter().equals(Fingerprints.ECFP)) {
+	        	cau = new ChemAxonUtilities(Boolean.FALSE);
+	        	useChemAxon = Boolean.TRUE;
+	        }
+	        else if(getFingerprinter().equals(Fingerprints.FCFP)) {
+	        	cau = new ChemAxonUtilities(Boolean.TRUE);
+	        	useChemAxon = Boolean.TRUE;
+	        }
 			
 			for (MetFragResult mfr : result) {
 				if(mfr.getStructure() != null) {
@@ -461,13 +474,15 @@ public class MetFragBatchMode implements Runnable {
 					// create SMILES from IAtomContainer
 					String smiles = sg.createSMILES(container);
 					
-					// create ECFP from SMILES
-					ECFP ecfp = cau.generateECFPFromName(smiles);
-					
 					Result r = new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename,
 							"", formula, emass, mfr.getPeaksExplained());
 					r.setSmiles(smiles);
-					r.setEcfp(ecfp);
+					
+					// create ECFP from SMILES
+					if(useChemAxon) {
+						ECFP ecfp = cau.generateECFPFromName(smiles);
+						r.setEcfp(ecfp);
+					}
 					
 					results.add(r);
 
@@ -756,6 +771,14 @@ public class MetFragBatchMode implements Runnable {
 
 	public void setUniqueInchi(boolean uniqueInchi) {
 		this.uniqueInchi = uniqueInchi;
+	}
+
+	public void setFingerprinter(Fingerprints fingerprinter) {
+		this.fingerprinter = fingerprinter;
+	}
+
+	public Fingerprints getFingerprinter() {
+		return fingerprinter;
 	}
 
 }

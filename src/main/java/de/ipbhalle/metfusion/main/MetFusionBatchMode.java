@@ -16,6 +16,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 
 import de.ipbhalle.enumerations.Adducts;
 import de.ipbhalle.enumerations.Databases;
+import de.ipbhalle.enumerations.Fingerprints;
 import de.ipbhalle.enumerations.Ionizations;
 import de.ipbhalle.enumerations.OutputFormats;
 import de.ipbhalle.metfusion.threading.MetFusionThreadBatchMode;
@@ -29,9 +30,9 @@ public class MetFusionBatchMode {
 
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
-	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique};
+	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, fp};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
-	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, checkUNIQUE;
+	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, checkUNIQUE, checkFP;
 	private Map<ARGUMENTS, String> settings;
 	private final static String DEFAULT_SERVER = "http://www.massbank.jp/";
 	
@@ -77,12 +78,13 @@ public class MetFusionBatchMode {
 	private boolean checkArguments(String[] args) {
 		boolean success = false;
 		OutputFormats[] of = OutputFormats.values();
+		Fingerprints[] fps = Fingerprints.values();
 		
 		if(args.length < 4) {	// at least -mf and -sdf OR -out needs to be specified
 			System.out.println("Please provide the following arguments:");
 			System.out.println("-mf /path/to/mf-file");
 			System.out.println("Alternatively: -record /path/to/MassBank-record");
-			System.out.println("optionally: -sdf /path/to/sdf-file");
+			System.out.println("\noptionally: -sdf /path/to/sdf-file");
 			System.out.println("-out /output/path");
 			System.out.print("-format ");
 			for (OutputFormats format : of) {
@@ -92,14 +94,19 @@ public class MetFusionBatchMode {
 			System.out.println("optionally: -server http://www.your-massbank.server/");
 			System.out.println("optionally: -cache /path/to/cache");
 			System.out.println("optionally: -unique\t\t(filter out duplicates)");
+			System.out.print("optionally: -fp ");
+			for (Fingerprints fp : fps) {
+				System.out.print("[" + fp + "] ");
+			}
 			
-			System.out.println("\nExample call: java -jar JARFILE -mf settings.mf #this uses the current directory for output!");
+			System.out.println("\n\nExample call: java -jar JARFILE -mf settings.mf #this uses the current directory for output!");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -out /tmp");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp");
 			System.out.println("Example call: java -jar JARFILE -record XX000001.txt -out /tmp -format SDF");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -proxy");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -proxy -unique");
+			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -fp ECFP");
 			
 			return success;
 		}
@@ -132,6 +139,8 @@ public class MetFusionBatchMode {
 					this.checkUNIQUE = Boolean.TRUE;	// proxy does not have an additional property, mark as set/unset and continue
 					continue;
 				}
+				if(temp.equals(ARGUMENTS.fp.toString()))
+					this.checkFP = Boolean.TRUE;
 				
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
 				i++;	// skip value, iterate over new argument
@@ -239,6 +248,14 @@ public class MetFusionBatchMode {
 			mbbm.setInputSpectrum(result[0]);		// set peaks for MassBank
 			metfragbm.setInputSpectrum(result[0]);	// set peaks for MetFrag
 			
+			// TODO: set mzabs to 0 when using Hill CO-spectra
+			if(result[2].startsWith("CO")) 
+				metfragbm.setMzabs(0d);
+			
+			// TODO: use formula for query/exact mass
+//			if(!result[4].isEmpty())
+//				metfragbm.setMolecularFormula(result[4]);
+			
 			metfragbm.setExactMass(Double.valueOf(result[1]));	// set exact mass
 			metfragbm.setParentIon(Double.valueOf(result[1]));	// set parent ion same as exact mass
 			metfragbm.setSelectedAdduct(Adducts.Neutral.getDifference());	// default not neutral adduct
@@ -269,7 +286,18 @@ public class MetFusionBatchMode {
 		if(mfbm.checkFORMAT)
 			of = OutputFormats.valueOf(mfbm.settings.get(ARGUMENTS.format));
 		
+		Fingerprints fp = Fingerprints.CDK;		// DEFAULT fingerprinter
+		if(mfbm.checkFP) {		// use alternative Fingerprinter
+			fp = Fingerprints.valueOf(mfbm.settings.get(ARGUMENTS.fp));
+			
+			mbbm.setFingerprinter(fp);
+			metfragbm.setFingerprinter(fp);
+		}
+		
 		MetFusionThreadBatchMode metfusionBatch = new MetFusionThreadBatchMode(mfbm, mbbm, metfragbm, outPath, prefix, of);
+		if(fp.equals(Fingerprints.ECFP) | fp.equals(Fingerprints.FCFP)) {	// use ChemAxon fingerprints if desired
+			metfusionBatch.setUseECFP(Boolean.TRUE);
+		}
 		metfusionBatch.run();
 	}
 

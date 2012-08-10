@@ -27,7 +27,6 @@ import de.ipbhalle.metfusion.utilities.output.CSVOutputHandler;
 import de.ipbhalle.metfusion.utilities.output.ODFOutputHandler;
 import de.ipbhalle.metfusion.utilities.output.SDFOutputHandler;
 import de.ipbhalle.metfusion.utilities.output.XLSOutputHandler;
-import de.ipbhalle.metfusion.web.controller.ResultExtGroupBean;
 import de.ipbhalle.metfusion.wrapper.Result;
 import de.ipbhalle.metfusion.wrapper.ResultExt;
 
@@ -51,6 +50,9 @@ public class MetFusionThreadBatchMode implements Runnable {
 	private final String currentDir = System.getProperty("user.dir");
 	private final String lineSeparator = System.getProperty("line.separator");
 	private final String fileEncoding = System.getProperty("file.encoding");
+	
+	/** indicator for using ChemAxon fingerprints instead of CDK ones */
+	private boolean useECFP = Boolean.FALSE;
 	
 	/**
 	 * 
@@ -272,7 +274,8 @@ public class MetFusionThreadBatchMode implements Runnable {
 			return;
 		}
 		
-		TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, listMetFrag, true);	//, 3, 0.5f);
+		//TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, listMetFrag, true);	//, 3, 0.5f);
+		TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, listMetFrag, isUseECFP());
 		sim.writeMatrix(sim.getMatrix(), new File(tempPath, addPrefixToFile("sim.mat")));
 
 		String sessionPath = massbank.getSessionPath();
@@ -519,6 +522,14 @@ public class MetFusionThreadBatchMode implements Runnable {
 
 	public boolean isActive() {
 		return active;
+	}
+
+	public void setUseECFP(boolean useECFP) {
+		this.useECFP = useECFP;
+	}
+
+	public boolean isUseECFP() {
+		return useECFP;
 	}
 
 }

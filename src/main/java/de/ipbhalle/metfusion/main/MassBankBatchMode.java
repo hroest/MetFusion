@@ -27,6 +27,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import chemaxon.descriptors.ECFP;
 
+import de.ipbhalle.enumerations.Fingerprints;
 import de.ipbhalle.enumerations.Ionizations;
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
 import de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities;
@@ -77,6 +78,9 @@ public class MassBankBatchMode implements Runnable {
 	private String selectedInstruments;
 	
 	private boolean done = Boolean.FALSE;
+	
+	private Fingerprints fingerprinter = Fingerprints.CDK;		// default to CDK standard fingerprinter
+	
 	
 	public MassBankBatchMode(String workDir, Ionizations ion, String serverUrl) {
 		this.sessionPath = workDir;
@@ -247,8 +251,17 @@ public class MassBankBatchMode implements Runnable {
     			dir = new File(DEFAULT_CACHE_LINUX);
         }
         MassBankUtilities mbu = new MassBankUtilities(serverUrl, dir.getAbsolutePath());
-        ChemAxonUtilities cau = new ChemAxonUtilities(false);
-        
+        ChemAxonUtilities cau = null;	// instantiate ChemAxon utilities only when appropriate Fingerprinter is used
+        boolean useChemAxon = Boolean.FALSE;
+        if(getFingerprinter().equals(Fingerprints.ECFP)) {
+        	cau = new ChemAxonUtilities(Boolean.FALSE);
+        	useChemAxon = Boolean.TRUE;
+        }
+        else if(getFingerprinter().equals(Fingerprints.FCFP)) {
+        	cau = new ChemAxonUtilities(Boolean.TRUE);
+        	useChemAxon = Boolean.TRUE;
+        }
+	
         InChIGeneratorFactory igf = null;
         try {
 			igf = InChIGeneratorFactory.getInstance();
@@ -411,10 +424,11 @@ public class MassBankBatchMode implements Runnable {
                     Result r = new Result("MassBank", id, name, score, container, "", imgPath, formula, emass);
                     
                     // generate ECFP
-                    File f = new File(basePath, id + ".mol");	// path to mol file
-                    ECFP ecfp = cau.generateECFPFromMol(f);		// generate ECFP from mol file
-                    r.setEcfp(ecfp);							// store ECFP in result
-                    
+                    if(useChemAxon) {
+	                    File f = new File(basePath, id + ".mol");	// path to mol file
+	                    ECFP ecfp = cau.generateECFPFromMol(f);		// generate ECFP from mol file
+	                    r.setEcfp(ecfp);							// store ECFP in result
+                    }
                     //results.add(r);
                     //limitCounter++;
                     
@@ -605,6 +619,14 @@ public class MassBankBatchMode implements Runnable {
 
 	public boolean isUniqueInchi() {
 		return uniqueInchi;
+	}
+
+	public void setFingerprinter(Fingerprints fingerprinter) {
+		this.fingerprinter = fingerprinter;
+	}
+
+	public Fingerprints getFingerprinter() {
+		return fingerprinter;
 	}
 
 }
