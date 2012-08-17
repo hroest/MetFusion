@@ -17,21 +17,36 @@ public class GenerateArrayJob {
 	 */
 	public static void main(String[] args) throws IOException {
 		//File spectraDir = new File("/home/mgerlich/Datasets/allSpectra/");
-		File spectraDir = new File("/home/mgerlich/Datasets/Uni_Jena/recdata/");
+		//File spectraDir = new File("/home/mgerlich/Datasets/Uni_Jena/recdata/");
+		File spectraDir = new File("/home/mgerlich/Datasets/Pesticides_new/Pesticides_111028/recdata/");
 		File[] files = spectraDir.listFiles();
 		Arrays.sort(files);
 		
-		String outputDir = "/home/mgerlich/projects/metfusion_CE_spectra/";
+		// the output directory of the grid engine runs
+		//String outputDir = "/home/mgerlich/projects/metfusion_CE_spectra/";
+		//String outputDir = "/home/mgerlich/projects/eval_metfusion_ECFP/exactMass_noFilter/";
+		String outputDir = "/home/mgerlich/projects/metfusion_pesticide_spectra/";
 
-		String workDir = "/home/mgerlich/projects/";
-		File jobInfo = new File(workDir, "CE_sge_metfusion.sh");
+		// the directory in which the jar file is located
+		String projectDir = "/home/mgerlich/projects/";
+
+		// the directory where the shell scripts are stored
+		//String workDir = "/home/mgerlich/projects/eval_metfusion_ECFP/";
+		String workDir = projectDir;
+		String prefix = "pesticide";
+		File jobInfo = new File(workDir, prefix + "_sge_metfusion.sh");
+		jobInfo.createNewFile();
 		jobInfo.setExecutable(true);
 		
-		File paramFile = new File(workDir, "CE_sge_metfusion.params");
-		generateParametersFile(paramFile, files, outputDir);
+		// the parameter string in addition to the filenames
+		// TODO: adjust generateShellScript() accordingly for number of parameters to read
+		//String params = outputDir + " " + "ECFP";
+		String params = outputDir;
+		File paramFile = new File(workDir, prefix + "_sge_metfusion.params");
+		generateParametersFile(paramFile, files, params);
 		
-		File jarName = new File(workDir, "metfusion_batch_latest.jar");
-		File scriptName = new File(workDir, "CE_sge_metfusion.q");
+		File jarName = new File(projectDir, "metfusion_batch_latest.jar");
+		File scriptName = new File(workDir, prefix + "_sge_metfusion.q");
 		generateShellScript(scriptName, paramFile.getAbsolutePath(), jarName.getAbsolutePath());
 		
 		generateQSUB(jobInfo, scriptName.getAbsolutePath(), "MSBIoffice", 1, files.length);
@@ -42,7 +57,7 @@ public class GenerateArrayJob {
 		fw.write("#!/bin/bash\n\n");	// shell header
 		
 		// adjust according to number of parameters
-		fw.write("awk \"NR==$SGE_TASK_ID\" " + paramFile + " | while read A B ; do echo $A/$B\n");
+		fw.write("awk \"NR==$SGE_TASK_ID\" " + paramFile + " | while read A B; do echo $A/$B\n");
 		fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + " -record $A -out $B\n");
 		//fw.write("EOF\n");
 		fw.write("done");
