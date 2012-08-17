@@ -28,10 +28,10 @@ public class MetFusionBatchSettings {
 	private Ionizations mbIonization = Ionizations.pos;
 	private String mbInstruments = "CE-ESI-TOF,ESI-IT-MS/MS,ESI-QqIT-MS/MS,ESI-QqQ-MS/MS,ESI-QqTOF-MS/MS,LC-ESI-IT,LC-ESI-ITFT," +
 									"LC-ESI-ITTOF,LC-ESI-Q,LC-ESI-QIT,LC-ESI-QQ,LC-ESI-QTOF";
-	private Databases mfDatabase = Databases.kegg;
+	private Databases mfDatabase = Databases.pubchem;
 	private String mfDatabaseIDs = "";
 	private String mfFormula = "";
-	private int mfLimit = 500;
+	private int mfLimit = 10000;
 	private double mfParentIon = 272.06847d;
 	private Adducts mfAdduct = Adducts.Neutral;
 	private double mfExactMass = mfAdduct.getDifference() + mfParentIon;
