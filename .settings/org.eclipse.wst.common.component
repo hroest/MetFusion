@@ -3,6 +3,7 @@
     <wb-module deploy-name="MetFusion_v2">
         <wb-resource deploy-path="/" source-path="/WebContent"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/test/java"/>
         <property name="context-root" value="MetFusion"/>
         <property name="java-output-path" value="/MetFusion_v2/build/classes"/>
     </wb-module>
