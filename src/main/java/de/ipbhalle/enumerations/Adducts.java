@@ -28,7 +28,7 @@ public enum Adducts {
 	MplusKminus(-36.948606d, "[M+K-2H]-"),
 	MplusFAminus(-44.998201d, "[M+FA-H]-"),
 	MminusWater(19.01839d, "[M-H2O-H]-"),
-	MplusHCOOminus(-45.0174, "[M+HCOO]-"),;
+	MplusHCOOminus(-45.0174, "[M+HCOO]-");
 	
 	private double difference;
 	private String label;
