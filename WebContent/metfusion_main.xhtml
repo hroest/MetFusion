@@ -31,7 +31,15 @@
 				<ice:panelTab label="Spectrum Query">
 				<div id="inputs" style="width: 100%;">
 					<div id="sourceParams" style="border: 1px dashed silver; width: 65%; float: left;">
-				    	<ice:panelGroup style="margin-left: 10px; margin-right: 10px;">
+					<!-- stacking panel selector for spectral database -->
+					<ice:panelGrid columns="3">
+						<ice:outputLabel for="selectSpectralDB" value="Selected Spectral Database:"/>
+						<ice:selectOneRadio id="selectSpectralDB" layout="lineDirection" required="true" value="#{appBean.selectedSpectralDB}">
+							<f:selectItems value="#{appBean.availableSpectralDBsSI}"/>
+						</ice:selectOneRadio>
+					</ice:panelGrid>
+					<ice:panelStack selectedPanel="#{appBean.selectedSpectralDB}">
+				    	<ice:panelGroup id="massbankSettings" style="margin-left: 10px; margin-right: 10px;">
 		    				<ice:outputLabel value="MassBank Parameters" style="text-decoration: underline;"></ice:outputLabel>
 		    				<br/>
 		    				<ice:outputLabel value="#{appBean.mblb.serverUrl}"/>
@@ -227,6 +235,53 @@
 							</ice:panelGroup>
 							
 				    	</ice:panelGroup>
+
+						<ice:panelGroup id="gmdSettings">
+						gmd selected
+						</ice:panelGroup>
+				    	
+				    	<ice:panelGroup id="metlinSettings">
+					    	<ice:panelGrid id="metlinParameters" columns="3">
+					    	
+					    		<ice:outputLabel for="metlinMode" value="Ionization Mode:"/>
+					    		<ice:selectOneRadio id="metlinMode" required="true" value="#{metlinBean.selectedIonization}">
+					    			<f:selectItem itemLabel="positive" itemValue="pos"/>
+					    			<f:selectItem itemLabel="negative" itemValue="neg"/>
+					    		</ice:selectOneRadio>
+					    		<ice:panelGroup effect="#{appBean.effectOutputText}">
+					    			<ice:message for="metlinMode"/>
+					    		</ice:panelGroup>
+					    		
+					    		<ice:outputLabel for="metlinColEnergy" value="Collision Energy:"/>
+					    		<ice:selectOneMenu id="metlinColEnergy" required="true" value="#{metlinBean.collisionEnergy}">
+					    			<f:selectItem itemLabel="10 eV" itemValue="10"/>
+					    			<f:selectItem itemLabel="20 eV" itemValue="20"/>
+					    			<f:selectItem itemLabel="40 eV" itemValue="40"/>
+					    		</ice:selectOneMenu>
+					    		<ice:panelGroup effect="#{appBean.effectOutputText}">
+					    			<ice:message for="metlinColEnergy"/>
+					    		</ice:panelGroup>
+					    		
+					    		<ice:outputLabel for="metlinToleranceMSMS" value="Tolerance MSMS (Da):"/>
+					    		<ice:inputText id="metlinToleranceMSMS" required="true" value="#{metlinBean.toleranceMSMS}">
+					    			<f:validateDoubleRange minimum="0.001" maximum="0.5"/>
+					    		</ice:inputText>
+					    		<ice:panelGroup effect="#{appBean.effectOutputText}">
+					    			<ice:message for="metlinToleranceMSMS"/>
+					    		</ice:panelGroup>
+					    		
+					    		<ice:outputLabel for="metlingTolerancePrecursor" value="Tolerance Precursor (ppm):"/>
+					    		<ice:inputText id="metlingTolerancePrecursor" required="true" value="#{metlinBean.tolerancePrecursor}">
+					    			<f:validateLongRange minimum="1" maximum="100"/>
+					    		</ice:inputText>
+					    		<ice:panelGroup effect="#{appBean.effectOutputText}">
+					    			<ice:message for="metlingTolerancePrecursor"/>
+					    		</ice:panelGroup>
+					    		
+					    	</ice:panelGrid>
+				    	</ice:panelGroup>
+				    	
+				    	</ice:panelStack>
 				    	<br/>
 				    	<ice:panelGroup style="margin-left: 10px; margin-right: 10px; clear: both;">
 				    		<ice:outputLabel value="MetFrag Parameters" style="text-decoration: underline;"/>
