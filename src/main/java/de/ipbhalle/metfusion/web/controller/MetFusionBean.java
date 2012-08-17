@@ -26,6 +26,7 @@ import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
+import javax.faces.model.SelectItem;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
@@ -55,6 +56,7 @@ import com.icesoft.faces.context.effects.Fade;
 import com.icesoft.faces.context.effects.Highlight;
 
 import de.ipbhalle.MassBank.MassBankLookupBean;
+import de.ipbhalle.enumerations.SpectralDB;
 import de.ipbhalle.metfrag.tools.renderer.StructureToFile;
 import de.ipbhalle.metfusion.integration.Similarity.SimilarityMetFusion;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoIntegrationWeighted;
@@ -135,6 +137,12 @@ public class MetFusionBean implements Serializable {
 	
 	private String selectedTab = "0";
 	private String selectedMatrixPanel = "origSimMatrix";
+	
+	/** default to MassBank spectral db*/
+	private String selectedSpectralDB = SpectralDB.MassBank.getPanel();
+	
+	/** setup this list of available spectral dbs at startup */
+	private SelectItem[] availableSpectralDBsSI;
 	
 	/**
 	 * peaklist of input spectrum, containing pairwise mz and intensity values
@@ -243,7 +251,18 @@ public class MetFusionBean implements Serializable {
 		this.threads = runtime.availableProcessors();
 		this.threadExecutor = Executors.newFixedThreadPool(threads);
 		System.out.println("threads -> " + threads);
+		
+		// setup selector for spectral db
+		setupAvailableSpectralDBs();
 	}
+    
+    private void setupAvailableSpectralDBs() {
+    	SpectralDB[] values = SpectralDB.values();
+    	availableSpectralDBsSI = new SelectItem[values.length];
+    	for (int i = 0; i < values.length; i++) {
+    		availableSpectralDBsSI[i] = new SelectItem(values[i].getPanel(), values[i].getLabel());
+		}
+    }
     
     public void toggleEffect() {
     	if(!enableStart) {							// let progress bars appear
@@ -1581,6 +1600,22 @@ public class MetFusionBean implements Serializable {
 
 	public boolean isUseInChIFiltering() {
 		return useInChIFiltering;
+	}
+
+	public void setSelectedSpectralDB(String selectedSpectralDB) {
+		this.selectedSpectralDB = selectedSpectralDB;
+	}
+
+	public String getSelectedSpectralDB() {
+		return selectedSpectralDB;
+	}
+
+	public void setAvailableSpectralDBsSI(SelectItem[] availableSpectralDBsSI) {
+		this.availableSpectralDBsSI = availableSpectralDBsSI;
+	}
+
+	public SelectItem[] getAvailableSpectralDBsSI() {
+		return availableSpectralDBsSI;
 	}
 
 }
