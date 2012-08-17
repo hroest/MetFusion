@@ -30,7 +30,11 @@ import net.sf.jniinchi.INCHI_RET;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethodBase;
+import org.apache.commons.httpclient.NameValuePair;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.io.IOUtils;
 
 import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.DefaultChemObjectBuilder;
@@ -78,18 +82,29 @@ public class MassBankUtilities {
 	private static final String RECORDS = "records";
 	private static final String MOL = "mol";
 	
+	private MassBankCommon mbcommon;
+	private GetConfig config;
 	
 	public MassBankUtilities() {
 		this.cacheDir = tempDir;
+		
+		mbcommon = new MassBankCommon();
+		config = new GetConfig(baseUrl);
 	}
 	
 	public MassBankUtilities(String cacheDir) {
 		this.cacheDir = cacheDir;
+		
+		mbcommon = new MassBankCommon();
+		config = new GetConfig(baseUrl);
 	}
 	
 	public MassBankUtilities(String serverUrl, String cacheDir) {
 		this.baseUrl = serverUrl;
 		this.cacheDir = cacheDir;
+		
+		mbcommon = new MassBankCommon();
+		config = new GetConfig(baseUrl);
 	}
 	
 	/**
@@ -394,24 +409,24 @@ public class MassBankUtilities {
 			if(mol.contains("<!DOCTYPE html PUBLIC")) {	// reset mol mol data if encountered error on server
 				System.err.println(id + " contains html code - return false");
 				mol = "";
-				f.delete();
+				//f.delete();
 				return false;
 			}
 			if(mol.equals("0\n") || !mol.contains("M  END")){		// found no molfile
 				System.err.println(id + " is empty or non-standard - return false");
 				mol = "";		// reset corrupt/missing mol data to empty string
-				f.delete();
+				//f.delete();
 				return false;
 			}
 		} catch (HttpException e) {
 			System.err.println("Error for ["+compound+"] !!!");
 			System.err.println("HttpException occured.");
-			f.delete();
+			//f.delete();
 			return false;
 		} catch (IOException e) {
 			System.err.println("Error for ["+compound+"] !!!");
 			System.err.println("IOException occured.");
-			f.delete();
+			//f.delete();
 			return false;
 		}
 		
@@ -662,6 +677,87 @@ public class MassBankUtilities {
 			}
 			
 			
+		}
+		
+		System.out.println("Record " + id + " exists!");
+		BufferedReader br;
+		try {
+			br = new BufferedReader(new FileReader(f));
+			String line = "";
+			content = "";
+			while((line = br.readLine()) != null) {
+				content += line;
+			}
+			br.close();
+			
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return content;
+	}
+	
+	/**
+	 * Retrieve record.
+	 * 
+	 * @param id the id
+	 * @param site the site
+	 * 
+	 * @return the string
+	 * 
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	public String retrieveRecordCGI(String id, String site) {
+		String content = "";
+		
+		String prefix = "";
+		if(id.matches("[A-Z]{3}[0-9]{5}"))
+			prefix = id.substring(0, 3);
+		else prefix = id.substring(0, 2);
+		File dir = null;
+		if(os.startsWith("Windows")) {
+			dir = new File(currentDir);
+		}
+		else dir = new File(cacheMassBank);
+		//File dir = new File(cacheMassBank);
+		String[] institutes = dir.list();
+		File f = null;
+		for (int i = 0; i < institutes.length; i++) {
+			if(institutes[i].equals(prefix)) {
+				f = new File(dir, institutes[i] + "/records/" + id + ".txt");
+				break;
+			}
+		}
+		if(!f.exists()) {
+			HttpClient client = new HttpClient();
+			GetMethod method = new GetMethod( baseUrl + "cgi-bin/GetRecordInfo.cgi" ); 
+			NameValuePair[] nvp = new NameValuePair[2]; 
+			nvp[0] = new NameValuePair("ids", id);
+			nvp[1] = new NameValuePair("dsn", config.getDbName()[Integer.valueOf(site)]);
+			method.setQueryString(nvp);
+			
+			try {
+				client.executeMethod(method);
+				
+				// getResponseBodyAsStream()
+				InputStream is = method.getResponseBodyAsStream();
+				String input = IOUtils.toString(is);
+				
+				method.releaseConnection();
+				
+				FileWriter fw = new FileWriter(f);
+				fw.write(input);
+				fw.flush();
+				fw.close();
+				
+				return input;
+			}
+			catch(IOException e) {
+				
+			}
 		}
 		
 		System.out.println("Record " + id + " exists!");
@@ -1035,10 +1131,10 @@ public class MassBankUtilities {
 			container = hydrogenHandling(container);
 		} catch (java.lang.NumberFormatException e) {
 			System.err.println("NumberFormatException occured while parsing mol file - " + f.getAbsolutePath());
-			f.delete();	// delete erroneous file if possible
+			//f.delete();	// delete erroneous file if possible
 		} catch (CDKException e) {
 			System.err.println("CDKException occured for mol file - " + f.getAbsolutePath());
-			f.delete();	// delete erroneous file if possible
+			//f.delete();	// delete erroneous file if possible
 		}
 		finally {
 			try {
@@ -1089,11 +1185,11 @@ public class MassBankUtilities {
 			container = hydrogenHandling(container);
 		} catch (java.lang.NumberFormatException e) {
 			System.err.println("NumberFormatException occured while parsing mol file - " + f);
-			f.delete();	// delete erroneous file if possible
+			//f.delete();	// delete erroneous file if possible
 			return null;
 		} catch (CDKException e) {
 			System.err.println("CDKException occured for mol file - " + f);
-			f.delete();	// delete erroneous file if possible
+			//f.delete();	// delete erroneous file if possible
 			return null;
 		}
 		
