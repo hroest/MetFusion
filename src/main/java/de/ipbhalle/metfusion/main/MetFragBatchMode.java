@@ -488,6 +488,9 @@ public class MetFragBatchMode implements Runnable {
 
 					current++;
 				}
+				else {
+					System.err.println(mfr.getCandidateID() + " no structure!");
+				}
 			}
 			current = mfResults.size();
 			setDone(Boolean.TRUE);
