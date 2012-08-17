@@ -17,3 +17,14 @@ fragmenterCache=directory path for fragmenter storage
 mailServer=mail server 
 mailFrom=email adress of sender
 mailTo=email adress of recipient
+
+# ChemSpider security token
+token=your ChemSpider token
+
+# Metlin security token
+metlinToken=your Metlin token
+
+# MetFrag local database properties, e.g. PubChem, ChemSpider, KEGG
+mfjdbc=database connection for MetFrag
+mfusername=username
+mfpassword=password
