@@ -84,6 +84,9 @@ public class FileNameFilterImpl implements FilenameFilter {
 			else return false;
 		}
 		else if(prefix.isEmpty() && !suffix.isEmpty()) {	// prefix empty but suffix not
+			if(name.endsWith(suffix) && not.isEmpty())
+				return true;
+			
 			if(name.endsWith(suffix) && !name.contains(not))
 				return true;
 			else return false;
