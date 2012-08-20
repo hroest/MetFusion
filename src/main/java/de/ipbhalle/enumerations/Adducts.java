@@ -10,7 +10,7 @@ public enum Adducts {
 	Neutral(0d, "Neutral"),
 	
 	Mplus(0.00054858d, "M+"),
-	MplusHplus(-1.007276455d, "[M+H+]"),
+	MplusHplus(-1.007276455d, "[M+H]+"),
 	MplusNH4plus(-18.033823d, "[M+NH4]+"),
 	MplusNaplus(-22.989218d, "[M+Na]+"),
 	MplusKplus(-38.963158d, "[M+K]+"),
