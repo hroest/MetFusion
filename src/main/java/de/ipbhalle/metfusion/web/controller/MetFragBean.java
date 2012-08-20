@@ -39,6 +39,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPISoapProxy;
 
+import de.ipbhalle.enumerations.Adducts;
 import de.ipbhalle.metfrag.keggWebservice.KeggWebservice;
 import de.ipbhalle.metfrag.main.MetFrag;
 import de.ipbhalle.metfrag.main.MetFragResult;
@@ -276,16 +277,10 @@ public class MetFragBean implements Runnable, Serializable {
 	
 	private void fillAdductList() {
 		this.adductList = new ArrayList<SelectItem>();
-		adductList.add(new SelectItem(0d, "Neutral"));
-		adductList.add(new SelectItem(0.00054858d, "M+"));
-		adductList.add(new SelectItem(-1.007276455d, "[M+H+]"));
-		adductList.add(new SelectItem(-22.98921912d, "[M+Na]+"));
-		adductList.add(new SelectItem(-38.96315882d, "[M+K]+"));
-		adductList.add(new SelectItem(-0.00054858d, "M-"));
-		adductList.add(new SelectItem(1.007276455d, "[M-H]-"));
-		adductList.add(new SelectItem(22.98921912d, "[M-Na]-"));
-		adductList.add(new SelectItem(38.96315882d, "[M-K]-"));
-		
+		Adducts[] adducts = Adducts.values();
+		for (int i = 0; i < adducts.length; i++) {
+			adductList.add(new SelectItem(adducts[i].getDifference(), adducts[i].getLabel()));
+		}
 	}
 	
 	private void fillLinkMap() {
