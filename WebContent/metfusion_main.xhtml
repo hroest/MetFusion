@@ -32,7 +32,7 @@
 				<div id="inputs" style="width: 100%;">
 					<div id="sourceParams" style="border: 1px dashed silver; width: 65%; float: left;">
 					<!-- stacking panel selector for spectral database -->
-					<ice:panelGrid columns="3">
+					<ice:panelGrid columns="3" rendered="false">
 						<ice:outputLabel for="selectSpectralDB" value="Selected Spectral Database:"/>
 						<ice:selectOneRadio id="selectSpectralDB" layout="lineDirection" required="true" value="#{appBean.selectedSpectralDB}">
 							<f:selectItems value="#{appBean.availableSpectralDBsSI}"/>
@@ -451,7 +451,25 @@
 									<ice:message id="errcandLimit" for="candLimit"></ice:message>
 								</ice:panelGroup>
 								
-								<!-- specifiy search ppm parameter -->
+								<!-- specify biological (C,H,N,O,P,S) compounds only or not -->
+								<ice:panelGroup id="lblMFchnops" panelTooltip="lblMFchnopsTooltip" rendered="#{!appBean.mfb.renderSDF}">
+									<ice:outputLabel for="chnopsOnly" value="C,H,N,O,P,S only?"></ice:outputLabel>
+									<ice:panelTooltip id="lblMFchnopsTooltip">
+										<f:facet name="header">
+											<ice:outputText value="Retrieve only biological compounds"></ice:outputText>
+										</f:facet>
+										<f:facet name="body">
+											<ice:outputText value="Specify if only compounds that contain C,H,N,O,P and S 
+											are considered (check), or not (uncheck)."></ice:outputText>
+										</f:facet>
+									</ice:panelTooltip>
+								</ice:panelGroup>
+								<ice:selectBooleanCheckbox id="chnopsOnly" value="#{appBean.mfb.onlyCHNOPS}" rendered="#{!appBean.mfb.renderSDF}"/>
+								<ice:panelGroup effect="#{appBean.effectOutputText}" rendered="#{!appBean.mfb.renderSDF}">
+									<ice:message id="errchnopsOnly" for="chnopsOnly"></ice:message>
+								</ice:panelGroup>
+								
+								<!-- specify search ppm parameter -->
 								<ice:panelGroup id="lblMFSeachPPM" panelTooltip="lblMFSeachPPMTooltip" rendered="#{!appBean.mfb.renderSDF}">
 									<ice:outputLabel for="searchppm" value="Search PPM:"></ice:outputLabel>
 									<ice:panelTooltip id="lblMFSeachPPMTooltip">
