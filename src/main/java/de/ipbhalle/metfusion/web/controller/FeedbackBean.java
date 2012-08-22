@@ -85,6 +85,7 @@ public class FeedbackBean implements Validator {
 		this.note = ""; 
 		this.renderNote = false;
 		FacesContext.getCurrentInstance().renderResponse(); }
+    
     public void openFeedbackPopup() { setFeedbackRendered(true); 
 		FacesContext.getCurrentInstance().renderResponse(); }
     
@@ -97,6 +98,7 @@ public class FeedbackBean implements Validator {
     private String adminNote = "";
     private boolean feedbackAdminRendered = false;
     private boolean authorized;							// indicator for valid login
+    
     public void closeFeedbackAdminPopup() {
 //    	setFeedbackAdminRendered(false);
 //    	setLoginError("");
@@ -110,6 +112,7 @@ public class FeedbackBean implements Validator {
     	this.providedPass = "";
     	FacesContext.getCurrentInstance().renderResponse(); }
     	//FacesContext.getCurrentInstance().responseComplete(); }
+    
     public void openFeedbackAdminPopup() { setFeedbackAdminRendered(true); 
     	FacesContext.getCurrentInstance().renderResponse();	}
 
@@ -200,8 +203,9 @@ public class FeedbackBean implements Validator {
 	        
 	        String sql = "INSERT INTO Feedback (Name, Email, Comment, Spectrum, massbankLimit, massbankThreshold, massbankIonization, "
 	        		+ "massbankInstruments, metfragExactMass, metfragParentIon, metfragAdduct, metfragDatabase, metfragIdentifier, "
-	        		+ "metfragFormula, metfragLimit, metfragSearchPPM, metfragMzabs, metfragMzppm, Date, massbankServer, metfusionFilter) "
-	        		+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now(),?,?)";
+	        		+ "metfragFormula, metfragLimit, metfragSearchPPM, metfragMzabs, metfragMzppm, Date, massbankServer, metfusionFilter, "
+	        		+ "metfragCHNOPS)"
+	        		+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now(),?,?,?)";
 			
 	        PreparedStatement pst = con.prepareStatement(sql);
 	        
@@ -265,6 +269,8 @@ public class FeedbackBean implements Validator {
 	        position++;
 	        pst.setInt(position, (appBean.getMblb().isUniqueInchi() & appBean.getMfb().isUniqueInchi()) ? 1 : 0);
 	        position++;
+	        pst.setInt(position, appBean.getMfb().isOnlyCHNOPS() ? 1 : 0);
+	        position++;
 	        
 			pst.executeUpdate();
 			pst.close();
@@ -290,6 +296,7 @@ public class FeedbackBean implements Validator {
 			sb.append("MetFrag Search PPM:\t").append(appBean.getMfb().getSearchppm() + "\n");
 			sb.append("MetFrag m/z abs:\t").append(appBean.getMfb().getMzabs() + "\n");
 			sb.append("MetFrag m/z ppm:\t").append(appBean.getMfb().getMzppm() + "\n");
+			sb.append("MetFrag onlyCHNOPS:\t").append(appBean.getMfb().isOnlyCHNOPS() + "\n");
 			
 			success = true;
 		} catch (SQLException e) {
@@ -413,6 +420,7 @@ public class FeedbackBean implements Validator {
 	        	parameters.put("metfragAdduct", rs.getDouble("metfragAdduct"));
 	        	parameters.put("massbankServer", rs.getString("massbankServer"));
 	        	parameters.put("metfusionFilter", rs.getBoolean("metfusionFilter"));
+	        	parameters.put("metfragCHNOPS", rs.getBoolean("metfragCHNOPS"));
 	        	
 	        	feedbackEntries.add(new FeedbackEntry(_ID, _Name, _Email, _Comment, parameters, _answered, _fixed, _Date));
 	        }
@@ -506,6 +514,7 @@ public class FeedbackBean implements Validator {
 		appBean.getMfb().setSearchppm((Double) settings.get("metfragSearchPPM"));
 		appBean.getMfb().setMzabs((Double) settings.get("metfragMzabs"));
 		appBean.getMfb().setMzppm((Double) settings.get("metfragMzppm"));
+		appBean.getMfb().setOnlyCHNOPS((Boolean) settings.get("metfragCHNOPS"));
 		
 		return success = true;
 	}
