@@ -866,6 +866,10 @@ public class MassBankLookupBean implements Runnable, Serializable {
 			// TODO Auto-generated catch block
 			// no inchi generation possible
 			// rely on information stored in MassBank records
+			System.err.println("Error creating InChIGeneratorFactory instance!");
+			System.err.println("If InChI-filter is enabled, it will now be disabled!");
+			if(isUniqueInchi())
+				setUniqueInchi(Boolean.FALSE);
 		}
 		Map<String, String> inchiMap = new HashMap<String, String>();	// maps InChI-Key 1 onto InChI
 		
@@ -943,7 +947,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
                 IAtomContainer container = null;
                 // first look if container is present, then download if not
                 container = mbu.getContainer(id, basePath);
-                if(container == null && inchi != null && !inchi.isEmpty()) {	// check if InChI string is present
+                if(isUniqueInchi() && container == null && inchi != null && !inchi.isEmpty()) {	// check if InChI string is present
 	                try {	// create container via InChI
 						container = igf.getInChIToStructure(inchi, DefaultChemObjectBuilder.getInstance()).getAtomContainer();
 					} catch (CDKException e) {
@@ -992,7 +996,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
                     //results.add(r);
                     //limitCounter++;
                     
-                    if(uniqueInchi) {		// if filter for unique InChI is on
+                    if(isUniqueInchi()) {		// if filter for unique InChI is on
 	                    String inchikey = r.getInchikey().split("-")[0];
 	                    if(inchi == null || inchi.isEmpty() || inchikey == null || inchikey.isEmpty()) {
 		                    try {
