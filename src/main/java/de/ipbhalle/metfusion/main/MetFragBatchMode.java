@@ -202,6 +202,9 @@ public class MetFragBatchMode implements Runnable {
 	 */
 	private boolean uniqueInchi = false;
 	
+	/** boolean indicating whether to use only compounds containing C,H,N,O,P,S or not. */
+	private boolean onlyCHNOPS = true;
+	
 	/**
 	 * the list of results
 	 */
@@ -351,7 +354,8 @@ public class MetFragBatchMode implements Runnable {
 			boolean bondEnergyScoring = isBondEnergyScoring();
 			boolean breakOnlySelectedBonds = isBreakOnlySelectedBonds();
 			boolean uniqueInchi = isUniqueInchi();
-			
+			boolean onlyCHNOPS = isOnlyCHNOPS();
+				
 			List<MetFragResult> result = new ArrayList<MetFragResult>();
 			if(database.equals(dbSDF))
 				result = MetFrag.startConvenienceSDF(spectrum, useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck,
@@ -364,12 +368,12 @@ public class MetFragBatchMode implements Runnable {
 				result = MetFrag.startConvenienceLocal(database, databaseID, molecularFormula, exactMass, spectrum,
 						useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, 
 						hydrogenTest, neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, 
-						jdbc, username, password, 2);
+						jdbc, username, password, 2, onlyCHNOPS);
 			}
 			else  result = MetFrag.startConvenienceMetFusion(database, databaseID, 
 					molecularFormula, exactMass, spectrum, useProxy, mzabs, mzppm, searchPPM, 
 					molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, hydrogenTest,
-					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password, uniqueInchi);
+					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password, uniqueInchi, onlyCHNOPS);
 			this.mfResults = result;
 			System.out.println("MetFrag result#: " + result.size() + "\n");
 			this.results = new ArrayList<Result>();
@@ -782,6 +786,14 @@ public class MetFragBatchMode implements Runnable {
 
 	public Fingerprints getFingerprinter() {
 		return fingerprinter;
+	}
+
+	public boolean isOnlyCHNOPS() {
+		return onlyCHNOPS;
+	}
+
+	public void setOnlyCHNOPS(boolean onlyCHNOPS) {
+		this.onlyCHNOPS = onlyCHNOPS;
 	}
 
 }

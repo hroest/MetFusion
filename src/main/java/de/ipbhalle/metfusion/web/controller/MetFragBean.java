@@ -214,6 +214,9 @@ public class MetFragBean implements Runnable, Serializable {
 	 */
 	private boolean uniqueInchi = false;
 	
+	/** boolean indicating whether to use only compounds with C,H,N,O,P,S or not */
+	private boolean onlyCHNOPS = true;
+	
 	/**
 	 * the list of results
 	 */
@@ -440,6 +443,7 @@ public class MetFragBean implements Runnable, Serializable {
 			boolean bondEnergyScoring = isBondEnergyScoring();
 			boolean breakOnlySelectedBonds = isBreakOnlySelectedBonds();
 			boolean uniqueInchi = isUniqueInchi();
+			boolean onlyCHNOPS = isOnlyCHNOPS();
 			
 			String jdbc, username, password = "";
 			jdbc = "jdbc:mysql://rdbms/MetFrag";
@@ -457,7 +461,7 @@ public class MetFragBean implements Runnable, Serializable {
 			else  result = MetFrag.startConvenienceMetFusion(database, databaseID, 
 					molecularFormula, exactMass, spectrum, useProxy, mzabs, mzppm, searchPPM, 
 					molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, hydrogenTest,
-					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password, uniqueInchi);
+					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password, uniqueInchi, onlyCHNOPS);
 			this.mfResults = result;
 			System.out.println("MetFrag result#: " + result.size() + "\n");
 			this.results = new ArrayList<Result>();
@@ -914,6 +918,14 @@ public class MetFragBean implements Runnable, Serializable {
 
 	public boolean isUniqueInchi() {
 		return uniqueInchi;
+	}
+
+	public void setOnlyCHNOPS(boolean onlyCHNOPS) {
+		this.onlyCHNOPS = onlyCHNOPS;
+	}
+
+	public boolean isOnlyCHNOPS() {
+		return onlyCHNOPS;
 	}
 
 }
