@@ -302,6 +302,10 @@ public class MetFragBean implements Runnable, Serializable {
 			else if(db.equals(dbCHEMSPIDER)) {
 				linkMap.put(dbCHEMSPIDER, "http://www.chemspider.com/Chemical-Structure." + replaceID + ".html");	// + candidateID + ".html"
 			}
+			else if(db.equals(dbSDF)) {
+				// TODO: fill link map for SDF
+				
+			}
 			else {
 				System.err.println("No link currently available for [" + db + "].");
 			}
@@ -548,7 +552,6 @@ public class MetFragBean implements Runnable, Serializable {
 					String params = formatLandingURL(spectrumURLEncoded, database, mfr.getCandidateID(), exactMass, molecularFormula);
 					String landingURL = landingPage + params;
 					
-					System.out.println("candidate ID -> " + mfr.getCandidateID());
 					//results.add(new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename, landingURL));
 					results.add(new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename,
 							landingURL, formula, emass, mfr.getPeaksExplained()));
@@ -589,7 +592,6 @@ public class MetFragBean implements Runnable, Serializable {
 		float result = (((float) current / (float) border) * 100f);
 		this.progress = Math.round(result);
 		
-		System.out.println("Called updateSearchProgress MetFragBean -> " + progress);
 		// Ensure the new percent is within the valid 0-100 range
         if (progress < 0) {
         	progress = 0;
