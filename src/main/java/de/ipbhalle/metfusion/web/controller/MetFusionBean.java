@@ -319,8 +319,7 @@ public class MetFusionBean implements Serializable {
 		}
 		
 		if(mode == 0) // MassBank uses "both" ionizations, but MetFrag would be set GC-MS
-			mode = 1;	// switch to "positive" mode
-        mfb.setMode(mode);
+			mfb.setMode(1);		// switch to "positive" mode
         
 		// set context environment
 		session = (HttpSession) fc.getExternalContext().getSession(false);
@@ -1239,7 +1238,6 @@ public class MetFusionBean implements Serializable {
 		}
 		Color c = null;
 		try {
-			System.out.println("color code -> " + color);
 			c = Color.decode(color.trim());
 		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("DECODE_COLOR_PARAMETER_ERROR");
