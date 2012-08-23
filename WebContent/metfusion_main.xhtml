@@ -32,7 +32,7 @@
 				<div id="inputs" style="width: 100%;">
 					<div id="sourceParams" style="border: 1px dashed silver; width: 65%; float: left;">
 					<!-- stacking panel selector for spectral database -->
-					<ice:panelGrid columns="3" rendered="false">
+					<ice:panelGrid columns="3" rendered="true">
 						<ice:outputLabel for="selectSpectralDB" value="Selected Spectral Database:"/>
 						<ice:selectOneRadio id="selectSpectralDB" layout="lineDirection" required="true" value="#{appBean.selectedSpectralDB}">
 							<f:selectItems value="#{appBean.availableSpectralDBsSI}"/>
@@ -270,12 +270,12 @@
 					    			<ice:message for="metlinToleranceMSMS"/>
 					    		</ice:panelGroup>
 					    		
-					    		<ice:outputLabel for="metlingTolerancePrecursor" value="Tolerance Precursor (ppm):"/>
-					    		<ice:inputText id="metlingTolerancePrecursor" required="true" value="#{metlinBean.tolerancePrecursor}">
+					    		<ice:outputLabel for="metlinTolerancePrecursor" value="Tolerance Precursor (ppm):"/>
+					    		<ice:inputText id="metlinTolerancePrecursor" required="true" value="#{metlinBean.tolerancePrecursor}">
 					    			<f:validateLongRange minimum="1" maximum="100"/>
 					    		</ice:inputText>
 					    		<ice:panelGroup effect="#{appBean.effectOutputText}">
-					    			<ice:message for="metlingTolerancePrecursor"/>
+					    			<ice:message for="metlinTolerancePrecursor"/>
 					    		</ice:panelGroup>
 					    		
 					    	</ice:panelGrid>
