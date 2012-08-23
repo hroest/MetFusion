@@ -246,7 +246,6 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 		int border = (limit >= maximum) ? maximum : limit;
 		float result = (((float) searchCounter / (float) border) * 100f);
 		this.searchProgress = Math.round(result);
-		System.out.println("updateSearchProgress MetlinBean -> " + searchProgress);
 		
 		// Ensure the new percent is within the valid 0-100 range
         if (searchProgress < 0) {
