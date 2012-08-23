@@ -335,7 +335,6 @@ public class MassBankUtilities {
 	public boolean fetchMol(String compound, String id, String site, String basePath) {
 		File f = new File(basePath, id + ".mol");
 		if(f.exists()) {
-			System.out.println(f + " exists");
 			return true;
 		}
 
@@ -548,7 +547,6 @@ public class MassBankUtilities {
 	 * @param site the site
 	 */
 	public void fetchRecord(String id, String site) {
-//		String prefix = id.substring(0, 2);
 		String prefix = "";
 		if(id.matches("[A-Z]{3}[0-9]{5}"))
 			prefix = id.substring(0, 3);
@@ -557,12 +555,10 @@ public class MassBankUtilities {
 		File dir = null;
 		if(os.startsWith("Windows"))
 			dir = new File(tempDir);
-		//else dir = new File(cacheMassBank);
 		else dir = new File(cacheMassBank);
 		String[] institutes = dir.list();
 		File f = null;
         boolean found = false;
-        System.out.println("ID -> " + id + "  site -> " + site);
         if(institutes != null) {
 			for (int i = 0; i < institutes.length; i++) {
 				if(institutes[i].equals(prefix)) {
