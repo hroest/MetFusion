@@ -10,11 +10,9 @@ import de.ipbhalle.metfusion.wrapper.Result;
 
 public interface GenericDatabaseBean extends Runnable {
 
-//	boolean done = false;
-//	boolean showResult = false;
-//	String sessionPath = "";
-//	int searchProgress = 0;
-		
+	public void setDatabaseName(String name);
+	public String getDatabaseName();
+	
 	public void setResults(List<Result> results);
 	public List<Result> getResults();
 	

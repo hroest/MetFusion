@@ -58,6 +58,8 @@ public class MassBankLookupBean implements Runnable, Serializable, GenericDataba
 	 */
 	private static final long serialVersionUID = 1L;
 	
+	private String databaseName = "MassBank";
+	
 	private String serverUrl;
 	private MassBankCommon mbCommon;
 	private GetConfig config;
@@ -993,7 +995,7 @@ public class MassBankLookupBean implements Runnable, Serializable, GenericDataba
                     duplicates.add(name);
                     //results.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
                     String imgPath = tempPath + id + ".png";
-                    Result r = new Result("MassBank", id, name, score, container, url, imgPath, formula, emass);
+                    Result r = new Result(databaseName, id, name, score, container, url, imgPath, formula, emass);
                     //results.add(r);
                     //limitCounter++;
                     
@@ -1039,7 +1041,7 @@ public class MassBankLookupBean implements Runnable, Serializable, GenericDataba
 
                 // add unused results (duplicate or no mol container) to list
                 if(!fetch && container == null) {
-                	unused.add(new Result("MassBank", id, name, score, container, url, tempPath + id + ".png"));
+                	unused.add(new Result(databaseName, id, name, score, container, url, tempPath + id + ".png"));
                 	System.out.println("unused -> " + id);
                 }
             }
@@ -1589,6 +1591,16 @@ public class MassBankLookupBean implements Runnable, Serializable, GenericDataba
 
 	public String getPreviousServer() {
 		return previousServer;
+	}
+
+	@Override
+	public void setDatabaseName(String name) {
+		databaseName = name;
+	}
+
+	@Override
+	public String getDatabaseName() {
+		return databaseName;
 	}
 
 }

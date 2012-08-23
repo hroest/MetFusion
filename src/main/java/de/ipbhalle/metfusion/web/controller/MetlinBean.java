@@ -24,8 +24,12 @@ import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemFile;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.io.MDLReader;
+import org.openscience.cdk.tools.CDKHydrogenAdder;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import Metlin.MetlinPortType;
 import Metlin.MetlinServiceLocator;
@@ -44,8 +48,13 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	private String databaseName = "Metlin";
+	
 	/** the basic URL to the structure (mol) information at Metlin */
 	private static final String structureURL = "http://metlin.scripps.edu/structure/";
+	
+	private static final String metaboURL = "http://metlin.scripps.edu/metabo_info.php?molid=";	// + id
+	private static final String imageURL = "http://metlin.scripps.edu/Mol_images/"; // + id.png
 	
 	private MetlinServiceLocator locator;
 	private MetlinPortType serv;
@@ -66,6 +75,17 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 	private SpectrumLineInfo[] metlinResults;
 	private List<Result> results;
 	
+	
+	// GenericDatabase interface fields
+	private boolean done = Boolean.FALSE;
+	private boolean showResult = Boolean.FALSE;
+	private String sessionPath;
+	private int searchProgress = 0;
+	private List<Result> unused;
+	private int searchCounter = 0;
+    private boolean isRunning = false;
+    
+	
 	public MetlinBean() {
 		this("");
 	}
@@ -74,8 +94,16 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 		setupMetlin(token);
 	}
 	
+	public synchronized void notifyDone() {
+    	done = Boolean.TRUE;
+    	notifyAll();
+    }
+	
 	@Override
 	public void run() {
+		setDone(Boolean.FALSE);
+		setRunning(Boolean.TRUE);
+		
 		// create new empty parameter container
 		parameters = new SpectrumMatchRequest();
 		
@@ -110,22 +138,41 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 			return;
 		}
 		wrapResults();
+		
+		setRunning(false);
+		notifyDone();
 	}
 
 	private void wrapResults() {
 		List<Result> results = new ArrayList<Result>();
-		List<String> urls = new ArrayList<String>();
-        
+		List<Result> unused = new ArrayList<Result>();
+		
+		String relImagePath = getSessionPath(); 	//sep + "temp" + sep + sessionString + sep;
+		System.out.println("relImagePath -> " + relImagePath);
+		String tempPath = relImagePath.substring(relImagePath.indexOf("/temp"));
+		if(!tempPath.endsWith("/"))
+			tempPath += "/";
+		
+		int limitCounter = 0;
+        int resultLimit = metlinResults.length;
         for(int i = 0; i < metlinResults.length; i++){
-            System.out.println(metlinResults[i].getMetlinID());
-            System.out.println("molUrl -> " + structureURL + metlinResults[i].getMetlinID() + ".mol");
+        	
+        	this.searchCounter = limitCounter;
+            updateSearchProgress();	// update progress bar
+            
+            /**
+             *  create results only till the given limit
+             */
+            if(limitCounter == resultLimit) {
+            	this.searchProgress = 100;
+            	//updateSearchProgress();	// update progress bar
+            	break;
+            }
+        	
             String u = structureURL + metlinResults[i].getMetlinID() + ".mol";
-            urls.add(u);
-            System.out.println(metlinResults[i].getName());
-            System.out.println(metlinResults[i].getMetlinScore());
-            System.out.println(metlinResults[i].getPrecursor());
-            System.out.println(metlinResults[i].getPrecursorPPM());
-            System.out.println(metlinResults[i].getSpectrumMatching());
+            // only add new result if everything goes fine
+			double d = Double.valueOf(metlinResults[i].getMetlinScore());	// Metlin-score between 0 and 100
+            d = d / 100d;	// break score down into range 0 to 1
             
             try {
 				URL url = new URL(u);
@@ -142,20 +189,72 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
     			chemFile = (IChemFile) mr.read(chemFile);
     			container = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
 	        	
-    			// only add new result if everything goes fine
-    			double d = Double.valueOf(metlinResults[i].getMetlinScore());	// Metlin-score between 0 and 100
-                d = d / 100d;	// break score down into range 0 to 1
-                results.add(new Result("Metlin", metlinResults[i].getMetlinID(), metlinResults[i].getName(), d, container));
+    			// hydrogen handling, required for Metlin mol files!
+    			try {
+    				AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+    				CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
+    		        hAdder.addImplicitHydrogens(container);
+    		        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
+    			} catch (CDKException e) { }
+    			
+    			String id = metlinResults[i].getMetlinID();
+    			
+    			if(container != null) {
+                	// compute molecular formula
+					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
+					String formula = MolecularFormulaManipulator.getHTML(iformula);
+					
+					// compute molecular mass
+					double emass = 0.0d;
+					if(!formula.contains("R"))	// compute exact mass from formula only if NO residues "R" are present
+						emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
+					else emass = AtomContainerManipulator.getTotalExactMass(container);
+					
+					results.add(new Result(databaseName, id, metlinResults[i].getName(), d, container, 
+							metaboURL + id, tempPath + id + ".png", formula, emass));
+    			}
+    			else results.add(new Result(databaseName, id, metlinResults[i].getName(), d, container, metaboURL + id, tempPath + id + ".png"));
+    			
+                limitCounter++;
 			} catch (MalformedURLException e) {
 				System.err.println("Error processing URL [" + u + "]");
+				unused.add(new Result(databaseName, metlinResults[i].getMetlinID(), metlinResults[i].getName(), d, null));
 			} catch (IOException e) {
 				System.err.println("Error processing URL [" + u + "]");
+				unused.add(new Result(databaseName, metlinResults[i].getMetlinID(), metlinResults[i].getName(), d, null));
 			} catch (CDKException e) {
 				System.err.println("Error reading IAtomContainer from InputStream!");
+				unused.add(new Result(databaseName, metlinResults[i].getMetlinID(), metlinResults[i].getName(), d, null));
 			}
         }
         
+        // ensure progress bar set to 100% - can be lower if not all results had moldata, thus not increasing limitCounter
+        this.searchCounter = resultLimit; 	//results.size();	//resultLimit;
+        //this.limit = results.size();
+        updateSearchProgress();	// update progress bar
+        
         this.results = results;
+        this.unused = unused;
+	}
+	
+	/**
+	 * Updates counter for progress bar.
+	 */
+	public void updateSearchProgress() {
+		int maximum = this.metlinResults.length;
+		int limit = maximum;		// Metlin currently has no way to limit number of results
+		int border = (limit >= maximum) ? maximum : limit;
+		float result = (((float) searchCounter / (float) border) * 100f);
+		this.searchProgress = Math.round(result);
+		System.out.println("updateSearchProgress MetlinBean -> " + searchProgress);
+		
+		// Ensure the new percent is within the valid 0-100 range
+        if (searchProgress < 0) {
+        	searchProgress = 0;
+        }
+        if (searchProgress > 100) {
+        	searchProgress = 100;
+        }
 	}
 	
 	private void setupMetlin(String token) {
@@ -264,6 +363,7 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
             		temp += "\nM END\n";
             	MolImporter mi = new MolImporter(IOUtils.toInputStream(temp));
             	Molecule mol = mi.createMol();
+            	System.out.println(mol.getAtomCount());
 			}
             
             long time2 = System.currentTimeMillis();
@@ -371,62 +471,72 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 
 	@Override
 	public void setUnused(List<Result> unused) {
-		// TODO Auto-generated method stub
-		
+		this.unused = unused;
 	}
 
 	@Override
 	public List<Result> getUnused() {
-		// TODO Auto-generated method stub
-		return null;
+		return unused;
 	}
 
 	@Override
 	public void setDone(boolean done) {
-		// TODO Auto-generated method stub
-		
+		this.done = done;		
 	}
 
 	@Override
 	public boolean isDone() {
-		// TODO Auto-generated method stub
-		return false;
+		return done;
 	}
 
 	@Override
 	public void setShowResult(boolean showResult) {
-		// TODO Auto-generated method stub
-		
+		this.showResult = showResult;
 	}
 
 	@Override
 	public boolean isShowResult() {
-		// TODO Auto-generated method stub
-		return false;
+		return showResult;
 	}
 
 	@Override
 	public void setSessionPath(String sessionPath) {
-		// TODO Auto-generated method stub
-		
+		this.sessionPath = sessionPath;
 	}
 
 	@Override
 	public String getSessionPath() {
-		// TODO Auto-generated method stub
-		return null;
+		return sessionPath;
 	}
 
 	@Override
 	public void setSearchProgress(int searchProgress) {
-		// TODO Auto-generated method stub
-		
+		this.searchProgress = searchProgress;
 	}
 
 	@Override
 	public int getSearchProgress() {
-		// TODO Auto-generated method stub
-		return 0;
+		return searchProgress;
+	}
+
+
+	@Override
+	public void setDatabaseName(String name) {
+		this.databaseName = name;		
+	}
+
+
+	@Override
+	public String getDatabaseName() {
+		return databaseName;
+	}
+	
+	public void setRunning(boolean isRunning) {
+		this.isRunning = isRunning;
+	}
+
+	public boolean isRunning() {
+		return isRunning;
 	}
 	
 }
