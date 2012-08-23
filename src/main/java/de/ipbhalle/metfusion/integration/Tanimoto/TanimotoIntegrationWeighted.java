@@ -119,10 +119,8 @@ public class TanimotoIntegrationWeighted extends Integration {
 	@Override
 	public void run() {
 		this.setDone(Boolean.FALSE);
-		System.out.println("start weighted integration via run()");
 		List<ResultExt> newOrder = computeNewOrdering();
 		setResultingOrder(newOrder);
-		System.out.println("finished weighted integration via run()");
 		this.setDone(Boolean.TRUE);
 	}
 	
