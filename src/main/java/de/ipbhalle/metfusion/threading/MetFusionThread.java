@@ -180,7 +180,6 @@ public class MetFusionThread implements Runnable {
 		steps += 2;
 		stepsDonePercent(steps);
 		metfusion.setShowResultsDatabase(true);
-		System.out.println("done threading");
 		metfusion.toggleEffect();		// let progress bars fade away
 		
 		metfusion.setStatus("Images + Matrix");
@@ -270,10 +269,8 @@ public class MetFusionThread implements Runnable {
         
         metfusion.setSecondOrder(resultingOrder);	// assign results to metfusion bean
 		SimilarityMetFusion sm = new SimilarityMetFusion();
-		System.out.println("Started clustering");
 		List<ResultExtGroupBean> clusters = sm.computeScoresCluster(resultingOrder, styleBean);
 		metfusion.setTanimotoClusters(clusters);
-		System.out.println("Finished clustering");
 		metfusion.generateOutputResource();
 		metfusion.setShowTable(true);
 		metfusion.setSelectedTab("1");

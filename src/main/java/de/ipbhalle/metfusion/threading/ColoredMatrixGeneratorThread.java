@@ -5,7 +5,6 @@
 package de.ipbhalle.metfusion.threading;
 
 import org.apache.commons.math.linear.RealMatrix;
-import org.openscience.cdk.qsar.descriptors.molecular.BPolDescriptor;
 
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoSimilarity;
 import de.ipbhalle.metfusion.wrapper.ColorcodedMatrix;

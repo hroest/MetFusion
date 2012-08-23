@@ -4,7 +4,6 @@
 
 package de.ipbhalle.metfusion.threading;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,6 @@ public class ImageGeneratorThread extends Thread {
 	@Override
 	public void run() {
 		this.done = Boolean.FALSE;
-		System.out.println("Start generating compound pictures!");
 		
 		StructureToFile stf = null;
 		try {
@@ -79,7 +77,6 @@ public class ImageGeneratorThread extends Thread {
 			}
 		}
 		
-		System.out.println("Finished generating compound pictures!");
 		this.done = Boolean.TRUE;
 	}
 	
