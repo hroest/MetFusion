@@ -9,10 +9,10 @@ import java.util.List;
 
 import javax.faces.application.FacesMessage;
 
-import de.ipbhalle.MassBank.MassBankLookupBean;
 import de.ipbhalle.metfusion.integration.Similarity.SimilarityMetFusion;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoIntegrationWeighted;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoSimilarity;
+import de.ipbhalle.metfusion.web.controller.GenericDatabaseBean;
 import de.ipbhalle.metfusion.web.controller.MetFragBean;
 import de.ipbhalle.metfusion.web.controller.MetFusionBean;
 import de.ipbhalle.metfusion.web.controller.ResultExtGroupBean;
@@ -23,9 +23,10 @@ import de.ipbhalle.metfusion.wrapper.ResultExt;
 public class MetFusionThread implements Runnable {
 
 	private MetFusionBean metfusion;
-	private MassBankLookupBean massbank;
 	private MetFragBean metfrag;
+	private GenericDatabaseBean genericDatabase;
 	private StyleBean styleBean;
+	
 	private String tempPath;
 	private int progress;
 	private boolean active = Boolean.FALSE;
@@ -38,9 +39,10 @@ public class MetFusionThread implements Runnable {
 	/** The index of the error tab. This depends on the number and order of available tabs in the JSF page. */
 	private String numErrorTab = "3";
 	
-	public MetFusionThread(MetFusionBean app, MassBankLookupBean database, MetFragBean fragmenter, StyleBean styleBean, String tempPath) {
+
+	public MetFusionThread(MetFusionBean app, GenericDatabaseBean genericDatabase, MetFragBean fragmenter, StyleBean styleBean, String tempPath) {
 		this.metfusion = app;
-		this.massbank = database;
+		this.setGenericDatabase(genericDatabase);
 		this.metfrag = fragmenter;
 		this.styleBean = styleBean;
 		this.tempPath = tempPath;
@@ -76,9 +78,11 @@ public class MetFusionThread implements Runnable {
 		metfusion.toggleEffect();		// let progress bars appear
 		metfusion.setErrorMessage("");	// reset error message, thus hide error tab
 		
-		massbank.run();
+		String databaseName = genericDatabase.getDatabaseName();
+		
+		genericDatabase.run();
 		metfrag.run();
-		while(!massbank.isDone() && !metfrag.isDone()) {
+		while(!genericDatabase.isDone() && !metfrag.isDone()) {
 			try {
 				wait();
 			} catch (InterruptedException e) {
@@ -86,13 +90,13 @@ public class MetFusionThread implements Runnable {
 			}
 		}
 		
-		if(massbank.getResults() == null || massbank.getResults().size() == 0) {
-        	String errMessage = "Peak(s) not found in MassBank - check the settings and try again.";
+		if(genericDatabase.getResults() == null || genericDatabase.getResults().size() == 0) {
+        	String errMessage = "Peak(s) not found in " + databaseName + " - check the settings and try again.";
             System.err.println(errMessage);
             FacesMessage curentMessage = new FacesMessage(errMessage, errMessage);
             curentMessage.setSeverity(FacesMessage.SEVERITY_WARN);
             //Mark as ERROR
-            metfusion.setStatus("Empty MassBank result!");
+            metfusion.setStatus("Empty " + databaseName + " result!");
             stepsDonePercent(totalSteps);
     		setActive(Boolean.FALSE);
     		metfusion.setEnableStart(Boolean.TRUE);
@@ -100,18 +104,18 @@ public class MetFusionThread implements Runnable {
     		metfusion.setShowTable(true);
 			metfusion.setSelectedTab(numResultTab);
 			metfusion.setErrorMessage(errMessage);
-			massbank.setShowResult(false);
+			genericDatabase.setShowResult(false);
 			
             return;
         }
-        else if(massbank.getResults() != null) {
-            System.out.println("# MassBank results: " + massbank.getResults().size());
-            massbank.setShowResult(true);
+        else if(genericDatabase.getResults() != null) {
+            System.out.println("# " + databaseName + " results: " + genericDatabase.getResults().size());
+            genericDatabase.setShowResult(true);
             //setShowResultsDatabase(true);
         }
         else {      // abort run and return
             //String errMessage = "EMPTY MassBank result! - Check settings.";
-        	String errMessage = "Peak(s) not found in MassBank - check the settings and try again.";
+        	String errMessage = "Peak(s) not found in " + databaseName + " - check the settings and try again.";
             //this.errorMessage = errMessage;
             System.err.println(errMessage);
             FacesMessage curentMessage = new FacesMessage(errMessage, errMessage);
@@ -124,7 +128,7 @@ public class MetFusionThread implements Runnable {
     		metfusion.setShowTable(true);
 			metfusion.setSelectedTab(numResultTab);
 			metfusion.setErrorMessage(errMessage);
-			massbank.setShowResult(false);
+			genericDatabase.setShowResult(false);
 			
             return;
         }
@@ -148,6 +152,7 @@ public class MetFusionThread implements Runnable {
     		metfusion.setShowTable(true);
 			metfusion.setSelectedTab(numResultTab);
 			metfusion.setErrorMessage(errMessage);
+			metfusion.setShowResultsFragmenter(false);
 			metfrag.setShowResult(false);
 			
 			return;
@@ -172,6 +177,7 @@ public class MetFusionThread implements Runnable {
 			metfusion.setShowTable(true);
 			metfusion.setSelectedTab(numResultTab);
 			metfusion.setErrorMessage(errMessage);
+			metfusion.setShowResultsFragmenter(false);
 			metfrag.setShowResult(false);
 			
             return;
@@ -184,14 +190,14 @@ public class MetFusionThread implements Runnable {
 		
 		metfusion.setStatus("Images + Matrix");
 		// create tanimoto matrix and perform chemical-similarity based integration
-		List<Result> listMassBank = massbank.getResults();
+		List<Result> listMassBank = genericDatabase.getResults();
 		List<Result> listMetFrag = metfrag.getResults();
 		// cancel if one or both lists are empty -> check settings
 		if(listMassBank.isEmpty() || listMetFrag.isEmpty()) {
 			String errMessage = "An error occured!";
         	
 			if(listMassBank.isEmpty())
-				errMessage = "Peak(s) not found in MassBank - check the settings and try again.";
+				errMessage = "Peak(s) not found in " + databaseName + " - check the settings and try again.";
 			if(listMetFrag.isEmpty())
 				errMessage = "EMPTY MetFrag result! - Check settings.";
 			
@@ -207,7 +213,7 @@ public class MetFusionThread implements Runnable {
 		}
 		
 		TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, listMetFrag);	//, 3, 0.5f);
-		String sessionPath = massbank.getSessionPath();
+		String sessionPath = genericDatabase.getSessionPath();
 		// fork new thread for generating ColorCodedMatrix
 		ColoredMatrixGeneratorThread cmT = new ColoredMatrixGeneratorThread(sim);
 		TanimotoIntegrationWeighted tiw = new TanimotoIntegrationWeighted(sim);
@@ -284,7 +290,7 @@ public class MetFusionThread implements Runnable {
 		setActive(Boolean.FALSE);
 		metfusion.setEnableStart(Boolean.TRUE);
 		long time2 = System.currentTimeMillis() - time1;
-		System.out.println("time spended -> " + time2 + " ms");
+		System.out.println("time spent -> " + time2 + " ms");
 	}
 
 	/**
@@ -315,6 +321,14 @@ public class MetFusionThread implements Runnable {
 
 	public boolean isActive() {
 		return active;
+	}
+
+	public void setGenericDatabase(GenericDatabaseBean genericDatabase) {
+		this.genericDatabase = genericDatabase;
+	}
+
+	public GenericDatabaseBean getGenericDatabase() {
+		return genericDatabase;
 	}
 
 }
