@@ -88,9 +88,6 @@ public class MetFusionBean implements Serializable {
 	private Highlight effectOutputText = new Highlight("#FFA500");
 	private Highlight effectNote = new Highlight("#FFA500");
 	
-	/** default location for storing MetFrag structure images */
-	private static final String DEFAULT_IMAGE_CACHE = "/vol/metfrag/images/";
-	
 	/**
 	 * 
 	 */
@@ -100,6 +97,12 @@ public class MetFusionBean implements Serializable {
 	 * bean for MassBank lookup and result retrieval
 	 */
 	private MassBankLookupBean mblb;
+	
+	/** bean for Metlin lookup and result retrieval */
+	private MetlinBean mb;
+	
+	/** generic database bean that resembles an interface all database beans have to implement */
+	private GenericDatabaseBean genericDatabase;
 	
 	/**
 	 * bean for MetFrag query and result retrieval
@@ -245,6 +248,7 @@ public class MetFusionBean implements Serializable {
 		this.mblb = (MassBankLookupBean) el.getValue(elc, null, "databaseBean");
 		this.mfb = (MetFragBean) el.getValue(elc, null, "fragmenterBean");
 		this.mfb.setSessionID(sessionString);
+		this.mb = (MetlinBean) el.getValue(elc, null, "metlinBean");
 		
 		// set number of threads accordingly
 		Runtime runtime = Runtime.getRuntime();
@@ -275,40 +279,85 @@ public class MetFusionBean implements Serializable {
     	//effect.setFired(false);
     }
     
-    public String runThreadedVersion() {
-    	FacesContext fc = FacesContext.getCurrentInstance();
-    	
-    	setEnableStart(Boolean.FALSE);
-    	mblb.collectInstruments();
-    	mblb.setInputSpectrum(inputSpectrum);
-    	mfb.setInputSpectrum(inputSpectrum);
+    private void resetBeans() {
     	this.percentProgress = 0;
     	this.percentProgressDatabase = 0;
     	this.percentProgressFragmenter = 0;
     	this.percentProgressGlobal = 0;
+    	
     	setShowClusterResults(Boolean.FALSE);
     	mblb.setSearchProgress(0);
     	mfb.setProgress(0);
+    	mb.setSearchProgress(0);
+    	
     	mblb.setDone(Boolean.FALSE);
     	mfb.setDone(Boolean.FALSE);
-    	
-    	// set usage of InChI-based filtering
-    	mfb.setUniqueInchi(useInChIFiltering);
-    	mblb.setUniqueInchi(useInChIFiltering);
+    	mb.setDone(Boolean.FALSE);
     	
     	this.tanimotoClusters = new ArrayList<ResultExtGroupBean>();
     	this.secondOrder = new ArrayList<ResultExt>();
     	mfb.setResults(new ArrayList<Result>());
     	mblb.setResults(new ArrayList<Result>());
-//    	if(!mfb.isValidSDF()) {
-//    		String errMessage = "Error - no SDF file provided!";
-//            System.err.println(errMessage);
-//            FacesMessage currentMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, errMessage, errMessage);
-//            fc.addMessage("inputForm:errdbSDF", currentMessage);
-//            
-//            return "wrongSDF";
-//    	}
-    	//toggleEffect();
+    	mb.setResults(new ArrayList<Result>());
+    }
+    
+    public String runThreadedVersion() {
+    	FacesContext fc = FacesContext.getCurrentInstance();
+    	
+    	setEnableStart(Boolean.FALSE);
+    	
+    	resetBeans();
+    	
+    	// set context environment
+		session = (HttpSession) fc.getExternalContext().getSession(false);
+		scontext = (ServletContext) fc.getExternalContext().getContext();
+		webRoot = scontext.getRealPath(sep);
+		String sessionPath = webRoot + sep + "temp" + sep + sessionString + sep;
+		System.out.println("tempPath -> " + sessionPath);
+		System.out.println("sessionID -> " + sessionString);
+		String tempDir = sep + "temp" + sep + sessionString + sep;
+		
+    	if(selectedSpectralDB.equals(SpectralDB.MassBank.getPanel())) {
+    		mblb.collectInstruments();
+        	mblb.setInputSpectrum(inputSpectrum);
+        	// set usage of InChI-based filtering
+        	mblb.setUniqueInchi(useInChIFiltering);
+        	mblb.setSessionPath(sessionPath);
+        	
+        	String[] insts = mblb.getSelectedInstruments();
+            // check if instruments were selected
+            if(insts == null || insts.length == 0) {
+            	String errMessage = "Error - no instruments were selected!";
+                System.err.println(errMessage);
+                FacesMessage currentMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, errMessage, errMessage);
+                fc.addMessage("inputForm:errMsgInst", currentMessage);
+                
+                setShowResultsDatabase(false);
+                setShowTable(true);
+                //this.navigate = "errorInstrument";
+            }
+        	
+        	genericDatabase = mblb;
+    	}
+    	else if(selectedSpectralDB.equals(SpectralDB.GMD.getPanel())) {
+    		
+    	}
+    	else if(selectedSpectralDB.equals(SpectralDB.Metlin.getPanel())) {
+    		mb.setInputSpectrum(inputSpectrum);
+        	mb.setPrecursorMass((float) mfb.getExactMass());
+        	mb.setSessionPath(sessionPath);
+        	
+        	genericDatabase = mb;
+    	}
+    	else {
+    		
+    	}
+    	
+    	// set fragmenter parameters
+    	mfb.setInputSpectrum(inputSpectrum);
+    	// set usage of InChI-based filtering
+    	mfb.setUniqueInchi(useInChIFiltering);
+    	mfb.setSessionPath(sessionPath);
     	
 		int mode = 0;		// initialize with both modes
 		try {
@@ -321,38 +370,12 @@ public class MetFusionBean implements Serializable {
 		if(mode == 0) // MassBank uses "both" ionizations, but MetFrag would be set GC-MS
 			mfb.setMode(1);		// switch to "positive" mode
         
-		// set context environment
-		session = (HttpSession) fc.getExternalContext().getSession(false);
-		scontext = (ServletContext) fc.getExternalContext().getContext();
-		webRoot = scontext.getRealPath(sep);
-		String sessionPath = webRoot + sep + "temp" + sep + sessionString + sep;
-		System.out.println("tempPath -> " + sessionPath);
-		System.out.println("sessionID -> " + sessionString);
-		String tempDir = sep + "temp" + sep + sessionString + sep;
-		mfb.setSessionPath(sessionPath);
-		mblb.setSessionPath(sessionPath);
-		System.out.println("Massbank tempPath -> " + mblb.getSessionPath() + "\tMetFrag tempPath -> " + mfb.getSessionPath());
-		
         System.out.println("runBoth started!!!");
-        String[] insts = mblb.getSelectedInstruments();
-        // check if instruments were selected
-        if(insts == null || insts.length == 0) {
-        	String errMessage = "Error - no instruments were selected!";
-            System.err.println(errMessage);
-            FacesMessage currentMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, errMessage, errMessage);
-            fc.addMessage("inputForm:errMsgInst", currentMessage);
-            
-            setShowResultsDatabase(false);
-            setShowTable(true);
-            //this.navigate = "errorInstrument";
-        }
-    	
         ELResolver el = fc.getApplication().getELResolver();
         ELContext elc = fc.getELContext();
         StyleBean styleBean = (StyleBean) el.getValue(elc, null, "styleBean");
         
-    	mfthread = new MetFusionThread(this, mblb, mfb, styleBean, tempDir);
-    	//new Thread(mft).start();
+    	mfthread = new MetFusionThread(this, genericDatabase, mfb, styleBean, tempDir);
     	
     	// Create the database progress thread
     	updateThreadDatabase = new Thread(new Runnable() {
@@ -365,16 +388,14 @@ public class MetFusionBean implements Serializable {
 	    				e.printStackTrace();
 	    			}
 	    			
-	    			percentProgress = mblb.getSearchProgress();
+	    			percentProgress = genericDatabase.getSearchProgress();
 	    			percentProgressDatabase = percentProgress;
-//	    			System.out.println("while running...");
-//	    			System.out.println("percentProgress -> " + percentProgress);
 	    			
 	    			// send updated progress to outputProgress component
 	    			renderer.render(PUSH_GROUP);
 	    			
 	    			// break loop if reached 100%
-	    			if(percentProgress == 100 || mblb.isDone()) {
+	    			if(percentProgress == 100 || genericDatabase.isDone()) {
 	    				percentProgress = 100;
 	    				percentProgressGlobal += 10;	// when finished, increase global progress completed percentage
 	    				// send updated progress to outputProgress component
@@ -397,8 +418,6 @@ public class MetFusionBean implements Serializable {
 	    			}
 	    			
 	    			percentProgressFragmenter = mfb.getProgress();
-//	    			System.out.println("while running...");
-//	    			System.out.println("percentProgressFragmenter -> " + percentProgressFragmenter);
 	    			
 	    			// send updated progress to outputProgress component
 	    			renderer.render(PUSH_GROUP);
@@ -418,6 +437,7 @@ public class MetFusionBean implements Serializable {
         // create global updater thread
         updateThreadGlobal = new Thread(new Runnable() {
             public void run() {
+            	percentProgressGlobal = 1;	// initialize indeterminate progress bar
             	while(percentProgressGlobal <= 100) {
 	            	try {
 	    				Thread.sleep(PAUSE_AMOUNT_S);
@@ -428,8 +448,6 @@ public class MetFusionBean implements Serializable {
 	    			
 	    			if(mfthread.getProgress() > percentProgressGlobal)	// use pseudo progress from finished retrieval threads
 	    				percentProgressGlobal = mfthread.getProgress();	// both threads increase per 10 = 20% -> first getProgress starts at 25%
-//	    			System.out.println("while running...");
-//	    			System.out.println("percentProgressGlobal -> " + percentProgressGlobal);
 	    			
 	    			// send updated progress to outputProgress component
 	    			renderer.render(PUSH_GROUP);
@@ -780,7 +798,7 @@ public class MetFusionBean implements Serializable {
 		generateOutputResource();
 		
 		long time2 = System.currentTimeMillis() - time1;
-		System.out.println("time spended -> " + time2 + " ms");
+		System.out.println("time spent -> " + time2 + " ms");
 		
 		navigate = "success";
 		return navigate;
@@ -994,9 +1012,9 @@ public class MetFusionBean implements Serializable {
 //			return;
 		}
 			
-		if(mblb.getResults().size() > 0) {
+		if(genericDatabase.getResults().size() > 0) {
 			// set sheet name (output port) and position
-			sheet = workbook.createSheet("MassBank Results", currentSheet);
+			sheet = workbook.createSheet(genericDatabase.getDatabaseName() + " Results", currentSheet);
 			currentSheet++;
 			WritableCell headerRank = new Label(0, 0, "Rank", arial12format);
 			WritableCell headerID = new Label(1, 0, "ID", arial12format);
@@ -1026,7 +1044,7 @@ public class MetFusionBean implements Serializable {
 			int counter = 0;
 			
 			// write MassBank results
-			for (Result result : mblb.getResults()) {
+			for (Result result : genericDatabase.getResults()) {
 				//currentRow = counter*4 + 1;
 				currentRow++;
 				
@@ -1614,6 +1632,14 @@ public class MetFusionBean implements Serializable {
 
 	public SelectItem[] getAvailableSpectralDBsSI() {
 		return availableSpectralDBsSI;
+	}
+
+	public void setGenericDatabase(GenericDatabaseBean genericDatabase) {
+		this.genericDatabase = genericDatabase;
+	}
+
+	public GenericDatabaseBean getGenericDatabase() {
+		return genericDatabase;
 	}
 
 }
