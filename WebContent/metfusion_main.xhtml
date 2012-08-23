@@ -604,8 +604,9 @@
 			    	
 			    	<div style=" padding: 0 1em; border: 1px dotted silver; width: 30%; float: right; margin-top: 5px;">
 				    	<ice:panelGroup id="progressDatabase" effect="#{appBean.effect}" visible="false">
-							<ice:outputProgress id="progressDatabaseSearch" value="#{databaseBean.searchProgress}" 
-								label="MassBank retrieval: #{databaseBean.searchProgress}%"	labelComplete="MassBank retrieval done!"/>
+							<ice:outputProgress id="progressDatabaseSearch" value="#{appBean.genericDatabase.searchProgress}" 
+								label="#{appBean.genericDatabase.databaseName} retrieval: #{appBean.genericDatabase.searchProgress}%" 
+								labelComplete="#{appBean.genericDatabase.databaseName} retrieval done!"/>
 							<ice:outputProgress id="progressFragmenterSearch" value="#{fragmenterBean.progress}" 
 								label="MetFrag retrieval: #{fragmenterBean.progress}%" labelComplete="MetFrag retrieval done!"/>
 						</ice:panelGroup>
@@ -957,8 +958,8 @@
 						</ice:panelGroup>
 						
 						<ice:panelGroup id="database">
-							<ice:dataTable id="databaseList" value="#{appBean.mblb.results}"
-								rendered="#{appBean.mblb.showResult}" var="entry" rows="20">
+							<ice:dataTable id="databaseList" value="#{appBean.genericDatabase.results}"
+								rendered="#{appBean.genericDatabase.showResult}" var="entry" rows="20">
 								<f:facet name="header">
 									<ice:outputText value="Original Database Ranking" />
 								</f:facet>
