@@ -38,6 +38,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
+import de.ipbhalle.metfusion.web.controller.GenericDatabaseBean;
 import de.ipbhalle.metfusion.web.controller.MetFragBean;
 import de.ipbhalle.metfusion.web.controller.PropertiesBean;
 import de.ipbhalle.metfusion.wrapper.Result;
@@ -50,7 +51,7 @@ import massbank.MassBankCommon;
 @ManagedBean(name="databaseBean")
 @SessionScoped
 //@CustomScoped(value = "#{window}")
-public class MassBankLookupBean implements Runnable, Serializable {
+public class MassBankLookupBean implements Runnable, Serializable, GenericDatabaseBean {
 	
 	/**
 	 * 
@@ -439,7 +440,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		UIComponent source = event.getComponent();
 		Map<String, Object> attr = source.getAttributes();
 		String group = (String) attr.get("attrGroup");
-		System.out.println("attribute group -> " + group);
+		//System.out.println("attribute group -> " + group);
 		
 		int numSelected = 0;
 		List<String[]> currentSelected = getSelectedGroupInstruments();
@@ -483,13 +484,13 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		if(numSelected == 0 && newInstruments.length == 0) {	// no instrument was selected!
 			System.out.println("no instruments selected!!!");
 			newInstruments = new String[1];
-			System.out.println("grp -> " + grp);
+			//System.out.println("grp -> " + grp);
 			int idx = instGroups.get(grp).indexOf(lastInst);
 			newInstruments[0] = instGroups.get(grp).get(idx);	// FORCE selection of at least one instrument!
 		}
 		else if(newInstruments.length > 0) {
 			System.out.println("new instrument(s) selected!!!");
-			System.out.println("grp -> " + grp);
+			//System.out.println("grp -> " + grp);
 		}
 
 		selectedGroupInstruments.set(slot, newInstruments);
@@ -516,7 +517,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 			//System.out.println("collected [" + i + "] -> " + collected[i]);
 		}
 		
-		System.out.println("collected.length -> " + collected.length);
+		//System.out.println("collected.length -> " + collected.length);
 		Set<String> instKeys = instGroups.keySet();
 		Iterator<String> it = instKeys.iterator();
 		String firstGroup = it.next();
@@ -560,7 +561,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		FacesContext context = FacesContext.getCurrentInstance();
 		Map<String, String> requestMap = context.getExternalContext().getRequestParameterMap();
 		String group = requestMap.get("group").toString();
-		System.out.println("group -> " + group);
+		//System.out.println("group -> " + group);
 		
 		int slot = 0;
 		boolean check = false;
@@ -589,7 +590,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		}
 		//FacesContext.getCurrentInstance().renderResponse();
 		
-		System.out.println("check -> " + check);
+		//System.out.println("check -> " + check);
 		List<String> instruments = instGroups.get(group);
 		String[] newInstruments = new String[instruments.size()];
 		for (int i = 0; i < newInstruments.length; i++) {
@@ -828,7 +829,7 @@ public class MassBankLookupBean implements Runnable, Serializable {
 		int border = (limit >= maximum) ? maximum : limit;
 		float result = (((float) searchCounter / (float) border) * 100f);
 		this.searchProgress = Math.round(result);
-		System.out.println("Called updateSearchProgress -> " + searchProgress);
+		//System.out.println("Called updateSearchProgress -> " + searchProgress);
 		
 		// Ensure the new percent is within the valid 0-100 range
         if (searchProgress < 0) {

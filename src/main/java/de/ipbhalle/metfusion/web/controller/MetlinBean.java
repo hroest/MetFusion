@@ -37,7 +37,7 @@ import de.ipbhalle.metfusion.wrapper.Result;
 
 @ManagedBean(name="metlinBean")
 @SessionScoped
-public class MetlinBean implements Runnable, Serializable {
+public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 
 	/**
 	 * 
@@ -367,6 +367,66 @@ public class MetlinBean implements Runnable, Serializable {
 
 	public List<Result> getResults() {
 		return results;
+	}
+
+	@Override
+	public void setUnused(List<Result> unused) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public List<Result> getUnused() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setDone(boolean done) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isDone() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void setShowResult(boolean showResult) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isShowResult() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void setSessionPath(String sessionPath) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getSessionPath() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setSearchProgress(int searchProgress) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public int getSearchProgress() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 	
 }
