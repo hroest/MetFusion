@@ -41,6 +41,5 @@ public class SpectrumValidator implements Validator {
 			}
 		}
 		JavascriptContext.addJavascriptCall(context, "document.getElementById(\"command\").firstChild.removeAttribute(\"disabled\");");
-		System.out.println("Spectrum is valid");
 	}
 }
