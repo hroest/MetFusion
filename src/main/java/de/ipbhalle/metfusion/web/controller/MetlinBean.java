@@ -52,10 +52,10 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 	private String serverUrl = "http://metlin.scripps.edu/";
 	
 	/** the basic URL to the structure (mol) information at Metlin */
-	private static final String structureURL = "http://metlin.scripps.edu/structure/";
+	private static final String structureURL = "http://metlin.scripps.edu/structure/";			// + id.mol
 	
 	private static final String metaboURL = "http://metlin.scripps.edu/metabo_info.php?molid=";	// + id
-	private static final String imageURL = "http://metlin.scripps.edu/Mol_images/"; // + id.png
+	private static final String imageURL = "http://metlin.scripps.edu/Mol_images/"; 			// + id.png
 	
 	private MetlinServiceLocator locator;
 	private MetlinPortType serv;
