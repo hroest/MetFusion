@@ -30,4 +30,7 @@ public interface GenericDatabaseBean extends Runnable {
 	
 	public void setSearchProgress(int searchProgress);
 	public int getSearchProgress();
+	
+	public void setServerUrl(String serverUrl);
+	public String getServerUrl();
 }
