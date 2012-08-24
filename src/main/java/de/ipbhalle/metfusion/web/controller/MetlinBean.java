@@ -49,6 +49,7 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 	private static final long serialVersionUID = 1L;
 
 	private String databaseName = "Metlin";
+	private String serverUrl = "http://metlin.scripps.edu/";
 	
 	/** the basic URL to the structure (mol) information at Metlin */
 	private static final String structureURL = "http://metlin.scripps.edu/structure/";
@@ -64,7 +65,7 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 	private String selectedIonization = "pos";
 	
 	private float[] specMasses;
-	private float toleranceMSMS = 0.001f;
+	private float toleranceMSMS = 0.01f;
 	private float precursorMass;
 	
 	private int[] intensities;
@@ -536,6 +537,14 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 
 	public boolean isRunning() {
 		return isRunning;
+	}
+
+	public void setServerUrl(String serverUrl) {
+		this.serverUrl = serverUrl;
+	}
+
+	public String getServerUrl() {
+		return serverUrl;
 	}
 	
 }
