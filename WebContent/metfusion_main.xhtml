@@ -236,14 +236,28 @@
 							
 				    	</ice:panelGroup>
 
-						<ice:panelGroup id="gmdSettings">
+						<ice:panelGroup id="gmdSettings" style="margin-left: 10px; margin-right: 10px;">
 						gmd selected
 						</ice:panelGroup>
 				    	
-				    	<ice:panelGroup id="metlinSettings">
-					    	<ice:panelGrid id="metlinParameters" columns="3">
+				    	<ice:panelGroup id="metlinSettings" style="margin-left: 10px; margin-right: 10px;">
+				    		<ice:outputLabel value="Metlin Parameters" style="text-decoration: underline;"></ice:outputLabel>
+		    				<br/>
+		    				<ice:outputLabel value="#{metlinBean.serverUrl}"/>
+		    				<br/>
+					    	<ice:panelGrid id="metlinParameters" columns="3" style="margin-left: 10px; margin-right: 10px;">
 					    	
-					    		<ice:outputLabel for="metlinMode" value="Ionization Mode:"/>
+					    		<ice:panelGroup id="lblMetlinMode" panelTooltip="lblMetlinModeTooltip">
+					    			<ice:outputLabel for="metlinMode" value="Ionization Mode:"/>
+					    			<ice:panelTooltip id="lblMetlinModeTooltip">
+					    				<f:facet name="header">
+					    					<ice:outputText value="Ionization Mode"/>
+					    				</f:facet>
+					    				<f:facet name="body">
+					    					<ice:outputText value="Select either positive or negative ionization mode for your query spectrum."/>
+					    				</f:facet>
+					    			</ice:panelTooltip>
+					    		</ice:panelGroup>
 					    		<ice:selectOneRadio id="metlinMode" required="true" value="#{metlinBean.selectedIonization}">
 					    			<f:selectItem itemLabel="positive" itemValue="pos"/>
 					    			<f:selectItem itemLabel="negative" itemValue="neg"/>
@@ -252,7 +266,18 @@
 					    			<ice:message for="metlinMode"/>
 					    		</ice:panelGroup>
 					    		
-					    		<ice:outputLabel for="metlinColEnergy" value="Collision Energy:"/>
+					    		<ice:panelGroup id="lblMetlinColEnergy" panelTooltip="lblMetlinColEnergyTooltip">
+					    			<ice:outputLabel for="metlinColEnergy" value="Collision Energy:"/>
+					    			<ice:panelTooltip id="lblMetlinColEnergyTooltip">
+					    				<f:facet name="header">
+					    					<ice:outputText value="Collision Energy"/>
+					    				</f:facet>
+					    				<f:facet name="body">
+					    					<ice:outputText value="Specify the collision energy for the spectrum query. 
+					    					Choose between 10, 20 and 40 eV."/>
+					    				</f:facet>
+					    			</ice:panelTooltip>
+					    		</ice:panelGroup>
 					    		<ice:selectOneMenu id="metlinColEnergy" required="true" value="#{metlinBean.collisionEnergy}">
 					    			<f:selectItem itemLabel="10 eV" itemValue="10"/>
 					    			<f:selectItem itemLabel="20 eV" itemValue="20"/>
@@ -262,7 +287,18 @@
 					    			<ice:message for="metlinColEnergy"/>
 					    		</ice:panelGroup>
 					    		
-					    		<ice:outputLabel for="metlinToleranceMSMS" value="Tolerance MSMS (Da):"/>
+					    		<ice:panelGroup id="lblMetlinTolMS" panelTooltip="lblMetlinTolMSTooltip">
+					    			<ice:outputLabel for="metlinToleranceMSMS" value="Tolerance MSMS (Da):"/>
+					    			<ice:panelTooltip id="lblMetlinTolMSTooltip">
+					    				<f:facet name="header">
+					    					<ice:outputText value="Tolerance MSMS"/>
+					    				</f:facet>
+					    				<f:facet name="body">
+					    					<ice:outputText value="Specifies the tolerance of the MSMS data. 
+					    					Must be between 0.001 and 0.5. Units are Da. "/>
+					    				</f:facet>
+					    			</ice:panelTooltip>
+					    		</ice:panelGroup>
 					    		<ice:inputText id="metlinToleranceMSMS" required="true" value="#{metlinBean.toleranceMSMS}">
 					    			<f:validateDoubleRange minimum="0.001" maximum="0.5"/>
 					    		</ice:inputText>
@@ -270,7 +306,18 @@
 					    			<ice:message for="metlinToleranceMSMS"/>
 					    		</ice:panelGroup>
 					    		
-					    		<ice:outputLabel for="metlinTolerancePrecursor" value="Tolerance Precursor (ppm):"/>
+					    		<ice:panelGroup id="lblMetlinTolPrecursor" panelTooltip="lblMetlinTolPrecursorTooltip">
+					    			<ice:outputLabel for="metlinTolerancePrecursor" value="Tolerance Precursor (ppm):"/>
+					    			<ice:panelTooltip id="lblMetlinTolPrecursorTooltip">
+					    				<f:facet name="header">
+					    					<ice:outputText value="Tolerance Precursor"/>
+					    				</f:facet>
+					    				<f:facet name="body">
+					    					<ice:outputText value="Specifies the tolerance of the precursor. 
+					    					Must be between 1 and 100. Units are ppm. "/>
+					    				</f:facet>
+					    			</ice:panelTooltip>
+					    		</ice:panelGroup>
 					    		<ice:inputText id="metlinTolerancePrecursor" required="true" value="#{metlinBean.tolerancePrecursor}">
 					    			<f:validateLongRange minimum="1" maximum="100"/>
 					    		</ice:inputText>
