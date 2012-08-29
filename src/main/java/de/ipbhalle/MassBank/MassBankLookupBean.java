@@ -853,7 +853,6 @@ public class MassBankLookupBean implements Runnable, Serializable, GenericDataba
 	    
 		//String currentFolder = "";	//webRoot + sep + "temp" + sep + sessionString + sep;
 		String relImagePath = getSessionPath(); 	//sep + "temp" + sep + sessionString + sep;
-		System.out.println("relImagePath -> " + relImagePath);
 		String tempPath = relImagePath.substring(relImagePath.indexOf("/temp"));
 		if(!tempPath.endsWith("/"))
 			tempPath += "/";
