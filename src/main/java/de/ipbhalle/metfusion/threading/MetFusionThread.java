@@ -6,6 +6,8 @@ package de.ipbhalle.metfusion.threading;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.faces.application.FacesMessage;
 
@@ -79,16 +81,48 @@ public class MetFusionThread implements Runnable {
 		metfusion.setErrorMessage("");	// reset error message, thus hide error tab
 		
 		String databaseName = genericDatabase.getDatabaseName();
-		
-		genericDatabase.run();
-		metfrag.run();
-		while(!genericDatabase.isDone() && !metfrag.isDone()) {
+		/**
+		 * threading via Threads and ThreadExecutor
+		 */
+		// create new Threads from Runnable-implementing classes
+		Thread r1 = new Thread(genericDatabase);
+		Thread r2 = new Thread(metfrag);
+		ExecutorService threadExecutor = Executors.newFixedThreadPool(4);
+		// execute the threads in parallel
+		threadExecutor.execute(r1);
+		threadExecutor.execute(r2);
+		threadExecutor.shutdown();
+		//wait until all threads are finished
+		while(!threadExecutor.isTerminated())
+		{
 			try {
-				wait();
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+//				Thread.currentThread().interrupt();
+//				break;
+				r1.interrupt();
+				r2.interrupt();
+				String errMessage = "Error performing queries.";
+				metfusion.setShowTable(false);
+				metfusion.setSelectedTab("0");
+				metfusion.setErrorMessage(errMessage);
+				genericDatabase.setShowResult(false);
+				
+	            return;
 			}
 		}
+		/**
+		 * threading via runnable()
+		 */
+//		genericDatabase.run();
+//		metfrag.run();
+//		while(!genericDatabase.isDone() && !metfrag.isDone()) {
+//			try {
+//				wait();
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+//		}
 		
 		if(genericDatabase.getResults() == null || genericDatabase.getResults().size() == 0) {
         	String errMessage = "Peak(s) not found in " + databaseName + " - check the settings and try again.";
