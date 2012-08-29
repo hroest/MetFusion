@@ -31,6 +31,7 @@
 				<ice:panelTab label="Spectrum Query">
 				<div id="inputs" style="width: 100%;">
 					<div id="sourceParams" style="border: 1px dashed silver; width: 65%; float: left;">
+					
 					<!-- stacking panel selector for spectral database -->
 					<ice:panelGrid columns="3" rendered="true">
 						<ice:outputLabel for="selectSpectralDB" value="Selected Spectral Database:"/>
@@ -38,6 +39,8 @@
 							<f:selectItems value="#{appBean.availableSpectralDBsSI}"/>
 						</ice:selectOneRadio>
 					</ice:panelGrid>
+					
+					<!-- MassBank settings -->
 					<ice:panelStack selectedPanel="#{appBean.selectedSpectralDB}">
 				    	<ice:panelGroup id="massbankSettings" style="margin-left: 10px; margin-right: 10px;">
 		    				<ice:outputLabel value="MassBank Parameters" style="text-decoration: underline;"></ice:outputLabel>
@@ -106,7 +109,8 @@
 		    							</f:facet>
 		    						</ice:panelTooltip>
 		    					</ice:panelGroup>
-		    					<ice:inputText id="mbThresh" value="#{appBean.mblb.cutoff}" required="true" requiredMessage="Please enter a number between 0 and 500."
+		    					<ice:inputText id="mbThresh" value="#{appBean.mblb.cutoff}" required="true" 
+		    						requiredMessage="Please enter a number between 0 and 500."
 		    						validatorMessage="Please enter a number between 0 and 500.">
 		    						<f:validateLongRange minimum="0" maximum="500"></f:validateLongRange>
 		    					</ice:inputText>
@@ -236,10 +240,78 @@
 							
 				    	</ice:panelGroup>
 
+						<!-- GMD settings -->
 						<ice:panelGroup id="gmdSettings" style="margin-left: 10px; margin-right: 10px;">
-						gmd selected
+						<ice:outputLabel value="GMD Parameters" style="text-decoration: underline;"></ice:outputLabel>
+		    				<br/>
+		    				<ice:outputLabel value="#{gmdBean.serverUrl}"/>
+		    				<br/>
+					    	<ice:panelGrid id="gmdParameters" columns="3" style="margin-left: 10px; margin-right: 10px;">
+					    	
+						    	<ice:panelGroup id="lblGmdRI" panelTooltip="lblGmdRITooltip">
+						    		<ice:outputLabel for="gmdRI" value="Retention Index:"/>
+						    		<ice:panelTooltip id="lblGmdRITooltip">
+						    			<f:facet name="header">
+						    				<ice:outputText value="Retention Index"/>
+						    			</f:facet>
+						    			<f:facet name="body">
+						    				<ice:outputText value="Numeric value for the retention time index. Please note that the retention
+					    					indexes for VAR5 columns are based on n-alkane homologues, whereas indices for MDN35 columns are
+					    					based on fatty acid methyl esthers (FAME)."/>
+						    			</f:facet>
+						    		</ice:panelTooltip>
+						    	</ice:panelGroup>
+					    		<ice:inputText id="gmdRI" value="#{gmdBean.ri}" required="true">
+					    			<f:convertNumber pattern="####.##"/>
+					    			<f:validateDoubleRange minimum="0.0"/>
+					    		</ice:inputText>
+					    		<ice:panelGroup effect="#{appBean.effectOutputText}">
+					    			<ice:message for="gmdRI"/>
+					    		</ice:panelGroup>
+					    	
+					    		<ice:panelGroup id="lblGmdRIwindow" panelTooltip="lblGmdRIwindowTooltip">
+					    			<ice:outputLabel for="gmdRIwindow" value="Retention Index Window:"/>
+					    			<ice:panelTooltip id="lblGmdRIwindowTooltip">
+					    				<f:facet name="">
+					    					<ice:outputText value="Retention Index Window"/>
+					    				</f:facet>
+					    				<f:facet name="body">
+					    					<ice:outputText value="Numeric value for the retention index window size."/>
+					    				</f:facet>
+					    			</ice:panelTooltip>
+					    		</ice:panelGroup>
+					    		<ice:inputText id="gmdRIwindow" value="#{gmdBean.riWindow}" required="true">
+					    			<f:validateDoubleRange minimum="0.0"/>
+					    		</ice:inputText>
+					    		<ice:panelGroup effect="#{appBean.effectOutputText}">
+					    			<ice:message for="gmdRIwindow"/>
+					    		</ice:panelGroup>
+					    		
+					    		<ice:panelGroup id="lblGmdColumn" panelTooltip="lblGmdColumnTooltip">
+					    			<ice:outputLabel for="gmdColumn" value="GC-Column Type:"/>
+					    			<ice:panelTooltip id="lblGmdColumnTooltip">
+					    				<f:facet name="header">
+					    					<ice:outputText value="Alkane Retention Index GC Column Composition"/>
+					    				</f:facet>
+					    				<f:facet name="body">
+					    					<ice:outputText value="Select one of the predefined GC column variants 
+					    					on which the alkane retention index is based on. Current types are VAR5, MDN35 and none.
+					    					VAR5 is a 5%-phenyl-95%-dimethylpolysiloxane column, while MDN35 is a 35%-phenyl-65%-dimethylpolysiloxane." 
+					    					escape="false"/>
+					    				</f:facet>
+					    			</ice:panelTooltip>
+					    		</ice:panelGroup>
+					    		<ice:selectOneMenu id="gmdColumn" value="#{gmdBean.stringColumn}" required="true">
+					    			<f:selectItems value="#{gmdBean.availableColumns}"/>
+					    		</ice:selectOneMenu>
+					    		<ice:panelGroup effect="#{appBean.effectOutputText}">
+					    			<ice:message for="gmdColumn"/>
+					    		</ice:panelGroup>
+					    		
+					    	</ice:panelGrid>
 						</ice:panelGroup>
 				    	
+				    	<!-- Metlin settings -->
 				    	<ice:panelGroup id="metlinSettings" style="margin-left: 10px; margin-right: 10px;">
 				    		<ice:outputLabel value="Metlin Parameters" style="text-decoration: underline;"></ice:outputLabel>
 		    				<br/>
@@ -791,7 +863,7 @@
 						<f:selectItem itemLabel="MetFusion Cluster" itemValue="cluster" itemDisabled="#{!appBean.showClusterResults}"/>
 						<f:selectItem itemLabel="Fragmenter List" itemValue="fragmenter" itemDisable="#{!appBean.showResultsFragmenter}"/>
 						<f:selectItem itemLabel="Database List" itemValue="database" itemDisabled="#{!appBean.showResultsDatabase}"/>
-						<f:selectItem itemLabel="Unused Database Entries" itemValue="unused" itemDisabled="#{!appBean.mblb.showNote}"/>
+						<f:selectItem itemLabel="Unused Database Entries" itemValue="unused" itemDisabled="#{!appBean.genericDatabase.showNote}"/>
 					</ice:selectOneRadio>
 					
 					<ice:panelGroup style="background-color: MintCream; border: 1px solid ForestGreen;" rendered="#{appBean.createdResource}">
@@ -1083,9 +1155,9 @@
 						</ice:panelGroup>
 						
 						<ice:panelGroup id="unused">
-			    			<ice:dataTable value="#{appBean.mblb.unused}" var="entry" id="unusedMassBankEntries" rows="20">
+			    			<ice:dataTable value="#{appBean.genericDatabase.unused}" var="entry" id="unusedDatabaseEntries" rows="20">
 			    				<f:facet name="header">
-			    					<ice:outputText value="Unused MassBank Entries"/>
+			    					<ice:outputText value="Unused #{appBean.genericDatabase.databaseName} Entries"/>
 			    				</f:facet>
 			    				<ice:column>
 									<f:facet name="header">Port Name</f:facet>
@@ -1119,7 +1191,7 @@
 			    			</ice:dataTable>
 			    			
 			    			<ice:panelGrid columns="1" styleClass="scrollerTable2" columnClasses="standardTable_ColumnCentered" >
-						        <ice:dataPaginator id="scroll_1_unused" for="unusedMassBankEntries" fastStep="10"
+						        <ice:dataPaginator id="scroll_1_unused" for="unusedDatabaseEntries" fastStep="10"
 						                         pageCountVar="pageCount" pageIndexVar="pageIndex"
 						                         paginator="true" paginatorMaxPages="9" rendered="#{appBean.mfb.showResult}" >
 						                <f:facet name="first" >
@@ -1142,7 +1214,7 @@
 						                </f:facet>
 						        </ice:dataPaginator>
 						 
-						        <ice:dataPaginator id="scroll_2_unused" for="unusedMassBankEntries" rendered="#{appBean.mfb.showResult}" 
+						        <ice:dataPaginator id="scroll_2_unused" for="unusedDatabaseEntries" rendered="#{appBean.mfb.showResult}" 
 						                        rowsCountVar="rowsCount" displayedRowsCountVar="displayedRowsCountVar"
 						                        firstRowIndexVar="firstRowIndex" lastRowIndexVar="lastRowIndex"
 						                        pageCountVar="pageCount" pageIndexVar="pageIndex">
@@ -1177,15 +1249,18 @@
 			    	</ice:panelGroup>
 			    	
 			    	<ice:panelStack id="stackingMatrices" selectedPanel="#{appBean.selectedMatrixPanel}">
-						<ice:panelGroup id="origSimMatrix" styleClass="exampleBox columnsTableContainer" rendered="#{appBean.mblb.showResult}">
+			    		<!-- original similarity matrix -->
+						<ice:panelGroup id="origSimMatrix" styleClass="exampleBox columnsTableContainer" rendered="#{appBean.genericDatabase.showResult}">
 							<div style="width:1400px; overflow:auto;">
 							<!-- dataTable with columns component -->
-							<ice:dataTable id="dataTbl" var="item" rendered="#{appBean.mfb.showResult}"
+							<ice:dataTable id="dataTbl" var="item" rendered="#{appBean.genericDatabase.showResult}"
 								value="#{appBean.colorMatrix.rowDataModel}"
 								columnClasses="columnsColumn" rows="20" style="padding:0;">
 					
 								<ice:column>
-									<f:facet name="header">MetFrag\MassBank Compounds</f:facet>
+									<f:facet name="header">
+										<ice:outputText value="MetFrag \ #{appBean.genericDatabase.databaseName} Compounds"/>
+									</f:facet>
 									<ice:panelGroup style="text-align: center; white-space: nowrap;" panelTooltip="candidateTooltip">
 										<ice:outputLink id="linkOut" target="_blank"
 											value="#{appBean.mfb.results[item].url}">
@@ -1283,7 +1358,9 @@
 									columnClasses="columnsColumn" rows="20" style="padding:0;">
 						
 									<ice:column>
-										<f:facet name="header">MetFrag\MassBank Compounds</f:facet>
+										<f:facet name="header">
+											<ice:outputText value="MetFrag \ #{appBean.genericDatabase.databaseName} Compounds"/>
+										</f:facet>
 										<ice:panelGroup style="text-align: center; white-space: nowrap;" panelTooltip="candidateTooltip">
 											<ice:outputLink id="linkOut" target="_blank"
 												value="#{appBean.secondOrder[item].url}">
@@ -1335,7 +1412,7 @@
 								</div>
 								<ice:dataPaginator id="scroll_1_tan2" for="dataTbl2" fastStep="10"
 									pageCountVar="pageCount" pageIndexVar="pageIndex"
-									paginator="true" paginatorMaxPages="9" rendered="#{appBean.mblb.showResult}">
+									paginator="true" paginatorMaxPages="9" rendered="#{appBean.mfb.showResult}">
 									<f:facet name="first">
 										<ice:graphicImage url="#{msgs.xpDataPaginatorFirst}" style="border:none;"/>
 									</f:facet>
@@ -1373,12 +1450,12 @@
 			    	</ice:panelStack>
 			    </ice:panelTab>
 			    
-			    <ice:panelTab label="Error/Log" rendered="#{!(appBean.errorMessage.length() == 0)} | #{appBean.mblb.showNote}">
+			    <ice:panelTab label="Error/Log" rendered="#{!(appBean.errorMessage.length() == 0)} | #{appBean.genericDatabase.showNote}">
 			    	<ice:panelGroup>
 			    		<ice:outputText value="#{appBean.errorMessage}" rendered="#{!(appBean.errorMessage.length() == 0)}"></ice:outputText>
 			    	</ice:panelGroup>
 			    	<ice:panelGroup>
-			    		<ice:outputText value="#{appBean.mblb.missingEntriesNote}" rendered="#{appBean.mblb.showNote}"></ice:outputText>
+			    		<ice:outputText value="#{appBean.genericDatabase.missingEntriesNote}" rendered="#{appBean.genericDatabase.showNote}"></ice:outputText>
 			    	</ice:panelGroup>
 			    </ice:panelTab>
 			    
