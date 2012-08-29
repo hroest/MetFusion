@@ -84,6 +84,9 @@ public class MetFusionBean implements Serializable {
 	/** bean for Metlin lookup and result retrieval */
 	private MetlinBean mb;
 	
+	/** bean for GMD lookup and result retrieval */
+	private GMDBean gmdb;
+	
 	/** generic database bean that resembles an interface all database beans have to implement */
 	private GenericDatabaseBean genericDatabase;
 	
@@ -232,6 +235,7 @@ public class MetFusionBean implements Serializable {
 		this.mfb = (MetFragBean) el.getValue(elc, null, "fragmenterBean");
 		this.mfb.setSessionID(sessionString);
 		this.mb = (MetlinBean) el.getValue(elc, null, "metlinBean");
+		this.gmdb = (GMDBean) el.getValue(elc, null, "gmdBean");
 		
 		// set number of threads accordingly
 		Runtime runtime = Runtime.getRuntime();
@@ -256,7 +260,7 @@ public class MetFusionBean implements Serializable {
     		effect = new Appear();
     	}
     	
-    	if(mblb.isDone() && mfb.isDone()){			// let progress bars vanish
+    	if(genericDatabase.isDone() && mfb.isDone()){			// let progress bars vanish
     		effect = new Fade();
     	}
     	//effect.setFired(false);
@@ -323,12 +327,19 @@ public class MetFusionBean implements Serializable {
         	genericDatabase = mblb;
     	}
     	else if(selectedSpectralDB.equals(SpectralDB.GMD.getPanel())) {
-    		
+    		gmdb.setInputSpectrum(inputSpectrum);
+    		gmdb.setSessionPath(sessionPath);
+    		// set usage of InChI-based filtering
+        	gmdb.setUniqueInchi(useInChIFiltering);
+        	
+        	genericDatabase = gmdb;
     	}
     	else if(selectedSpectralDB.equals(SpectralDB.Metlin.getPanel())) {
     		mb.setInputSpectrum(inputSpectrum);
         	mb.setPrecursorMass((float) mfb.getExactMass());
         	mb.setSessionPath(sessionPath);
+        	// set usage of InChI-based filtering
+        	mb.setUniqueInchi(useInChIFiltering);
         	
         	genericDatabase = mb;
     	}
@@ -1248,6 +1259,14 @@ public class MetFusionBean implements Serializable {
 
 	public GenericDatabaseBean getGenericDatabase() {
 		return genericDatabase;
+	}
+
+	public void setGmdb(GMDBean gmdb) {
+		this.gmdb = gmdb;
+	}
+
+	public GMDBean getGmdb() {
+		return gmdb;
 	}
 
 }
