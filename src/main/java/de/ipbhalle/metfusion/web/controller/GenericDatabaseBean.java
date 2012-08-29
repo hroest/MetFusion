@@ -33,4 +33,10 @@ public interface GenericDatabaseBean extends Runnable {
 	
 	public void setServerUrl(String serverUrl);
 	public String getServerUrl();
+	
+	public void setShowNote(boolean showNote);
+	public boolean isShowNote();
+	
+	public void setUniqueInchi(boolean uniqueInchi);
+	public boolean isUniqueInchi();
 }
