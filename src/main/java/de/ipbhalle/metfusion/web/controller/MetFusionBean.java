@@ -304,6 +304,9 @@ public class MetFusionBean implements Serializable {
 		System.out.println("sessionID -> " + sessionString);
 		String tempDir = sep + "temp" + sep + sessionString + sep;
 		
+		// MetFrag mode of operation
+		int mode = 0;		// initialize with both modes
+		
     	if(selectedSpectralDB.equals(SpectralDB.MassBank.getPanel())) {
     		mblb.collectInstruments();
         	mblb.setInputSpectrum(inputSpectrum);
@@ -323,6 +326,13 @@ public class MetFusionBean implements Serializable {
                 setShowTable(true);
                 //this.navigate = "errorInstrument";
             }
+            
+            try {
+    			mode = Integer.parseInt(mblb.getSelectedIon());
+    		}
+    		catch(NumberFormatException e) {
+    			mode = 1;		// default to positive mode
+    		}
         	
         	genericDatabase = mblb;
     	}
@@ -340,29 +350,31 @@ public class MetFusionBean implements Serializable {
         	mb.setSessionPath(sessionPath);
         	// set usage of InChI-based filtering
         	mb.setUniqueInchi(useInChIFiltering);
+
+        	if(mb.getSelectedIonization().equals("pos"))
+        		mode = 1;
+        	else if (mb.getSelectedIonization().equals("neg"))
+        		mode = -1;
+        	else mode = 1;
         	
         	genericDatabase = mb;
     	}
     	else {
+    		System.err.println("Unknown selected spectral database! - Aborting.");
     		
+    		return "unknownDatabase";
     	}
     	
     	// set fragmenter parameters
+    	if(mode == 0) // MassBank uses "both" ionizations, but MetFrag would be set GC-MS
+			mfb.setMode(1);		// switch to "positive" mode
+    	else mfb.setMode(mode);
+    	
     	mfb.setInputSpectrum(inputSpectrum);
     	// set usage of InChI-based filtering
     	mfb.setUniqueInchi(useInChIFiltering);
     	mfb.setSessionPath(sessionPath);
     	
-		int mode = 0;		// initialize with both modes
-		try {
-			mode = Integer.parseInt(mblb.getSelectedIon());
-		}
-		catch(NumberFormatException e) {
-			mode = 1;		// default to positive mode
-		}
-		
-		if(mode == 0) // MassBank uses "both" ionizations, but MetFrag would be set GC-MS
-			mfb.setMode(1);		// switch to "positive" mode
         
         System.out.println("runBoth started!!!");
         ELResolver el = fc.getApplication().getELResolver();
@@ -883,12 +895,10 @@ public class MetFusionBean implements Serializable {
 	}
 
 	public void changeIonizationListener(ValueChangeEvent event) {
-		System.out.println("old -> " + (String) event.getOldValue());
 		String newVal = (String) event.getNewValue();
-		System.out.println("new -> " + newVal);
-		if(newVal.equals("1")) 
+		if(newVal.equals("1") | newVal.equals("pos")) 
 			metfragModeSetting = "MetFrag is set to work in <b>positive</b> mode.";
-		else if(newVal.equals("-1")) 
+		else if(newVal.equals("-1") | newVal.equals("neg")) 
 			metfragModeSetting = "MetFrag is set to work in <b>negative</b> mode.";
 		else if(newVal.equals("0"))
 			metfragModeSetting = "MetFrag <b>would</b> work in GC-MS mode - <b>defaulting back to positive mode</b>.";
