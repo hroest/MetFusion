@@ -85,8 +85,12 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 	private List<Result> unused;
 	private int searchCounter = 0;
     private boolean isRunning = false;
-    
+    private String missingEntriesNote = "Note: Some entries from the original Metlin query are left out because of missing structure information!";
+    private boolean showNote = Boolean.FALSE;
 	
+    private boolean uniqueInchi = Boolean.FALSE;
+    
+    
 	public MetlinBean() {
 		this("");
 	}
@@ -138,8 +142,11 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 			
 			return;
 		}
+		
+		System.out.println("Metlin results#: " + metlinResults.length);
 		wrapResults();
 		
+		setShowResult(true);
 		setRunning(false);
 		notifyDone();
 	}
@@ -149,7 +156,6 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 		List<Result> unused = new ArrayList<Result>();
 		
 		String relImagePath = getSessionPath(); 	//sep + "temp" + sep + sessionString + sep;
-		System.out.println("relImagePath -> " + relImagePath);
 		String tempPath = relImagePath.substring(relImagePath.indexOf("/temp"));
 		if(!tempPath.endsWith("/"))
 			tempPath += "/";
@@ -546,5 +552,28 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
 	public String getServerUrl() {
 		return serverUrl;
 	}
+
+	public String getMissingEntriesNote() {
+		return missingEntriesNote;
+	}
+
+	public void setMissingEntriesNote(String missingEntriesNote) {
+		this.missingEntriesNote = missingEntriesNote;
+	}
+
+	public boolean isShowNote() {
+		return showNote;
+	}
+
+	public void setShowNote(boolean showNote) {
+		this.showNote = showNote;
+	}
 	
+	public void setUniqueInchi(boolean uniqueInchi) {
+		this.uniqueInchi = uniqueInchi;
+	}
+
+	public boolean isUniqueInchi() {
+		return uniqueInchi;
+	}
 }

@@ -51,8 +51,12 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	/** default whitespace character to separate mz from intensity values */
+	private static final String DEFAULT_WHITESPACE = " ";
+	
 	WsLibrarySearchLocator locator;
 	WsGoBioSpaceLocator locatorGoBio;
+	WsLibrarySearchSoap libSearchSoap;
 	
 	// create new Post method for spectrum image
 	PostMethod methodSpectrum = new PostMethod("http://gmd.mpimp-golm.mpg.de/webservices/SpectrumImage.ashx");
@@ -66,6 +70,7 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 	
 	private SelectItem[] availableColumns;
 	private AlkaneRetentionIndexGcColumnComposition selectedColumn = AlkaneRetentionIndexGcColumnComposition.VAR5;
+	private String stringColumn = selectedColumn.getValue();
 	
 	private String inputSpectrum;
 	
@@ -74,6 +79,8 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 	private String serverUrl = "http://gmd.mpimp-golm.mpg.de/";
 	
 	private final String analyteURL = "http://gmd.mpimp-golm.mpg.de/Analytes/";	// + analyteID.aspx
+	private final String metaboliteURL = "http://gmd.mpimp-golm.mpg.de/Metabolites/";	// + metaboliteID.aspx
+	private final String molURL = "http://gmd.mpimp-golm.mpg.de/webservices/GetMolFile.ashx?id=";
 	private final String webpageEnding = ".aspx";
 	
 	private boolean done = Boolean.FALSE;
@@ -84,7 +91,11 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 	private List<Result> unused;
 	private int searchCounter = 0;
     private boolean isRunning = false;
-	
+    private String missingEntriesNote = "Note: Some entries from the original GMD query are left out because of missing structure information!";
+    private boolean showNote = Boolean.FALSE;
+    
+    private boolean uniqueInchi = Boolean.FALSE;
+    
 	private AnnotatedMatch[] originalResults;
     
 	
@@ -94,15 +105,22 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 		// GMD GoBioSpace locator
 		locatorGoBio = new WsGoBioSpaceLocator();
 		
+		// GMD library seach
+		try {
+			libSearchSoap = locator.getwsLibrarySearchSoap();
+		} catch (ServiceException e) {
+			libSearchSoap = null;
+		}
+		
 		setupAvailableColumns();
 	}
 	
 	private void setupAvailableColumns() {
 		availableColumns = new SelectItem[3];
 		
-		availableColumns[0] = new SelectItem(AlkaneRetentionIndexGcColumnComposition.MDN35, AlkaneRetentionIndexGcColumnComposition.MDN35.toString());
-		availableColumns[1] = new SelectItem(AlkaneRetentionIndexGcColumnComposition.VAR5, AlkaneRetentionIndexGcColumnComposition.VAR5.toString());
-		availableColumns[2] = new SelectItem(AlkaneRetentionIndexGcColumnComposition.none, AlkaneRetentionIndexGcColumnComposition.none.toString());
+		availableColumns[0] = new SelectItem(AlkaneRetentionIndexGcColumnComposition.MDN35, AlkaneRetentionIndexGcColumnComposition._MDN35);
+		availableColumns[1] = new SelectItem(AlkaneRetentionIndexGcColumnComposition.VAR5, AlkaneRetentionIndexGcColumnComposition._VAR5);
+		availableColumns[2] = new SelectItem(AlkaneRetentionIndexGcColumnComposition.none, AlkaneRetentionIndexGcColumnComposition._none);
 	}
 	
 	private String buildAnalyteURL(String id) {
@@ -120,26 +138,40 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 			}
 			else if(line.length == 1) {
 				// assume that only mz values are given
-				sb.append(Integer.parseInt(line[0]));
-				sb.append(Integer.parseInt("1000"));
+				//sb.append(Integer.parseInt(line[0])).append(DEFAULT_WHITESPACE).append(Integer.parseInt("1000")).append(DEFAULT_WHITESPACE);
+				double d = Double.parseDouble(line[0]);
+				int mass = (int) d;
+				sb.append(mass).append(DEFAULT_WHITESPACE).append(Integer.parseInt("1000")).append(DEFAULT_WHITESPACE);
 			}
 			else if(line.length == 2) {
-				sb.append(Integer.parseInt(line[0]));
-				sb.append(Integer.parseInt(line[1]));
+				//sb.append(Integer.parseInt(line[0])).append(DEFAULT_WHITESPACE).append(Integer.parseInt(line[1])).append(DEFAULT_WHITESPACE);
+				double d = Double.parseDouble(line[0]);
+				int mass = (int) d;
+				d = Double.parseDouble(line[1]);
+				int intensity = (int) d;
+				sb.append(mass).append(DEFAULT_WHITESPACE).append(intensity).append(DEFAULT_WHITESPACE);
 			}
 			else if(line.length == 3) {
 				// assume that first mz, then int, then rel.int
-				sb.append(Integer.parseInt(line[0]));
-				sb.append(Integer.parseInt(line[2]));
+				//sb.append(Integer.parseInt(line[0])).append(DEFAULT_WHITESPACE).append(Integer.parseInt(line[2])).append(DEFAULT_WHITESPACE);
+				double d = Double.parseDouble(line[0]);
+				int mass = (int) d;
+				d = Double.parseDouble(line[2]);
+				int intensity = (int) d;
+				sb.append(mass).append(DEFAULT_WHITESPACE).append(intensity).append(DEFAULT_WHITESPACE);
 			}
 			else {
 				// assume that first mz, then rel.int, then int
-				sb.append(Integer.parseInt(line[0]));
-				sb.append(Integer.parseInt(line[2]));
+				//sb.append(Integer.parseInt(line[0])).append(DEFAULT_WHITESPACE).append(Integer.parseInt(line[2])).append(DEFAULT_WHITESPACE);
+				double d = Double.parseDouble(line[0]);
+				int mass = (int) d;
+				d = Double.parseDouble(line[2]);
+				int intensity = (int) d;
+				sb.append(mass).append(DEFAULT_WHITESPACE).append(intensity).append(DEFAULT_WHITESPACE);
 			}
 		}
 		
-		return sb.toString();
+		return sb.toString().trim();
 	}
 	
 	@Override
@@ -147,28 +179,30 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 		setDone(Boolean.FALSE);
 		setRunning(Boolean.TRUE);
 		
-		WsLibrarySearchSoap libSearchSoap;
-		try {
-			libSearchSoap = locator.getwsLibrarySearchSoap();
-		} catch (ServiceException e1) {
-			System.err.println("Error instantiating GMD webservice!");
-			return;			// return if library search can't be instantiated
-		}
-		
 		ResultOfAnnotatedMatch roam = null;
 		try {
 			roam = libSearchSoap.librarySearch(ri, riWindow, selectedColumn, formatSpectrum());
 		} catch (RemoteException e) {
 			System.err.println("Error invoking GMD library search remotely!");
-			
 			// return empty result list if library search has an error
-			
+			this.results = new ArrayList<Result>();
+			return;			
 		}
 		AnnotatedMatch[] matches = roam.getResults();
 		setOriginalResults(matches);
 		
+		if(matches == null) {
+			setShowResult(false);
+			setRunning(false);
+			notifyDone();
+			this.results = new ArrayList<Result>();
+			return;	
+		}
+		
+		System.out.println("GMD results#: " + matches.length);
 		wrapResults();
 		
+		setShowResult(true);
 		setRunning(false);
 		notifyDone();
 	}
@@ -179,19 +213,30 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 		double score = 1.0f;	// default to highest score, so each result is treated equally
 		
 		String relImagePath = getSessionPath(); 	//sep + "temp" + sep + sessionString + sep;
-		System.out.println("relImagePath -> " + relImagePath);
 		String tempPath = relImagePath.substring(relImagePath.indexOf("/temp"));
 		if(!tempPath.endsWith("/"))
 			tempPath += "/";
 		
-		String molURL = "http://gmd.mpimp-golm.mpg.de/webservices/GetMolFile.ashx?id=";
+		List<String> uniqueMetabolites = new ArrayList<String>();
+		
+		//String molURL = "http://gmd.mpimp-golm.mpg.de/webservices/GetMolFile.ashx?id=";
 		int limitCounter = 0;
         int resultLimit = originalResults.length;
 		for (int i = 0; i < originalResults.length; i++) {
-			String name = originalResults[i].getAnalyteName();
+			//String name = originalResults[i].getAnalyteName();
+			String spectrumName = originalResults[i].getSpectrumName();
+			String name = spectrumName;
 			String id = originalResults[i].getMetaboliteID();
 			String analyteID = originalResults[i].getAnalyteID();
 			String u = molURL + analyteID;
+			
+			try {
+				String clearName = libSearchSoap.MPIMP_Quad_Name(originalResults[i].getSpectrumID());
+				String[] split = clearName.split("\\[");	// [0]AnalyteName   [1]QuadName
+				id = split[1].substring(0, split[1].indexOf("-"));
+			} catch (RemoteException e2) {
+				id = originalResults[i].getMetaboliteID();
+			}
 			
 			this.searchCounter = limitCounter;
             updateSearchProgress();	// update progress bar
@@ -209,10 +254,13 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 				URL url = new URL(u);
 				URLConnection con = url.openConnection();
 	        	InputStream is = con.getInputStream();
+	        	if(is == null) throw new CDKException("Empty InputStream from GMD.");
 	        	
 	        	String temp = IOUtils.toString(is);
-//	        	if(!temp.endsWith("M END"))
-//	        		temp += "\nM END\n";
+	        	if(temp == null || temp.isEmpty() || temp.contains("no chemical information available")) {
+	        		unused.add(new Result(databaseName, id, name, score, null));
+	        		continue;
+	        	}
 	        	
 	        	MDLReader mr = new MDLReader(IOUtils.toInputStream(temp));
 	        	IChemFile chemFile = new ChemFile();
@@ -220,16 +268,16 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 				chemFile = (IChemFile) mr.read(chemFile);
 				container = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
 	        	
-				// hydrogen handling, required for Metlin mol files!
-				try {
-					AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-					CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-			        hAdder.addImplicitHydrogens(container);
-			        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-				}
-				catch (CDKException e) { }
-				
 		        if(container != null) {
+		        	// hydrogen handling, required for Metlin mol files!
+					try {
+						AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+						CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
+				        hAdder.addImplicitHydrogens(container);
+				        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
+					}
+					catch (CDKException e) { }
+					
                 	// compute molecular formula
 					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
 					String formula = MolecularFormulaManipulator.getHTML(iformula);
@@ -240,21 +288,31 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 						emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
 					else emass = AtomContainerManipulator.getTotalExactMass(container);
 					
-					results.add(new Result(databaseName, id, name, score, container, 
-							buildAnalyteURL(analyteID), tempPath + id + ".png", formula, emass));
+					// skip non-unique entries
+					if(isUniqueInchi() && uniqueMetabolites.contains(id)) {
+						unused.add(new Result(databaseName, id, name, score, container, 
+								buildAnalyteURL(analyteID), tempPath + id + ".png", formula, emass));
+					}
+					else {
+						results.add(new Result(databaseName, id, name, score, container, 
+								buildAnalyteURL(analyteID), tempPath + id + ".png", formula, emass));
+						
+						limitCounter++;
+						
+						uniqueMetabolites.add(id);
+					}
     			}
-    			else results.add(new Result(databaseName, id, name, score, container, buildAnalyteURL(analyteID), tempPath + id + ".png"));
+    			else unused.add(new Result(databaseName, id, name, score, container, buildAnalyteURL(analyteID), tempPath + id + ".png"));
 		        
-		        limitCounter++;
 			} catch (MalformedURLException e1) {
 				System.err.println("Error processing URL [" + u + "]");
-				unused.add(new Result(databaseName, id, name, score, null));
+				unused.add(new Result(databaseName, id, name, score, null, buildAnalyteURL(analyteID), tempPath + id + ".png"));
 			} catch (IOException e) {
 				System.err.println("Error processing URL [" + u + "]");
-				unused.add(new Result(databaseName, id, name, score, null));
+				unused.add(new Result(databaseName, id, name, score, null, buildAnalyteURL(analyteID), tempPath + id + ".png"));
 			} catch (CDKException e) {
 				System.err.println("Error reading IAtomContainer from InputStream!");
-				unused.add(new Result(databaseName, id, name, score, null));
+				unused.add(new Result(databaseName, id, name, score, null, buildAnalyteURL(analyteID), tempPath + id + ".png"));
 			}
 		}
 		
@@ -265,6 +323,11 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
         
         this.results = results;
         this.unused = unused;
+        
+        if(unused.size() > 0) {	// entries are left out because of missing structure information
+        	System.out.println(missingEntriesNote);
+        	setShowNote(Boolean.TRUE);
+        }
 	}
 	
 	/**
@@ -415,4 +478,77 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 		return originalResults;
 	}
 
+	public float getRi() {
+		return ri;
+	}
+
+	public void setRi(float ri) {
+		this.ri = ri;
+	}
+
+	public float getRiWindow() {
+		return riWindow;
+	}
+
+	public void setRiWindow(float riWindow) {
+		this.riWindow = riWindow;
+	}
+
+	public SelectItem[] getAvailableColumns() {
+		return availableColumns;
+	}
+
+	public void setAvailableColumns(SelectItem[] availableColumns) {
+		this.availableColumns = availableColumns;
+	}
+
+	public AlkaneRetentionIndexGcColumnComposition getSelectedColumn() {
+		return selectedColumn;
+	}
+
+	public void setSelectedColumn(AlkaneRetentionIndexGcColumnComposition selectedColumn) {
+		this.selectedColumn = selectedColumn;
+	}
+
+	public void setStringColumn(String stringColumn) {
+		this.stringColumn = stringColumn;
+		// update selected AlkaneRetentionIndexGcColumnComposition accordingly 
+		this.selectedColumn = AlkaneRetentionIndexGcColumnComposition.fromString(stringColumn);
+	}
+
+	public String getStringColumn() {
+		return stringColumn;
+	}
+
+	public String getInputSpectrum() {
+		return inputSpectrum;
+	}
+
+	public void setInputSpectrum(String inputSpectrum) {
+		this.inputSpectrum = inputSpectrum;
+	}
+
+	public void setShowNote(boolean showNote) {
+		this.showNote = showNote;
+	}
+
+	public boolean isShowNote() {
+		return showNote;
+	}
+
+	public String getMissingEntriesNote() {
+		return missingEntriesNote;
+	}
+
+	public void setMissingEntriesNote(String missingEntriesNote) {
+		this.missingEntriesNote = missingEntriesNote;
+	}
+
+	public void setUniqueInchi(boolean uniqueInchi) {
+		this.uniqueInchi = uniqueInchi;
+	}
+
+	public boolean isUniqueInchi() {
+		return uniqueInchi;
+	}
 }
