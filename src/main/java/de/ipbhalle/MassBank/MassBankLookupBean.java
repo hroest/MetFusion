@@ -51,7 +51,7 @@ import massbank.MassBankCommon;
 @ManagedBean(name="databaseBean")
 @SessionScoped
 //@CustomScoped(value = "#{window}")
-public class MassBankLookupBean implements Runnable, Serializable, GenericDatabaseBean {
+public class MassBankLookupBean extends Thread implements Runnable, Serializable, GenericDatabaseBean {
 	
 	/**
 	 * 
@@ -142,7 +142,6 @@ public class MassBankLookupBean implements Runnable, Serializable, GenericDataba
 	private boolean uniqueInchi = Boolean.FALSE;
 	private List<Result> unused;
 	
-	private Thread t;
 	private String cacheMassBank = "/vol/massbank/Cache/";
 	
 //	private FacesContext fc = FacesContext.getCurrentInstance();
@@ -173,7 +172,6 @@ public class MassBankLookupBean implements Runnable, Serializable, GenericDataba
     
 	public MassBankLookupBean() {
 		this(massbankJP);			// create instance with default massbank server JAPAN
-		//t = new Thread(this, "massbank");
 	}
 	
 	public MassBankLookupBean(String serverUrl) {
@@ -330,7 +328,7 @@ public class MassBankLookupBean implements Runnable, Serializable, GenericDataba
         	this.instruments.put(next, items);
         }
         
-        // keep number of instrument groups for actual database
+        // keep number of instrument groups for current database
         NUM_INST_GROUPS = counter;
 //        FacesContext.getCurrentInstance().renderResponse();
         
@@ -340,9 +338,6 @@ public class MassBankLookupBean implements Runnable, Serializable, GenericDataba
         
         this.groupInstruments = sig;
 
-        if(t == null)	// only create new thread for the first time!
-        	t = new Thread(this, "massbank");
-        
 	}
 	
 	public void loadInstruments(String[] instruments) {
@@ -694,9 +689,9 @@ public class MassBankLookupBean implements Runnable, Serializable, GenericDataba
 		notifyDone();
 	}
 	
-	public void start() {
-            t.start();
-	}
+//	public void start() {
+//            t.start();
+//	}
 	
 	public void submit(ActionEvent event) {
 //		FacesContext fc = FacesContext.getCurrentInstance();
@@ -1246,14 +1241,6 @@ public class MassBankLookupBean implements Runnable, Serializable, GenericDataba
 
 	public List<Result> getResults() {
 		return results;
-	}
-
-	public Thread getT() {
-		return t;
-	}
-
-	public void setT(Thread t) {
-		this.t = t;
 	}
 
 	public void setLimit(int limit) {
