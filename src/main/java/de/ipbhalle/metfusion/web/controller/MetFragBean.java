@@ -225,11 +225,6 @@ public class MetFragBean implements Runnable, Serializable {
 	/** original list of MetFrag results */
 	private List<MetFragResult> mfResults;
 	
-	/**
-	 * the separate thread container for this class, allows parallel execution
-	 */
-	private Thread t;
-	
 	private int progress = 0;	
 	private boolean done = Boolean.FALSE;
 	
@@ -606,9 +601,9 @@ public class MetFragBean implements Runnable, Serializable {
 		submit(null);
 	}
 	
-	public void start() {
-		t.start();
-	}
+//	public void start() {
+//		t.start();
+//	}
 	
 	public void validateExactMass(FacesContext context, UIComponent validate, Object value){
 	    double emass = (Double) value;
@@ -760,14 +755,6 @@ public class MetFragBean implements Runnable, Serializable {
 
 	public List<Result> getResults() {
 		return results;
-	}
-
-	public Thread getT() {
-		return t;
-	}
-
-	public void setT(Thread t) {
-		this.t = t;
 	}
 
 	public void setInputSpectrum(String inputSpectrum) {
