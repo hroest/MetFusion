@@ -33,11 +33,15 @@
 					<div id="sourceParams" style="border: 1px dashed silver; width: 65%; float: left;">
 					
 					<!-- stacking panel selector for spectral database -->
-					<ice:panelGrid columns="3" rendered="true">
+					<ice:panelGrid columns="3">
 						<ice:outputLabel for="selectSpectralDB" value="Selected Spectral Database:"/>
-						<ice:selectOneRadio id="selectSpectralDB" layout="lineDirection" required="true" value="#{appBean.selectedSpectralDB}">
+						<ice:selectOneMenu id="selectSpectralDB" required="true" value="#{appBean.selectedSpectralDB}" 
+							style="background-color: MintCream;">
 							<f:selectItems value="#{appBean.availableSpectralDBsSI}"/>
-						</ice:selectOneRadio>
+						</ice:selectOneMenu>
+						<ice:panelGroup effect="#{appBean.effectOutputText}">
+    						<ice:message id="errGenericDatabase" for="selectSpectralDB"></ice:message>
+    					</ice:panelGroup>
 					</ice:panelGrid>
 					
 					<!-- MassBank settings -->
@@ -330,7 +334,8 @@
 					    				</f:facet>
 					    			</ice:panelTooltip>
 					    		</ice:panelGroup>
-					    		<ice:selectOneRadio id="metlinMode" required="true" value="#{metlinBean.selectedIonization}">
+					    		<ice:selectOneRadio id="metlinMode" required="true" value="#{metlinBean.selectedIonization}"
+					    			valueChangeListener="#{appBean.changeIonizationListener}">
 					    			<f:selectItem itemLabel="positive" itemValue="pos"/>
 					    			<f:selectItem itemLabel="negative" itemValue="neg"/>
 					    		</ice:selectOneRadio>
