@@ -485,6 +485,58 @@ public class MetFusionBean implements Serializable {
     	return "stopped";
     }
 	
+    /**
+     * Generates an output resource for the current workflow results, everything is stored inside a single Excel xls file
+	 * where each workflow output ports is stored as a separate sheet, also including the computed colored matrices.
+     */
+    public void generateOutputResourceXLSHandler() {
+    	// setup filename
+    	SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy_k-m-s");
+		String time = sdf.format(new Date());
+		String resourceName = "MetFusion_Results_" + time +  ".xls";
+		String folder = "./temp" + sep + sessionString + sep;
+		
+		String path = webRoot + sep + "temp" + sep + sessionString + sep;
+		System.out.println("resource path -> " + path);
+		
+		File dir = new File(path);
+		if(!dir.exists())
+			dir.mkdirs();
+		// skip creation of output resource if file access is denied
+		if(!dir.canWrite()) {
+			setCreatedResource(Boolean.FALSE);
+			return;
+		}
+		
+		String completeName = path + resourceName;
+		
+		// generate XLS file with specific output handler
+		de.ipbhalle.metfusion.utilities.output.XLSOutputHandler xlsHandler = 
+			new de.ipbhalle.metfusion.utilities.output.XLSOutputHandler(completeName, genericDatabase.getDatabaseName(), "MetFrag");
+		
+		// store results
+        xlsHandler.writeAllResults(mfb.getResults(), genericDatabase.getResults(), getSecondOrder(), getTanimotoClusters());
+        xlsHandler.writeOriginalMatrix(getColorMatrix(), "Original Matrix");
+        xlsHandler.writeModifiedMatrix(getColorMatrixAfter(), "Reranked Matrix");
+        
+        try {
+			xlsHandler.finishWorkbook();
+			
+			// create XLSResource
+	    	XLSResource xls = new XLSResource(ec, resourceName, folder);
+	    	// set XLSResource
+			setOutputResource(xls);
+			// enable download button for resource
+			setCreatedResource(Boolean.TRUE);
+		} catch (WriteException e2) {
+			System.err.println("Could not write xls file [" + completeName + "]");
+			setCreatedResource(Boolean.FALSE);
+		} catch (IOException e2) {
+			System.err.println("Could not write xls file [" + completeName + "]");
+			setCreatedResource(Boolean.FALSE);
+		}
+    }
+    
 	/** generates an output resource for the current workflow results, everything is stored inside a single Excel xls file
 	 *  where each workflow output ports is stored as a separate sheet  */
 	public void generateOutputResource() {
