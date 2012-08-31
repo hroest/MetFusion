@@ -127,6 +127,10 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 		return analyteURL + id + webpageEnding;
 	}
 	
+	private String buildMetaboliteUrl(String id) {
+		return metaboliteURL + id + webpageEnding;
+	}
+	
 	private String formatSpectrum() {
 		StringBuilder sb = new StringBuilder();
 		String[] split = inputSpectrum.split("\n");
@@ -227,8 +231,13 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 			String spectrumName = originalResults[i].getSpectrumName();
 			String name = spectrumName;
 			String id = originalResults[i].getMetaboliteID();
-			String analyteID = originalResults[i].getAnalyteID();
-			String u = molURL + analyteID;
+			//String analyteID = originalResults[i].getAnalyteID();
+			//String u = molURL + analyteID;
+			String u = molURL + id;
+			
+			// build analyte metabolite url
+			//String analyteUrl = buildAnalyteURL(analyteID);
+			String metaboliteUrl = buildMetaboliteUrl(id);
 			
 			try {
 				String clearName = libSearchSoap.MPIMP_Quad_Name(originalResults[i].getSpectrumID());
@@ -237,6 +246,9 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 			} catch (RemoteException e2) {
 				id = originalResults[i].getMetaboliteID();
 			}
+			
+			// build image path
+			String imagePath = tempPath + id + ".png";
 			
 			this.searchCounter = limitCounter;
             updateSearchProgress();	// update progress bar
@@ -291,28 +303,28 @@ public class GMDBean implements Runnable, Serializable, GenericDatabaseBean {
 					// skip non-unique entries
 					if(isUniqueInchi() && uniqueMetabolites.contains(id)) {
 						unused.add(new Result(databaseName, id, name, score, container, 
-								buildAnalyteURL(analyteID), tempPath + id + ".png", formula, emass));
+								buildAnalyteURL(id), imagePath, formula, emass));
 					}
 					else {
 						results.add(new Result(databaseName, id, name, score, container, 
-								buildAnalyteURL(analyteID), tempPath + id + ".png", formula, emass));
+								metaboliteUrl, imagePath, formula, emass));
 						
 						limitCounter++;
 						
 						uniqueMetabolites.add(id);
 					}
     			}
-    			else unused.add(new Result(databaseName, id, name, score, container, buildAnalyteURL(analyteID), tempPath + id + ".png"));
+    			else unused.add(new Result(databaseName, id, name, score, container, metaboliteUrl, imagePath));
 		        
 			} catch (MalformedURLException e1) {
 				System.err.println("Error processing URL [" + u + "]");
-				unused.add(new Result(databaseName, id, name, score, null, buildAnalyteURL(analyteID), tempPath + id + ".png"));
+				unused.add(new Result(databaseName, id, name, score, null, metaboliteUrl, imagePath));
 			} catch (IOException e) {
 				System.err.println("Error processing URL [" + u + "]");
-				unused.add(new Result(databaseName, id, name, score, null, buildAnalyteURL(analyteID), tempPath + id + ".png"));
+				unused.add(new Result(databaseName, id, name, score, null, metaboliteUrl, imagePath));
 			} catch (CDKException e) {
 				System.err.println("Error reading IAtomContainer from InputStream!");
-				unused.add(new Result(databaseName, id, name, score, null, buildAnalyteURL(analyteID), tempPath + id + ".png"));
+				unused.add(new Result(databaseName, id, name, score, null, metaboliteUrl, imagePath));
 			}
 		}
 		
