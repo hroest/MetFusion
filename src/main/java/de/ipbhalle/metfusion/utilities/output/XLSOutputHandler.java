@@ -55,6 +55,11 @@ public class XLSOutputHandler implements IOutputHandler {
 	
 	private final String DEFAULT_ENDING = ".xls";
 
+	private static final String METFUSION = "MetFusion";
+	private String databaseName = "MassBank";	// default database name is MassBank
+	private String fragmenterName =  "MetFrag";	// default fragmener name is MetFrag
+	
+	
 	/**
 	 * Default constructor, uses filename and does not append to this file.
 	 * 
@@ -62,6 +67,24 @@ public class XLSOutputHandler implements IOutputHandler {
 	 */
 	public XLSOutputHandler(String filename) {
 		this.filename = filename.endsWith(DEFAULT_ENDING) ? filename : filename + DEFAULT_ENDING;
+		try {
+			this.workbook = setupWorkbook();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Constructor, uses filename and does not append to this file.
+	 * 
+	 * @param filename - name/path of the file to write
+	 */
+	public XLSOutputHandler(String filename, String databaseName, String fragmenterName) {
+		this.filename = filename.endsWith(DEFAULT_ENDING) ? filename : filename + DEFAULT_ENDING;
+		this.databaseName = databaseName;
+		this.fragmenterName = fragmenterName;
+		
 		try {
 			this.workbook = setupWorkbook();
 		} catch (IOException e) {
@@ -268,7 +291,7 @@ public class XLSOutputHandler implements IOutputHandler {
 //			return false;
 //		}
 		
-		workbook.createSheet("MetFusion", sheetCounter);
+		workbook.createSheet(METFUSION, sheetCounter);
 		WritableSheet sheet = workbook.getSheet(sheetCounter);
 		boolean success = writeSheet(results, sheet);
 		if(success)		// increment sheetCounter only when current sheet was processed successfully
@@ -301,19 +324,19 @@ public class XLSOutputHandler implements IOutputHandler {
 //		}
 		
 		
-		workbook.createSheet("MetFusion", sheetCounter);
+		workbook.createSheet(METFUSION, sheetCounter);
 		WritableSheet sheet = workbook.getSheet(sheetCounter);
 		boolean success = writeSheet(newlyRanked, sheet);
 		if(success)		// increment sheetCounter only when current sheet was processed successfully
 			sheetCounter++;
 		
-		workbook.createSheet("MassBank", sheetCounter);
+		workbook.createSheet(databaseName, sheetCounter);
 		sheet = workbook.getSheet(sheetCounter);
 		success = writeSheet(originalDatabase, sheet);
 		if(success)		// increment sheetCounter only when current sheet was processed successfully
 			sheetCounter++;
 		
-		workbook.createSheet("MetFrag", sheetCounter);
+		workbook.createSheet(fragmenterName, sheetCounter);
 		sheet = workbook.getSheet(sheetCounter);
 		success = writeSheet(originalFragmenter, sheet);
 		if(success)		// increment sheetCounter only when current sheet was processed successfully
@@ -423,5 +446,21 @@ public class XLSOutputHandler implements IOutputHandler {
 	
 	public boolean writeModifiedMatrix(ColorcodedMatrix matrix, String name) {
 		return writeMatrix(matrix, name);
+	}
+
+	public void setDatabaseName(String databaseName) {
+		this.databaseName = databaseName;
+	}
+
+	public String getDatabaseName() {
+		return databaseName;
+	}
+
+	public void setFragmenterName(String fragmenterName) {
+		this.fragmenterName = fragmenterName;
+	}
+
+	public String getFragmenterName() {
+		return fragmenterName;
 	}
 }
