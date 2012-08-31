@@ -327,7 +327,12 @@ public class MetFusionThread implements Runnable {
 		SimilarityMetFusion sm = new SimilarityMetFusion();
 		List<ResultExtGroupBean> clusters = sm.computeScoresCluster(resultingOrder, styleBean);
 		metfusion.setTanimotoClusters(clusters);
-		metfusion.generateOutputResource();
+		
+		// generate XLS output
+		//metfusion.generateOutputResource();
+		metfusion.generateOutputResourceXLSHandler();
+		
+		// enable output tab and result tables
 		metfusion.setShowTable(true);
 		metfusion.setSelectedTab("1");
 		metfusion.setShowResultTable(true);
