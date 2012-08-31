@@ -128,16 +128,17 @@ public class MassBankUtilities {
 	 * 
 	 * @param f - the file containing the MassBank record
 	 * @return an array of Strings, [0] contains the peaklist, [1] stores the exact mass,
-	 * [2] contains the compound name or identifier, [3] contains the ionization (pos/neg) and
-	 * [4] contains the sum formula
+	 * [2] contains the identifier, [3] contains the ionization (pos/neg),
+	 * [4] contains the sum formula and [5] the compound name.
 	 */
 	public String[] getPeaklistFromFile(File f) {
 		StringBuilder sb = new StringBuilder();
-		String[] data = new String[5];
+		String[] data = new String[6];
 		String mass = "";
 		String compound = "";
 		String ion = "";
 		String sumFormula = "";
+		String name = "";
 		boolean gotName = false;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(f));
@@ -161,6 +162,13 @@ public class MassBankUtilities {
 					else if(line.contains("[M-H]-") || line.contains("M-H")) 
 						ion = "neg";
 					else ion = "pos";
+					
+					line = line.substring(line.indexOf(":") + 1);
+					if(line.contains(";")) {
+						String[] temp = line.split(";");
+						name = temp[0].trim();
+					}
+					else name = compound;
 				}
 				
 				if(line.startsWith("CH$FORMULA:")) {
@@ -194,16 +202,17 @@ public class MassBankUtilities {
 			System.err.println("Error parsing file -> " + f.getAbsolutePath());
 			return null;
 		}
-		String result = sb.toString();
-		if(result.endsWith("\n")) {
-			result = result.substring(0, result.length() - 1);
-		}
+		String result = sb.toString().trim();
+//		if(result.endsWith("\n")) {
+//			result = result.substring(0, result.length() - 1);
+//		}
 		
 		data[0] = result;
 		data[1] = mass;
 		data[2] = compound;
 		data[3] = ion;
 		data[4] = sumFormula;
+		data[5] = name;
 		
 		return data;
 	}
