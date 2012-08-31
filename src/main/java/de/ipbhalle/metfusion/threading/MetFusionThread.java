@@ -255,28 +255,44 @@ public class MetFusionThread implements Runnable {
 		ImageGeneratorThread igT = new ImageGeneratorThread(listMetFrag, sessionPath, tempPath);
 		ImageGeneratorThread igT2 = new ImageGeneratorThread(listMassBank, sessionPath, tempPath);
 		
-//		ExecutorService threadExecutor = Executors.newFixedThreadPool(4);
-//        threadExecutor.execute(tiw);
-//        threadExecutor.execute(cmT);
-//        threadExecutor.execute(igT);
-//        threadExecutor.execute(igT2);
-//        threadExecutor.shutdown();
+		threadExecutor = Executors.newFixedThreadPool(4);
+        threadExecutor.execute(tiw);
+        threadExecutor.execute(cmT);
+        threadExecutor.execute(igT);
+        threadExecutor.execute(igT2);
+        threadExecutor.shutdown();
         
-        tiw.run();
-        cmT.run();
-        igT.run();
-        igT2.run();
-        
-        /**
-		 * MetFrag cluster ranks
-		 */
-        while(!tiw.isDone() && !cmT.isDone() && !igT.isDone() && !igT2.isDone()) {
+		//wait until all threads are finished
+		while(!threadExecutor.isTerminated())
+		{
 			try {
-				wait();
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				String errMessage = "Error performing queries.";
+//				metfusion.setShowTable(false);
+//				metfusion.setSelectedTab("1");
+				metfusion.setErrorMessage(errMessage);
+//				genericDatabase.setShowResult(false);
+				
+	            return;
 			}
 		}
+		
+//        tiw.run();
+//        cmT.run();
+//        igT.run();
+//        igT2.run();
+//        
+//        /**
+//		 * MetFrag cluster ranks
+//		 */
+//        while(!tiw.isDone() && !cmT.isDone() && !igT.isDone() && !igT2.isDone()) {
+//			try {
+//				wait();
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+//		}
         steps += 4;
         stepsDonePercent(steps);
         metfusion.setColorMatrix(cmT.getCcm());
