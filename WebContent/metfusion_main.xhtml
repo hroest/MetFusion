@@ -13,6 +13,8 @@
 		href="./xmlhttp/css/rime/rime.css" />
 	<link rel="stylesheet" type="text/css"
 		href="./css/styles.css" />
+	<link rel="shortcut icon" type="image/x-icon"
+		href="images/icons/favicon.ico" />
 </h:head>
 <h:body>
 	<h:form id="form">
@@ -20,6 +22,9 @@
 
 		<div id="header">
 <!--			<ui:include src="/WEB-INF/inc-content/header.xhtml"></ui:include>-->
+<!--			<a href="http://msbi.ipb-halle.de/MetFusion/" title="MetFusion">-->
+<!--				<img alt="MetFusion" class="iceGphImg" id="homelogo" src="images/appLogo.png" style="float: left; border: 0px;" />-->
+<!--			</a>-->
 		</div>
 
 		<div id="top_connect">
@@ -33,7 +38,7 @@
 					<div id="sourceParams" style="border: 1px dashed silver; width: 65%; float: left;">
 					
 					<!-- stacking panel selector for spectral database -->
-					<ice:panelGrid columns="3">
+					<ice:panelGrid columns="3" rendered="false">
 						<ice:outputLabel for="selectSpectralDB" value="Selected Spectral Database:"/>
 						<ice:selectOneMenu id="selectSpectralDB" required="true" value="#{appBean.selectedSpectralDB}" 
 							style="background-color: MintCream;">
@@ -669,12 +674,13 @@
 				    	</ice:panelGroup>
 			    	</div>
 			    	
+			    	<!-- MetFusion parameters -->
 			    	<div id="fusionParams" style=" padding: 0 1em; border: 1px dashed silver; width: 30%; float: right;">
 				    	<ice:panelGroup>
 				    		<ice:outputLabel value="MetFusion Parameters" style="text-decoration: underline;"></ice:outputLabel>
 				    		<br/>
 				    		<ice:panelGrid columns="2" style="margin-left: 10px; margin-right: 10px;">
-				    			<ice:panelGroup id="lblMetFusionCluster" panelTooltip="lblMetFusionClusterTooltip">
+				    			<ice:panelGroup id="lblMetFusionCluster" panelTooltip="lblMetFusionClusterTooltip" rendered="false">
 					    			<ice:outputLabel for="SlctClstr" value="Tanimoto Clustering:" style="line-height:200%"></ice:outputLabel>
 					    			<ice:panelTooltip id="lblMetFusionClusterTooltip">
 		    							<f:facet name="header">
@@ -687,7 +693,8 @@
 		    							</f:facet>
 	    							</ice:panelTooltip>
 					    		</ice:panelGroup>
-								<ice:selectBooleanCheckbox id="SlctClstr" partialSubmit="true" value="#{appBean.useClustering}" disabled="true"/>
+								<ice:selectBooleanCheckbox id="SlctClstr" partialSubmit="true" value="#{appBean.useClustering}" 
+									disabled="true" rendered="false"/>
 		    					
 		    					<ice:panelGroup id="lblMetFusionFilter" panelTooltip="lblMetFusionFilterTooltip">
 					    			<ice:outputLabel for="SlctFltr" value="Filter Unique:" style="line-height:200%"></ice:outputLabel>
