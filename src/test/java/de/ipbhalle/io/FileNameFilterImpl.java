@@ -79,7 +79,9 @@ public class FileNameFilterImpl implements FilenameFilter {
 			return true;
 		}
 		else if(prefix.equals(suffix)) {				// prefix equals suffix - use them as infix
-			if(name.contains(prefix) && !name.contains(not))
+			if(name.contains(prefix) && not.isEmpty())
+				return true;
+			else if(name.contains(prefix) && !name.contains(not))
 				return true;
 			else return false;
 		}
@@ -92,7 +94,9 @@ public class FileNameFilterImpl implements FilenameFilter {
 			else return false;
 		}
 		else if(!prefix.isEmpty() && suffix.isEmpty()) {	// prefix not empty but suffix
-			if(name.startsWith(prefix) && !name.contains(not))
+			if(name.startsWith(prefix) && not.isEmpty())
+				return true;
+			else if(name.startsWith(prefix) && !name.contains(not))
 				return true;
 			else return false;
 		}
