@@ -37,13 +37,13 @@ public class KEGGvsMetFusion {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		boolean createfiles = false;
-		boolean evalute = true;
+		boolean createfiles = true;
+		boolean evalute = false;
 		boolean uniqueOnly = true;
 		
 		String spectraPath = "/home/mgerlich/Datasets/allSpectra/";
 		String outDir = "/home/mgerlich/projects/KEGG_vs_Massbank/";
-		String outDirunique = "/home/mgerlich/projects/KEGG_vs_Massbank/unique/";
+		String outDirunique = "/home/mgerlich/projects/KEGG_vs_Massbank/unique_newrun/";
 		String dir = "";
 		if(uniqueOnly)
 			dir = outDirunique;
@@ -72,7 +72,7 @@ public class KEGGvsMetFusion {
 		String ending = ".sh";
 		
 		String output = "java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ "
-			+ "/home/mgerlich/projects/metfusion_batch_testdata.jar -record " + f.getAbsolutePath() + " -out " + outDir;
+			+ "/home/mgerlich/projects/metfusion_batch_latest.jar -record " + f.getAbsolutePath() + " -out " + outDir  + " -unique";
 		
 		try {
 			FileWriter fw = new FileWriter(new File(outDir, fileName + ending));
