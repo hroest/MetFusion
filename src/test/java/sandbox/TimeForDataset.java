@@ -29,7 +29,7 @@ public class TimeForDataset {
 	public static void main(String[] args) throws IOException {
 		String logDir = "/home/mgerlich/SGE/output";
 		File dir = new File(logDir);
-		File[] list = dir.listFiles(new FileNameFilterImpl("sge_metfusion", ""));
+		File[] list = dir.listFiles(new FileNameFilterImpl("uniqueFilter", ""));
 		
 		FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_paper/runtime.txt"));
 		// write header
