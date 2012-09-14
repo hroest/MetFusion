@@ -16,16 +16,17 @@ public class GenerateArrayJob {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		//File spectraDir = new File("/home/mgerlich/Datasets/allSpectra/");
+		File spectraDir = new File("/home/mgerlich/Datasets/allSpectra/");
 		//File spectraDir = new File("/home/mgerlich/Datasets/Uni_Jena/recdata/");
-		File spectraDir = new File("/home/mgerlich/Datasets/Pesticides_new/Pesticides_111028/recdata/");
+		//File spectraDir = new File("/home/mgerlich/Datasets/Pesticides_new/Pesticides_111028/recdata/");
 		File[] files = spectraDir.listFiles();
 		Arrays.sort(files);
 		
 		// the output directory of the grid engine runs
 		//String outputDir = "/home/mgerlich/projects/metfusion_CE_spectra/";
 		//String outputDir = "/home/mgerlich/projects/eval_metfusion_ECFP/exactMass_noFilter/";
-		String outputDir = "/home/mgerlich/projects/metfusion_pesticide_spectra/";
+		//String outputDir = "/home/mgerlich/projects/metfusion_pesticide_spectra/";
+		String outputDir = "/home/mgerlich/projects/eval_metfusion_uniqueFilter_14092012/";
 
 		// the directory in which the jar file is located
 		String projectDir = "/home/mgerlich/projects/";
@@ -33,7 +34,7 @@ public class GenerateArrayJob {
 		// the directory where the shell scripts are stored
 		//String workDir = "/home/mgerlich/projects/eval_metfusion_ECFP/";
 		String workDir = projectDir;
-		String prefix = "pesticide";
+		String prefix = "uniqueFilter";
 		File jobInfo = new File(workDir, prefix + "_sge_metfusion.sh");
 		jobInfo.createNewFile();
 		jobInfo.setExecutable(true);
@@ -58,7 +59,7 @@ public class GenerateArrayJob {
 		
 		// adjust according to number of parameters
 		fw.write("awk \"NR==$SGE_TASK_ID\" " + paramFile + " | while read A B; do echo $A/$B\n");
-		fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + " -record $A -out $B\n");
+		fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + " -record $A -out $B -unique\n");
 		//fw.write("EOF\n");
 		fw.write("done");
 		
