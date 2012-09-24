@@ -257,7 +257,7 @@
 		    				<br/>
 		    				<ice:panelGroup style="background-color: Gold; border: 1px solid Orange; margin: 10px;">
 		    					<ice:outputText value="Please note that GMD is queried for derivatized analytes, whereas the results presented here
-		    					are the corresponding (non-derivatized) metabolites of these analytes!" style="font-weight: bold;"/>
+		    					are the corresponding (non-derivatized) metabolites of these analytes!" />
 		    				</ice:panelGroup>
 					    	<ice:panelGrid id="gmdParameters" columns="3" style="margin-left: 10px; margin-right: 10px;">
 					    	
@@ -895,6 +895,11 @@
 							fileName="#{appBean.outputResource.resourceName}" image="/images/icons/xls.png" rendered="#{appBean.createdResource}"/>
 						</ice:panelGrid>
     				</ice:panelGroup>
+    				
+    				<ice:panelGroup style="background-color: MistyRose; border: 1px solid DarkRed;"
+							rendered="#{appBean.errorMessage.length() > 0}">
+    					<ice:outputText value="#{appBean.errorMessage}" style="margin: 10px;"/>
+    				</ice:panelGroup>
       						
 					<ice:panelStack selectedPanel="#{appBean.selectedResult}">
 						<ice:panelGroup id="cluster">
@@ -1481,6 +1486,24 @@
 			    </ice:panelTab>
 			    
 			    <ice:panelTab label="Information">
+			    	<ice:panelGrid columns="4">
+	    				<ice:outputLink value="http://msbi.ipb-halle.de/MetFusion/" title="MetFusion" 
+	    					style="margin: 20px;" target="_blank">
+							<img alt="MetFusion" class="iceGphImg" id="homelogo" src="images/appLogo.png"/>
+						</ice:outputLink>
+						<ice:outputLink value="http://msbi.ipb-halle.de/MetFrag/" title="MetFrag" 
+							style="margin: 20px;" target="_blank">
+							<img alt="MetFrag" class="iceGphImg" id="homelogoMetFrag" src="images/metfrag_logo.png"/>
+						</ice:outputLink>
+						<ice:outputLink value="http://msbi.ipb-halle.de/MassBank/" title="MassBank" 
+							style="margin: 20px;" target="_blank">
+							<img alt="MassBank" class="iceGphImg" id="homelogoMassBank" src="images/massbank_logo.png"/>
+						</ice:outputLink>
+						<ice:outputLink value="http://metlin.scripps.edu/" title="Metlin" 
+							style="margin: 20px;" target="_blank">
+							<img alt="Metlin" class="iceGphImg" id="homelogoMetlin" src="images/metlin_logo.png"/>
+						</ice:outputLink>
+					</ice:panelGrid>
 			    	<ice:panelGroup>
 			    		<ice:panelCollapsible expanded="true">
 			    			<f:facet name="header">
@@ -1503,7 +1526,14 @@
 								candidates. This approach shows an improved rank of the correct candidate compared to MetFrag. 
 								<hr/>
 								<b>News:</b><br/>
-								
+								<ul>
+								 <li>September 2012: MetFusion provides the option to filter the result lists of MetFrag and MassBank and 
+								 	 leave out duplicates. This step improves the ranking, but is optional. MassBank elements not used are
+								 	 available for further inspection in the <em>Unused Database Entries</em> list.
+								 </li>
+								 <li>August 2012: Added Metlin database as another source of high-quality MS/MS spectra.
+								 </li>
+								</ul> 
 			    			</ice:panelGroup>
 			    		</ice:panelCollapsible>
 			    		
