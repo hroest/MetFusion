@@ -6,7 +6,6 @@ package sandbox;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -31,12 +30,11 @@ public class TimeForDataset {
 		File dir = new File(logDir);
 		File[] list = dir.listFiles(new FileNameFilterImpl("uniqueFilter", ""));
 		
-		FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_paper/runtime.txt"));
+		FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_paper/runtime_unique.txt"));
 		// write header
 		resultFile.write("Accession\tMassBank\tMetFrag\tRuntime (sec)\n");
 		
 		for (int i = 0; i < list.length; i++) {
-		//for (int i = 0; i < 1; i++) {
 			try {
 				String[] info = getLogInfo(list[i]);
 				resultFile.write(info[0] + "\t" + info[1] + "\t" + info[2] + "\t" + info[3] + "\n");
