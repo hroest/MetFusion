@@ -125,7 +125,7 @@ public class MetFusionThread implements Runnable {
 //		}
 		
 		if(genericDatabase.getResults() == null || genericDatabase.getResults().size() == 0) {
-        	String errMessage = "Peak(s) not found in " + databaseName + " - check the settings and try again.";
+        	String errMessage = "Peak(s) not found in " + databaseName + " - please check the settings and try again.";
             System.err.println(errMessage);
             FacesMessage curentMessage = new FacesMessage(errMessage, errMessage);
             curentMessage.setSeverity(FacesMessage.SEVERITY_WARN);
@@ -137,6 +137,8 @@ public class MetFusionThread implements Runnable {
     		
     		metfusion.setShowTable(true);
 			metfusion.setSelectedTab(numResultTab);
+			metfusion.setSelectedResult("fragmenter");
+			metfusion.setShowResultsDatabase(false);
 			metfusion.setErrorMessage(errMessage);
 			genericDatabase.setShowResult(false);
 			
@@ -149,7 +151,7 @@ public class MetFusionThread implements Runnable {
         }
         else {      // abort run and return
             //String errMessage = "EMPTY MassBank result! - Check settings.";
-        	String errMessage = "Peak(s) not found in " + databaseName + " - check the settings and try again.";
+        	String errMessage = "Peak(s) not found in " + databaseName + " - please check the settings and try again.";
             //this.errorMessage = errMessage;
             System.err.println(errMessage);
             FacesMessage curentMessage = new FacesMessage(errMessage, errMessage);
@@ -161,6 +163,8 @@ public class MetFusionThread implements Runnable {
     		
     		metfusion.setShowTable(true);
 			metfusion.setSelectedTab(numResultTab);
+			metfusion.setSelectedResult("fragmenter");
+			metfusion.setShowResultsDatabase(false);
 			metfusion.setErrorMessage(errMessage);
 			genericDatabase.setShowResult(false);
 			
@@ -168,7 +172,7 @@ public class MetFusionThread implements Runnable {
         }
                 
         if(metfrag.getResults() == null || metfrag.getResults().size() == 0) {
-        	String errMessage = "EMPTY MetFrag result! - Check settings.";
+        	String errMessage = "EMPTY MetFrag result! - please check settings.";
         	//this.errorMessage = errMessage;
             System.err.println(errMessage);
             FacesMessage curentMessage = new FacesMessage(errMessage, errMessage);
@@ -185,6 +189,7 @@ public class MetFusionThread implements Runnable {
 			
     		metfusion.setShowTable(true);
 			metfusion.setSelectedTab(numResultTab);
+			metfusion.setSelectedResult("database");
 			metfusion.setErrorMessage(errMessage);
 			metfusion.setShowResultsFragmenter(false);
 			metfrag.setShowResult(false);
@@ -196,7 +201,7 @@ public class MetFusionThread implements Runnable {
         	metfrag.setShowResult(true);
         }
         else {      // abort run and return
-            String errMessage = "EMPTY MetFrag result! - Check settings.";
+            String errMessage = "EMPTY MetFrag result! - please check settings.";
             //this.errorMessage = errMessage;
             System.err.println(errMessage);
             FacesMessage curentMessage = new FacesMessage(errMessage, errMessage);
@@ -210,6 +215,7 @@ public class MetFusionThread implements Runnable {
 			
 			metfusion.setShowTable(true);
 			metfusion.setSelectedTab(numResultTab);
+			metfusion.setSelectedResult("database");
 			metfusion.setErrorMessage(errMessage);
 			metfusion.setShowResultsFragmenter(false);
 			metfrag.setShowResult(false);
@@ -231,9 +237,9 @@ public class MetFusionThread implements Runnable {
 			String errMessage = "An error occured!";
         	
 			if(listMassBank.isEmpty())
-				errMessage = "Peak(s) not found in " + databaseName + " - check the settings and try again.";
+				errMessage = "Peak(s) not found in " + databaseName + " - please check the settings and try again.";
 			if(listMetFrag.isEmpty())
-				errMessage = "EMPTY MetFrag result! - Check settings.";
+				errMessage = "EMPTY MetFrag result! - please check settings.";
 			
 			stepsDonePercent(totalSteps);
 			setActive(Boolean.FALSE);
@@ -272,6 +278,16 @@ public class MetFusionThread implements Runnable {
 //				metfusion.setShowTable(false);
 //				metfusion.setSelectedTab("1");
 				metfusion.setErrorMessage(errMessage);
+				metfusion.setEnableStart(Boolean.TRUE);
+	    		stepsDonePercent(totalSteps);
+				setActive(Boolean.FALSE);
+				
+				metfusion.setShowTable(false);
+				metfusion.setSelectedTab(numResultTab);
+				metfusion.setSelectedResult("cluster");
+				metfusion.setShowResultsFragmenter(false);
+				metfrag.setShowResult(false);
+				genericDatabase.setShowResult(false);
 //				genericDatabase.setShowResult(false);
 				
 	            return;
@@ -335,6 +351,7 @@ public class MetFusionThread implements Runnable {
 		// enable output tab and result tables
 		metfusion.setShowTable(true);
 		metfusion.setSelectedTab("1");
+		metfusion.setSelectedResult("cluster");
 		metfusion.setShowResultTable(true);
 		metfusion.setShowClusterResults(true);
 		
