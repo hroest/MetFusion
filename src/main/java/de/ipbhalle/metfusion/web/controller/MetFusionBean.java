@@ -148,7 +148,7 @@ public class MetFusionBean implements Serializable {
 	 * boolean indicating whether candidates should be filtered according to their InChI-Key 1 (true)
 	 * or not (false). This filter step would reduce the list of candidates by removing stereoisomers.
 	 */
-	private boolean useInChIFiltering = false;
+	private boolean useInChIFiltering = true;
 	
 	private String selectedResult = "cluster";	// allows switching of panels in panelStacking of ICEFaces
 	// other values are "fragmenter", "database", "list"
@@ -271,6 +271,7 @@ public class MetFusionBean implements Serializable {
     	this.percentProgressDatabase = 0;
     	this.percentProgressFragmenter = 0;
     	this.percentProgressGlobal = 0;
+    	this.setCreatedResource(false);
     	
     	setShowClusterResults(Boolean.FALSE);
     	mblb.setSearchProgress(0);
