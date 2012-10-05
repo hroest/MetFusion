@@ -7,10 +7,7 @@ package de.ipbhalle.metfusion.main;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-
-import sun.awt.X11.Screen;
 
 import de.ipbhalle.io.FileNameFilterImpl;
 import de.ipbhalle.metfusion.wrapper.Result;
