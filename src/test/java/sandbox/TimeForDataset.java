@@ -28,9 +28,9 @@ public class TimeForDataset {
 	public static void main(String[] args) throws IOException {
 		String logDir = "/home/mgerlich/SGE/output";
 		File dir = new File(logDir);
-		File[] list = dir.listFiles(new FileNameFilterImpl("uniqueFilter", ""));
+		File[] list = dir.listFiles(new FileNameFilterImpl("KEGG", ""));
 		
-		FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_paper/runtime_unique.txt"));
+		FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_paper/runtime_kegg.txt"));
 		// write header
 		resultFile.write("Accession\tMassBank\tMetFrag\tRuntime (sec)\n");
 		
