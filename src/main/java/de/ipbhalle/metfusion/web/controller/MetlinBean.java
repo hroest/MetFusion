@@ -344,7 +344,7 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
             int tolPrec = 20;
             float prec = 398.17025f;
             SpectrumMatchRequest parameters = new SpectrumMatchRequest(token, specMass, intensity, mode, ce, tolMS, tolPrec, prec);
-            SpectrumLineInfo resultsData[]= serv.spectrumMatch(parameters);
+            SpectrumLineInfo resultsData[] = serv.spectrumMatch(parameters);
             
             List<String> urls = new ArrayList<String>();
             
