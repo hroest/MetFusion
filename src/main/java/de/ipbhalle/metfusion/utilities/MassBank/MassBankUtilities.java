@@ -1239,7 +1239,7 @@ public class MassBankUtilities {
 		// Generate factory - throws CDKException if native code does not load
 		InChIGeneratorFactory factory = InChIGeneratorFactory.getInstance();
 		// Get InChIToStructure
-		InChIToStructure intostruct = factory.getInChIToStructure(inchi, null);
+		InChIToStructure intostruct = factory.getInChIToStructure(inchi, DefaultChemObjectBuilder.getInstance());
 		
 		INCHI_RET ret = intostruct.getReturnStatus();
 		if (ret == INCHI_RET.WARNING) {
