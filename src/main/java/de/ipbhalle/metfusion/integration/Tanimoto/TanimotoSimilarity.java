@@ -148,6 +148,7 @@ public class TanimotoSimilarity implements ISimilarity, Runnable {
 	 * 
 	 * @param primaries - the result list of primaries from a spectral DB 
 	 * @param candidates - the result list of candidates from a fragmenter
+	 * @param useECFP - indicates the usage of ChemAxon fingerprints
 	 */
 	public TanimotoSimilarity(List<Result> primaries, List<Result> candidates, boolean useECFP) {
 		this.setData(new double[candidates.size()][primaries.size()]);
