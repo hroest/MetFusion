@@ -427,6 +427,7 @@ public class MassBankBatchMode implements Runnable {
                     if(useChemAxon) {
 	                    File f = new File(basePath, id + ".mol");	// path to mol file
 	                    ECFP ecfp = cau.generateECFPFromMol(f);		// generate ECFP from mol file
+	                    r.setBitset(ecfp.toBitSet());				// set BitSet from ECFP
 	                    r.setEcfp(ecfp);							// store ECFP in result
                     }
                     //results.add(r);
