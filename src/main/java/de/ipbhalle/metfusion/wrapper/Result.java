@@ -11,6 +11,7 @@ import java.util.BitSet;
 import java.util.Locale;
 
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.fingerprint.ExtendedFingerprinter;
 import org.openscience.cdk.fingerprint.Fingerprinter;
 import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
@@ -227,6 +228,7 @@ public class Result {
 		this.scoreShort = r.getScoreShort();
 		this.exactMass = r.getExactMass();
 		this.bitset = r.getBitset();
+		this.ecfp = r.getEcfp();
 	}
 	
 	/**
@@ -304,6 +306,7 @@ public class Result {
 	private void calculateBitSet() {
 		if(this.mol != null) {
 			Fingerprinter fp = new Fingerprinter();	// generate new FingerPrinter
+			//ExtendedFingerprinter fp = new ExtendedFingerprinter();	// generate new FingerPrinter
 			try {
 				this.bitset = fp.getFingerprint(mol);	// generate bitset 
 			} catch (CDKException e) {
