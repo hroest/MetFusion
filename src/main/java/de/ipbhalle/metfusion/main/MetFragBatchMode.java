@@ -486,6 +486,7 @@ public class MetFragBatchMode implements Runnable {
 					if(useChemAxon) {
 						ECFP ecfp = cau.generateECFPFromName(smiles);
 						r.setEcfp(ecfp);
+						r.setBitset(ecfp.toBitSet());
 					}
 					
 					results.add(r);
