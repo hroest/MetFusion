@@ -916,8 +916,7 @@ public class MassBankUtilities {
 	/**
 	 * Retrieve links directly from a record file.
 	 * 
-	 * @param id the id
-	 * @param site the site
+	 * @param f the MassBank record file
 	 * 
 	 * @return the map< string, string>
 	 */
