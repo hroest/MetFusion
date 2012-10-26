@@ -149,7 +149,7 @@ public class ChemAxonUtilities {
 		InputStream is = getClass().getResourceAsStream(config);
 		try {
 			String xml = IOUtils.toString(is, "UTF-8");
-			paramConfig = new ECFPParameters(xml); // generate FCFP, default fcfp.xml
+			paramConfig = new ECFPParameters(xml); 	// parameter config
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -217,7 +217,7 @@ public class ChemAxonUtilities {
 	 * Generates an ECFP with the specified properties from a mol file.
 	 * 
 	 * @param f - the file pointing to a mol file
-	 * @return the ECFP
+	 * @return the ECFP, or null if the generation failed.
 	 */
 	public ECFP generateECFPFromMol(File f) {
 		ECFP ecfp = new ECFP(paramConfig);
@@ -232,10 +232,13 @@ public class ChemAxonUtilities {
 			ecfp.generate(m);
 		} catch (MolFormatException e) {
 			System.err.println("Unregular format for file [" + f.getAbsolutePath() + "]");
+			return null;
 		} catch (IOException e) {
 			System.err.println("Error reading from file [" + f.getAbsolutePath() + "]");
+			return null;
 		} catch (MDGeneratorException e) {
 			System.err.println("Error generating ECFP for molecule [" + f.getAbsolutePath() + "]");
+			return null;
 		}
 
 		return ecfp;
@@ -245,7 +248,7 @@ public class ChemAxonUtilities {
 	 * Generates an ECFP from a textual identifier (name, <b>SMILES</b>, InChI).
 	 * 
 	 * @param identifier - the textual identifier used for generating the ECFP
-	 * @return the ECFP
+	 * @return the ECFP, or null if the generation failed.
 	 */
 	public ECFP generateECFPFromName(String identifier) {
 		ECFP ecfp = new ECFP(paramConfig);
@@ -259,14 +262,16 @@ public class ChemAxonUtilities {
 			ecfp.generate(m);
 		} catch (MolFormatException e) {
 			System.err.println("Unregular format for identifier [" + identifier + "]");
+			return null;
 		} catch (MDGeneratorException e) {
 			System.err.println("Error generating ECFP for identifier [" + identifier + "]");
+			return null;
 		}
 		
 		return ecfp;
 	}
 	
-	public void generateDescriptorSet() throws MDGeneratorException, IOException {
+	private void generateDescriptorSet() throws MDGeneratorException, IOException {
 		GenerateMD generator = new GenerateMD(2);
 		generator.setInput("molecules.sdf");
 		generator.setSDfileInput(true);
