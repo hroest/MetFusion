@@ -108,6 +108,7 @@ public class FeedbackBean implements Validator {
     	this.feedbackAdminRendered = false;
     	this.loginError = "";
     	this.authorized = false;
+    	this.adminNote = "";
     	this.providedName = "";
     	this.providedPass = "";
     	FacesContext.getCurrentInstance().renderResponse(); }
