@@ -96,26 +96,35 @@ public class MetFusionThreadBatchMode implements Runnable {
 		long time1 = System.currentTimeMillis();
 		setActive(Boolean.TRUE);
 		
-//		ExecutorService threadExecutor = Executors.newFixedThreadPool(2);
-//		threadExecutor.execute(massbank);
-//		threadExecutor.execute(metfrag);
-//		threadExecutor.shutdown();
-//		while(!threadExecutor.isTerminated()) {
-//			try {
-//				Thread.sleep(1000);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
-//		}
-		massbank.run();
-		metfrag.run();
-		while(!massbank.isDone() && !metfrag.isDone()) {
+		/**
+		 * threading via Threads and ThreadExecutor
+		 */
+		// create new Threads from Runnable-implementing classes
+		Thread r1 = new Thread(massbank);
+		Thread r2 = new Thread(metfrag);
+		ExecutorService threadExecutor = Executors.newFixedThreadPool(4);
+		// execute the threads in parallel
+		threadExecutor.execute(r1);
+		threadExecutor.execute(r2);
+		threadExecutor.shutdown();
+		//wait until all threads are finished
+		while(!threadExecutor.isTerminated())
+		{
 			try {
-				wait();
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				r1.interrupt();
+				r2.interrupt();
+				String errMessage = "Error performing queries.";
+				System.err.println(errMessage);
+				System.err.println("Aborting run.");
+				
+	            return;
 			}
 		}
+		/**
+		 * threading via runnable()
+		 */
 		
 		if(massbank.getResults() == null || massbank.getResults().size() == 0) {
         	String errMessage = "Peak(s) not found in MassBank - check the settings and try again.";
