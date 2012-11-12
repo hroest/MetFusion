@@ -225,6 +225,13 @@ public class TanimotoSimilarity implements ISimilarity, Runnable {
 	private void calculateSimilarityECFP() {
 		for (int i = 0; i < data.length; i++) {
 			for (int j = 0; j < data[i].length; j++) {
+//				float sim = 0.0f;
+//				if(primaries.get(j).getEcfp() == null || candidates.get(i).getEcfp() == null)
+//					sim = 0.0f;
+//				else {
+//					sim = primaries.get(j).getEcfp().getTanimoto(candidates.get(i).getEcfp());	// ECFP Tanimoto computes dissimilarity!
+//					sim = 1f - sim;	// similarity = 1 - dissimilarity
+//				}
 				float sim = primaries.get(j).getEcfp().getTanimoto(candidates.get(i).getEcfp());	// ECFP Tanimoto computes dissimilarity!
 				sim = 1f - sim;	// similarity = 1 - dissimilarity
 				data[i][j] = Double.valueOf(sim);
