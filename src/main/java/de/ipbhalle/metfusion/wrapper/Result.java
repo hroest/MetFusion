@@ -222,13 +222,28 @@ public class Result {
 	}
 	
 	public Result(ResultExt r) {
-		this(r.getPort(), r.getId(), r.getName(), r.getScore(), r.getMol(), r.getUrl(), r.getImagePath());
+		//this(r.getPort(), r.getId(), r.getName(), r.getScore(), r.getMol(), r.getUrl(), r.getImagePath());
+		this.port = r.getPort();
+		this.id = r.getId();
+		this.name = r.getName();
+		this.score = r.getScore();
+		this.mol = r.getMol();
+		this.score = r.getScore();
+		this.scoreShort = r.getScoreShort();
+		this.tiedRank = 1;
+		
+		this.inchi = r.getInchi();
+		this.inchikey = r.getInchikey();
+		this.smiles = r.getSmiles();
+		
 		this.tiedRank = r.getTiedRank();
 		this.sumFormula = r.getSumFormula();
-		this.scoreShort = r.getScoreShort();
 		this.exactMass = r.getExactMass();
 		this.bitset = r.getBitset();
 		this.ecfp = r.getEcfp();
+		
+		this.imagePath = r.getImagePath();
+		this.url = r.getUrl();
 	}
 	
 	/**
@@ -304,6 +319,9 @@ public class Result {
 	 * Calculate the bitset for the AtomContainer.
 	 */
 	private void calculateBitSet() {
+		if(this.ecfp != null)	// if ChemAxon fingerprinter was used
+			return;				// rely on stored Bitset !!! and not on CDK generated one
+		
 		if(this.mol != null) {
 			Fingerprinter fp = new Fingerprinter();	// generate new FingerPrinter
 			//ExtendedFingerprinter fp = new ExtendedFingerprinter();	// generate new FingerPrinter
