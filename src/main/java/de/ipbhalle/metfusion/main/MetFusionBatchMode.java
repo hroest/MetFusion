@@ -30,9 +30,9 @@ public class MetFusionBatchMode {
 
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
-	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, fp};
+	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, fp, fragOffline};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
-	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, checkUNIQUE, checkFP;
+	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, checkUNIQUE, checkFP, checkFRAGOFFLINE;
 	private Map<ARGUMENTS, String> settings;
 	private final static String DEFAULT_SERVER = "http://www.massbank.jp/";
 	
@@ -94,6 +94,7 @@ public class MetFusionBatchMode {
 			System.out.println("optionally: -server http://www.your-massbank.server/");
 			System.out.println("optionally: -cache /path/to/cache");
 			System.out.println("optionally: -unique\t\t(filter out duplicates)");
+			System.out.println("optionally: -fragOffline\t\t(generate fragments in files rather than in memory - recommended for large datasets)");
 			System.out.print("optionally: -fp ");
 			for (Fingerprints fp : fps) {
 				System.out.print("[" + fp + "] ");
@@ -107,6 +108,7 @@ public class MetFusionBatchMode {
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -proxy");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -proxy -unique");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -fp ECFP");
+			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -fragOffline");
 			
 			return success;
 		}
@@ -126,7 +128,7 @@ public class MetFusionBatchMode {
 				if(temp.equals(ARGUMENTS.format.toString()))
 					this.checkFORMAT = Boolean.TRUE;
 				if(temp.equals(ARGUMENTS.proxy.toString())) {
-					this.checkPROXY = Boolean.TRUE;	// proxy does not have an additional property, mark as set/unset and continue
+					this.checkPROXY = Boolean.TRUE;		// proxy does not have an additional property, mark as set/unset and continue
 					continue;
 				}
 				if(temp.equals(ARGUMENTS.record.toString()))
@@ -136,11 +138,15 @@ public class MetFusionBatchMode {
 				if(temp.equals(ARGUMENTS.cache.toString()))
 					this.checkCACHE = Boolean.TRUE;
 				if(temp.equals(ARGUMENTS.unique.toString())) {
-					this.checkUNIQUE = Boolean.TRUE;	// proxy does not have an additional property, mark as set/unset and continue
+					this.checkUNIQUE = Boolean.TRUE;	// unique does not have an additional property, mark as set/unset and continue
 					continue;
 				}
 				if(temp.equals(ARGUMENTS.fp.toString()))
 					this.checkFP = Boolean.TRUE;
+				if(temp.equals(ARGUMENTS.fragOffline.toString())) {
+					this.checkFRAGOFFLINE = Boolean.TRUE;	// fragOffline does not have an additional property, mark as set/unset and continue
+					continue;
+				}
 				
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
 				i++;	// skip value, iterate over new argument
@@ -272,13 +278,18 @@ public class MetFusionBatchMode {
 			metfragbm.setUniqueInchi(Boolean.TRUE);
 			mbbm.setUniqueInchi(Boolean.TRUE);
 		}
-			
+		
+		if(mfbm.checkFRAGOFFLINE) {
+			metfragbm.setGenerateFragmentsInMemory(Boolean.FALSE);
+		}
+		
 		// sdf path
-		if(mfbm.isCheckSDF()) {
+		if(mfbm.isCheckSDF()) {	// mfbm.checkSDF
 			String sdfFile = mfbm.settings.get(ARGUMENTS.sdf);
 			File sdf = new File(sdfFile);
 			List<IAtomContainer> compounds = mfbm.batchFileHandler.consumeSDF(sdf.getAbsolutePath());
 			System.out.println("#compounds from sdf file -> " + compounds.size());
+			metfragbm.setSelectedDB("sdf");
 			metfragbm.setSelectedSDF(sdf.getAbsolutePath());
 		}
 		
