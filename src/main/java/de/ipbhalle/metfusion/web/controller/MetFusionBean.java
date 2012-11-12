@@ -199,6 +199,8 @@ public class MetFusionBean implements Serializable {
     
     private String navigate = "";
     
+    private PropertiesBean props;
+    
     public MetFusionBean() {
 //		setMblb(new MassBankLookupBean());
 //		setMfb(new MetFragBean());
@@ -242,6 +244,9 @@ public class MetFusionBean implements Serializable {
 		this.threads = runtime.availableProcessors();
 		this.threadExecutor = Executors.newFixedThreadPool(threads);
 		System.out.println("threads -> " + threads);
+		
+		// setup properties bean
+		this.props = (PropertiesBean) ec.getApplicationMap().get("propertiesBean");
 		
 		// setup selector for spectral db
 		setupAvailableSpectralDBs();
@@ -967,6 +972,7 @@ public class MetFusionBean implements Serializable {
 		this.colorMatrix = null;
 		this.colorMatrixAfter = null;
 		this.showTable = false;
+		this.showResultTable = false;
 		//this.useClustering = false;
 		
 		this.mblb.setOriginalResults(null);
@@ -1330,6 +1336,14 @@ public class MetFusionBean implements Serializable {
 
 	public GMDBean getGmdb() {
 		return gmdb;
+	}
+
+	public void setProps(PropertiesBean props) {
+		this.props = props;
+	}
+
+	public PropertiesBean getProps() {
+		return props;
 	}
 
 }
