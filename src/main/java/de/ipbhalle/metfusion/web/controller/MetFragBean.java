@@ -5,6 +5,9 @@
  */
 package de.ipbhalle.metfusion.web.controller;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -13,16 +16,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
+import javax.el.ELContext;
+import javax.el.ELResolver;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIInput;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpSession;
 
 import org.icefaces.component.fileentry.FileEntry;
 import org.icefaces.component.fileentry.FileEntryEvent;
@@ -32,19 +41,25 @@ import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
+import chemaxon.descriptors.ECFP;
+
 import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPISoapProxy;
 
+import de.ipbhalle.MassBank.MassBankLookupBean;
 import de.ipbhalle.enumerations.Adducts;
+import de.ipbhalle.enumerations.Fingerprints;
 import de.ipbhalle.metfrag.keggWebservice.KeggWebservice;
 import de.ipbhalle.metfrag.main.MetFrag;
 import de.ipbhalle.metfrag.main.MetFragResult;
 import de.ipbhalle.metfrag.molDatabase.PubChemLocal;
 import de.ipbhalle.metfrag.spectrum.WrapperSpectrum;
+import de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities;
 import de.ipbhalle.metfusion.wrapper.Result;
 
 
@@ -237,8 +252,6 @@ public class MetFragBean implements Runnable, Serializable {
     
     public final String DEFAULT_IMAGE_ENDING = ".png";
     
-	private final String molPath = "/home/mgerlich/workspace-3.5/MetFusion2/testdata/Hill/mol/";
-	
 	private String sessionPath;
 	private String sessionID = "";
 	
@@ -251,6 +264,11 @@ public class MetFragBean implements Runnable, Serializable {
 	
 	private boolean viaFormula = Boolean.FALSE;
 	
+	private String fileSep = System.getProperty("file.separator");
+	
+	private PropertiesBean props;
+	
+	
 	public MetFragBean() {
 		//t = new Thread(this, "metfrag");
 		fillLinkMap();
@@ -259,12 +277,15 @@ public class MetFragBean implements Runnable, Serializable {
 		this.selectedAdduct = (Double) this.adductList.get(0).getValue();	// set to neutral adduct
 		this.exactMass = this.selectedAdduct + this.parentIon;
 		
-		//FacesContext fc = FacesContext.getCurrentInstance();
+		FacesContext fc = FacesContext.getCurrentInstance();
 //		ELResolver el = fc.getApplication().getELResolver();
 //        ELContext elc = fc.getELContext();
         //HttpSession session = (HttpSession) fc.getExternalContext().getSession(false);
 		//String sessionString = session.getId();
 		//System.out.println("MetFragBean sessionID -> " + sessionString);
+		
+		ExternalContext ec = fc.getExternalContext();
+		this.setProps((PropertiesBean) ec.getApplicationMap().get("propertiesBean"));
 	}
 
 	private String formatLandingURL(String peaks, String database, String id, double mass, String formula) {
@@ -391,28 +412,10 @@ public class MetFragBean implements Runnable, Serializable {
 		
 		WrapperSpectrum spectrum = new WrapperSpectrum(inputSpectrum, mode, exactMass, true);
 		
-//		FacesContext fc = FacesContext.getCurrentInstance();
-//	    HttpSession session = (HttpSession) fc.getExternalContext().getSession(false);
-//	    String sessionString = session.getId();
-//	    ServletContext scontext = (ServletContext) fc.getExternalContext().getContext();
-//	    String webRoot = scontext.getRealPath(sep);
-	    
-		/**sessionPath
-		 * TODO: auskommentiert für Evaluationsläufe
-		 */
 		String currentFolder = sep + "temp" + sep + sessionID + sep;
 		//getSessionPath();	//webRoot + sep + "temp" + sep + sessionString + sep;
 		System.out.println("currentFolder -> " + currentFolder);
 		String tempPath = currentFolder;	//sep + "temp" + sep;
-//		
-//	    new File(currentFolder).mkdirs();
-//	    StructureToFile stf = null;
-//		try {
-//			stf = new StructureToFile(200, 200, currentFolder, false, false);
-//		} catch (Exception e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
 		
 		String spectrumURLEncoded = "";
 		try {
@@ -423,6 +426,13 @@ public class MetFragBean implements Runnable, Serializable {
 		
 		// short decimal format for score and/or exact mass
 		DecimalFormat threeDForm = new DecimalFormat("#.###");
+		
+		// load required property values
+		String jdbc = "", username = "", password = "", token = "";
+		jdbc = props.getProperty("mfjdbc");
+		username = props.getProperty("mfusername");
+		password = props.getProperty("mfpassword");
+		token = props.getProperty("token");
 		
 		try {
 			String database = getSelectedDB();
@@ -444,14 +454,6 @@ public class MetFragBean implements Runnable, Serializable {
 			boolean uniqueInchi = isUniqueInchi();
 			boolean onlyCHNOPS = isOnlyCHNOPS();
 			
-			String jdbc, username, password = "";
-			jdbc = "jdbc:mysql://rdbms/MetFrag";
-			username = "swolf";
-			password = "populusromanus";
-//			List<MetFragResult> result = MetFrag.startConvenience(database, databaseID, molecularFormula, exactMass, 
-//					spectrum, useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck, 
-//					breakAromaticRings, treeDepth, hydrogenTest, neutralLossInEveryLayer,
-//					bondEnergyScoring, breakOnlySelectedBonds, limit, false);
 			List<MetFragResult> result = new ArrayList<MetFragResult>();
 			if(database.equals(dbSDF))
 				result = MetFrag.startConvenienceSDF(spectrum, useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck,
@@ -460,7 +462,8 @@ public class MetFragBean implements Runnable, Serializable {
 			else  result = MetFrag.startConvenienceMetFusion(database, databaseID, 
 					molecularFormula, exactMass, spectrum, useProxy, mzabs, mzppm, searchPPM, 
 					molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, hydrogenTest,
-					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password, uniqueInchi, onlyCHNOPS);
+					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password, 
+					uniqueInchi, onlyCHNOPS, true, token);
 			this.mfResults = result;
 			System.out.println("MetFrag result#: " + result.size() + "\n");
 			this.results = new ArrayList<Result>();
@@ -470,7 +473,23 @@ public class MetFragBean implements Runnable, Serializable {
 			if(database.equals(dbCHEMSPIDER))
 				chemSpiderProxy = new MassSpecAPISoapProxy();
 			
+			PubChemLocal pl = new PubChemLocal(jdbc, username, password);
+			
 			int current = 0;
+			SmilesGenerator sg = new SmilesGenerator();
+			ChemAxonUtilities cau = null;	// instantiate ChemAxon utilities only when appropriate Fingerprinter is used
+	        boolean useChemAxon = Boolean.FALSE;
+//	        String test = "ECFP";
+//	        //if(getFingerprinter().equals(Fingerprints.ECFP)) {
+//	        if(test.equals("ECFP")) {
+//	        	cau = new ChemAxonUtilities(Boolean.FALSE);
+//	        	useChemAxon = Boolean.TRUE;
+//	        }
+//	        //else if(getFingerprinter().equals(Fingerprints.FCFP)) {
+//	        else if(test.equals(Fingerprints.FCFP.toString())) {
+//	        	cau = new ChemAxonUtilities(Boolean.TRUE);
+//	        	useChemAxon = Boolean.TRUE;
+//	        }
 			
 			for (MetFragResult mfr : result) {
 				if(mfr.getStructure() != null) {
@@ -486,26 +505,22 @@ public class MetFragBean implements Runnable, Serializable {
 					/**
 		             *  hydrogen handling
 		             */
-		            try {
-		                AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-		                CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-		                hAdder.addImplicitHydrogens(container);
-		                AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-	                	
-		                //container = AtomContainerHandler.addExplicitHydrogens(container);
-					} catch (CDKException e) {
-						System.err.println("error manipulating mol for " + mfr.getCandidateID());
-						continue;
-					}
+//		            try {
+//		                AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+//		                CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
+//		                hAdder.addImplicitHydrogens(container);
+//		                AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
+//	                	
+//		                //container = AtomContainerHandler.addExplicitHydrogens(container);
+//					} catch (CDKException e) {
+//						System.err.println("error manipulating mol for " + mfr.getCandidateID());
+//						continue;
+//					}
 					
 					// remove hydrogens
-					//container = AtomContainerManipulator.removeHydrogens(container);
+					container = AtomContainerManipulator.removeHydrogens(container);
 					
 					String filename = mfr.getCandidateID() + DEFAULT_IMAGE_ENDING;
-//					File image = new File(currentFolder, filename);
-//					if(stf != null && !image.exists())
-//						stf.writeMOL2PNGFile(container, filename);
-					
 					String url = linkMap.get(selectedDB);
 					if(selectedDB.equals(dbCHEMSPIDER))
 						url = url.replace(replaceID, mfr.getCandidateID());
@@ -524,15 +539,13 @@ public class MetFragBean implements Runnable, Serializable {
 							name = names.get(0);
 					}
 					else if(database.equals(dbPUBCHEM)) {
-						// TODO: properties einlesen und nutzen
-						PubChemLocal pl = new PubChemLocal("jdbc:mysql://rdbms/MetFrag", "swolf", "populusromanus");
 						names = pl.getNames(mfr.getCandidateID());
 						if(names.size() > 0)
 							name = names.get(0);	
+						else name = mfr.getCandidateID();
 					}
 					else if(database.equals(dbCHEMSPIDER)) {
 						int id = Integer.parseInt(mfr.getCandidateID());
-						String token = "eeca1d0f-4c03-4d81-aa96-328cdccf171a";
 						ExtendedCompoundInfo cpdInfo = chemSpiderProxy.getExtendedCompoundInfo(id, token);
 						name = cpdInfo.getCommonName();
 					}
@@ -547,14 +560,21 @@ public class MetFragBean implements Runnable, Serializable {
 					String params = formatLandingURL(spectrumURLEncoded, database, mfr.getCandidateID(), exactMass, molecularFormula);
 					String landingURL = landingPage + params;
 					
-					//results.add(new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename, landingURL));
-					results.add(new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename,
-							landingURL, formula, emass, mfr.getPeaksExplained()));
-					//results.add(new Result("MetFrag", mfr.getCandidateID(), mfr.getCandidateID(), mfr.getScore(), container, url, ""));
+					// create SMILES from IAtomContainer
+					String smiles = sg.createSMILES(container);
 					
-					// write 
-//					File f = new File(molPath, mfr.getCandidateID() + ".mol");
-//					MassBankUtilities.writeContainer(f, container);
+					Result r = new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename,
+							landingURL, formula, emass, mfr.getPeaksExplained());
+					r.setSmiles(smiles);
+					
+					// create ECFP from SMILES
+					if(useChemAxon) {
+						ECFP ecfp = cau.generateECFPFromName(smiles);
+						r.setEcfp(ecfp);
+						r.setBitset(ecfp.toBitSet());
+					}
+					
+					results.add(r);
 					
 					// update search progress
 					updateSearchProgress(current);
@@ -915,6 +935,30 @@ public class MetFragBean implements Runnable, Serializable {
 
 	public boolean isOnlyCHNOPS() {
 		return onlyCHNOPS;
+	}
+
+	public void setProps(PropertiesBean props) {
+		this.props = props;
+	}
+
+	public PropertiesBean getProps() {
+		return props;
+	}
+
+	public String getDbKEGG() {
+		return dbKEGG;
+	}
+
+	public String getDbPUBCHEM() {
+		return dbPUBCHEM;
+	}
+
+	public String getDbCHEMSPIDER() {
+		return dbCHEMSPIDER;
+	}
+
+	public String getDbSDF() {
+		return dbSDF;
 	}
 
 }
