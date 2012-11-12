@@ -30,13 +30,15 @@ public class ChemSpiderRetrieval implements Runnable {
 	String infile = "";
 	String outfile = "";
 	String errfile = "";
+	String token = "";
 	
-	public ChemSpiderRetrieval(String infile, String outfile, String errfile, double exactmass, double searchPPM) {
+	public ChemSpiderRetrieval(String infile, String outfile, String errfile, double exactmass, double searchPPM, String token) {
 		this.infile = infile;
 		this.outfile = outfile;
 		this.errfile = errfile;
 		this.exactmass = exactmass;
 		this.searchPPM = searchPPM;
+		this.token = token;
 	}
 	
 	/**
@@ -49,6 +51,7 @@ public class ChemSpiderRetrieval implements Runnable {
 		String outputdir = "/home/mgerlich/projects/jan_stanstrup/results/";
 		
 		ExecutorService threadExecutor = Executors.newFixedThreadPool(4);
+		String token = "eeca1d0f-4c03-4d81-aa96-328cdccf171a";
 		
 		for (int i = 0; i < list.length; i++) {		// for each directory
 			if(list[i].isDirectory() & list[i].getName().startsWith("rungroup")) {
@@ -62,7 +65,7 @@ public class ChemSpiderRetrieval implements Runnable {
 					String errfile = outfile.replace(".sdf", ".err");
 					File err = new File(outputdir, errfile);
 					Thread t = new Thread(new ChemSpiderRetrieval(mbfh.getBatchFile().getAbsolutePath(), out.getAbsolutePath(), err.getAbsolutePath(),
-							mbfh.getBatchSettings().getMfExactMass(), mbfh.getBatchSettings().getMfSearchPPM()));
+							mbfh.getBatchSettings().getMfExactMass(), mbfh.getBatchSettings().getMfSearchPPM(), token));
 					
 					// execute the threads in parallel
 					threadExecutor.execute(t);
@@ -148,7 +151,7 @@ public class ChemSpiderRetrieval implements Runnable {
 				System.out.println(i + "/" + candidates.size());
 			
 			try {
-				molecule = ChemSpider.getMol(candidates.get(i), true);
+				molecule = ChemSpider.getMol(candidates.get(i), this.token, true);
 				sdfw.write(molecule);
 			} catch (CDKException e) {
 				System.err.println("Error retrieving molecule [" + i + "] -> " + candidates.get(i));
