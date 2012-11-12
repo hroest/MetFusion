@@ -44,7 +44,20 @@ public class ResultExt extends Result {
 	}
 
 	public ResultExt(Result r, int before, int after) {
-		super(r.getPort(), r.getId(), r.getName(), r.getScore(), r.getMol());
+		//super(r.getPort(), r.getId(), r.getName(), r.getScore(), r.getMol());
+		setPort(r.getPort());
+		setId(r.getId());
+		setName(r.getName());
+		setScore(r.getScore());
+		setScoreShort(r.getScoreShort());
+		setMol(r.getMol());
+		setBitset(r.getBitset());
+		setInchi(r.getInchi());
+		setInchikey(r.getInchikey());
+		setSmiles(r.getSmiles());
+		setEcfp(r.getEcfp());
+		setTiedRank(r.getTiedRank());
+		
 		this.setPosBefore(before);
 		this.setPosAfter(after);
 		setUrl(r.getUrl());
