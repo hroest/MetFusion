@@ -815,4 +815,20 @@ public class MetFragBatchMode implements Runnable {
 		this.generateFragmentsInMemory = generateFragmentsInMemory;
 	}
 
+	public String getDbKEGG() {
+		return dbKEGG;
+	}
+
+	public String getDbPUBCHEM() {
+		return dbPUBCHEM;
+	}
+
+	public String getDbCHEMSPIDER() {
+		return dbCHEMSPIDER;
+	}
+
+	public String getDbSDF() {
+		return dbSDF;
+	}
+
 }

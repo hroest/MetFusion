@@ -289,7 +289,7 @@ public class MetFusionBatchMode {
 			File sdf = new File(sdfFile);
 			List<IAtomContainer> compounds = mfbm.batchFileHandler.consumeSDF(sdf.getAbsolutePath());
 			System.out.println("#compounds from sdf file -> " + compounds.size());
-			metfragbm.setSelectedDB("sdf");
+			metfragbm.setSelectedDB(metfragbm.getDbSDF());
 			metfragbm.setSelectedSDF(sdf.getAbsolutePath());
 		}
 		
