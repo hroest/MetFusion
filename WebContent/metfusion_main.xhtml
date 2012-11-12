@@ -910,11 +910,16 @@
 					</ice:selectOneRadio>
 					
 					<ice:panelGroup style="background-color: MintCream; border: 1px solid ForestGreen;" rendered="#{appBean.createdResource}">
-						<ice:panelGrid columns="2">
-						<ice:outputText value="Export results into Excel file:"/>
-						<ice:outputResource id="outputResource" resource="#{appBean.outputResource}"
-							label="Save results in Excel document." mimeType="application/vnd.ms-excel"
-							fileName="#{appBean.outputResource.resourceName}" image="/images/icons/xls.png" rendered="#{appBean.createdResource}"/>
+						<ice:panelGrid columns="4">
+							<ice:outputText value="Export all results into Excel file:"/>
+							<ice:outputResource id="outputResource" resource="#{appBean.outputResource}"
+								label="Save results in Excel document." mimeType="application/vnd.ms-excel"
+								fileName="#{appBean.outputResource.resourceName}" image="/images/icons/xls.png" rendered="#{appBean.createdResource}"/>
+							
+							<ice:outputText value="or reranked results only into SD file:" rendered="#{appBean.createdResourceSDF}"/>
+							<ice:outputResource id="outputResourceSDF" rendered="#{appBean.createdResourceSDF}"
+								resource="#{appBean.outputResourceSDF}" label="Save reranked results in SD file." mimeType="text"
+								fileName="#{appBean.outputResourceSDF.resourceName}" image="/images/icons/sdf.png"/>
 						</ice:panelGrid>
     				</ice:panelGroup>
     				

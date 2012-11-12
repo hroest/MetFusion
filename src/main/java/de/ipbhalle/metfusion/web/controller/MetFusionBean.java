@@ -54,9 +54,11 @@ import com.icesoft.faces.context.effects.Highlight;
 import de.ipbhalle.MassBank.MassBankLookupBean;
 import de.ipbhalle.enumerations.SpectralDB;
 import de.ipbhalle.metfusion.threading.MetFusionThread;
+import de.ipbhalle.metfusion.utilities.output.SDFOutputHandler;
 import de.ipbhalle.metfusion.wrapper.ColorcodedMatrix;
 import de.ipbhalle.metfusion.wrapper.Result;
 import de.ipbhalle.metfusion.wrapper.ResultExt;
+import de.ipbhalle.metfusion.wrapper.SDFResource;
 import de.ipbhalle.metfusion.wrapper.XLSOutputHandler;
 import de.ipbhalle.metfusion.wrapper.XLSResource;
 
@@ -175,6 +177,11 @@ public class MetFusionBean implements Serializable {
     private XLSOutputHandler exporter;
     private boolean createdResource = false;
     
+    /** output resource for rerankred results, stored in SD file */
+    private boolean createdResourceSDF = false;
+    private Resource outputResourceSDF;
+    
+    
     /** progress bar rendering */
     private static final int PAUSE_AMOUNT_S = 1000; // milliseconds to pause between progress updates
     private Thread updateThreadDatabase;	// updater thread for database lookup
@@ -277,6 +284,7 @@ public class MetFusionBean implements Serializable {
     	this.percentProgressFragmenter = 0;
     	this.percentProgressGlobal = 0;
     	this.setCreatedResource(false);
+    	this.setCreatedResourceSDF(Boolean.FALSE);
     	
     	setShowClusterResults(Boolean.FALSE);
     	mblb.setSearchProgress(0);
@@ -491,6 +499,42 @@ public class MetFusionBean implements Serializable {
     	return "stopped";
     }
 	
+    /**
+     * Generates an output resource for the current workflow results, the MetFusion results including properties are
+     * stored in an SD file.
+     */
+    public void generateOutputResourceSDFHandler() {
+    	// setup filename
+    	SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy_k-m-s");
+		String time = sdf.format(new Date());
+		String resourceName = "MetFusion_Results_" + time +  ".sdf";
+		String folder = "./temp" + sep + sessionString + sep;
+		
+		String path = webRoot + sep + "temp" + sep + sessionString + sep;
+		System.out.println("resource path -> " + path);
+		
+		File dir = new File(path);
+		if(!dir.exists())
+			dir.mkdirs();
+		// skip creation of output resource if file access is denied
+		if(!dir.canWrite()) {
+			setCreatedResource(Boolean.FALSE);
+			return;
+		}
+		
+		String completeName = path + resourceName;
+    	
+		SDFOutputHandler sdfHandler = new SDFOutputHandler(completeName);
+		sdfHandler.writeRerankedResults(getSecondOrder());
+		
+		// create SDFResource
+    	SDFResource resource = new SDFResource(ec, resourceName, folder);
+    	// set SDFResource
+		setOutputResourceSDF(resource);
+		// enable download button for resource
+		setCreatedResourceSDF(Boolean.TRUE);
+    }
+    
     /**
      * Generates an output resource for the current workflow results, everything is stored inside a single Excel xls file
 	 * where each workflow output ports is stored as a separate sheet, also including the computed colored matrices.
@@ -1344,6 +1388,22 @@ public class MetFusionBean implements Serializable {
 
 	public PropertiesBean getProps() {
 		return props;
+	}
+
+	public void setCreatedResourceSDF(boolean createdResourceSDF) {
+		this.createdResourceSDF = createdResourceSDF;
+	}
+
+	public boolean isCreatedResourceSDF() {
+		return createdResourceSDF;
+	}
+
+	public void setOutputResourceSDF(Resource outputResourceSDF) {
+		this.outputResourceSDF = outputResourceSDF;
+	}
+
+	public Resource getOutputResourceSDF() {
+		return outputResourceSDF;
 	}
 
 }

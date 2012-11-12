@@ -14,6 +14,7 @@ import javax.faces.application.FacesMessage;
 import de.ipbhalle.metfusion.integration.Similarity.SimilarityMetFusion;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoIntegrationWeighted;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoSimilarity;
+import de.ipbhalle.metfusion.utilities.output.SDFOutputHandler;
 import de.ipbhalle.metfusion.web.controller.GenericDatabaseBean;
 import de.ipbhalle.metfusion.web.controller.MetFragBean;
 import de.ipbhalle.metfusion.web.controller.MetFusionBean;
@@ -359,6 +360,9 @@ public class MetFusionThread implements Runnable {
 		// generate XLS output
 		//metfusion.generateOutputResource();
 		metfusion.generateOutputResourceXLSHandler();
+		
+		// generate SDF output
+		metfusion.generateOutputResourceSDFHandler();
 		
 		// enable output tab and result tables
 		metfusion.setShowTable(true);
