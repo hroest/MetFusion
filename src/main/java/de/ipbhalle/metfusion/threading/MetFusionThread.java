@@ -139,8 +139,11 @@ public class MetFusionThread implements Runnable {
 			metfusion.setSelectedTab(numResultTab);
 			metfusion.setSelectedResult("fragmenter");
 			metfusion.setShowResultsDatabase(false);
+			metfusion.setShowResultsFragmenter(true);
 			metfusion.setErrorMessage(errMessage);
 			genericDatabase.setShowResult(false);
+			metfusion.setShowClusterResults(false);
+			metfrag.setShowResult(true);
 			
             return;
         }
@@ -165,8 +168,11 @@ public class MetFusionThread implements Runnable {
 			metfusion.setSelectedTab(numResultTab);
 			metfusion.setSelectedResult("fragmenter");
 			metfusion.setShowResultsDatabase(false);
+			metfusion.setShowResultsFragmenter(true);
 			metfusion.setErrorMessage(errMessage);
 			genericDatabase.setShowResult(false);
+			metfusion.setShowClusterResults(false);
+			metfrag.setShowResult(true);
 			
             return;
         }
@@ -191,8 +197,11 @@ public class MetFusionThread implements Runnable {
 			metfusion.setSelectedTab(numResultTab);
 			metfusion.setSelectedResult("database");
 			metfusion.setErrorMessage(errMessage);
+			metfusion.setShowClusterResults(false);
 			metfusion.setShowResultsFragmenter(false);
+			metfusion.setShowResultsDatabase(true);
 			metfrag.setShowResult(false);
+			genericDatabase.setShowResult(true);
 			
 			return;
         }
@@ -218,7 +227,10 @@ public class MetFusionThread implements Runnable {
 			metfusion.setSelectedResult("database");
 			metfusion.setErrorMessage(errMessage);
 			metfusion.setShowResultsFragmenter(false);
+			metfusion.setShowClusterResults(false);
+			metfusion.setShowResultsDatabase(true);
 			metfrag.setShowResult(false);
+			genericDatabase.setShowResult(true);
 			
             return;
         }
@@ -252,7 +264,7 @@ public class MetFusionThread implements Runnable {
 			return;
 		}
 		
-		TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, listMetFrag);	//, 3, 0.5f);
+		TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, listMetFrag, false);	//, 3, 0.5f);
 		String sessionPath = genericDatabase.getSessionPath();
 		// fork new thread for generating ColorCodedMatrix
 		ColoredMatrixGeneratorThread cmT = new ColoredMatrixGeneratorThread(sim);
@@ -323,7 +335,7 @@ public class MetFusionThread implements Runnable {
 		/**
 		 *  new colored similarity matrix after metfusion
 		 */
-		TanimotoSimilarity after = new TanimotoSimilarity(listMassBank, redraw);	//, 3, 0.5f);
+		TanimotoSimilarity after = new TanimotoSimilarity(listMassBank, redraw, false);	//, 3, 0.5f);
 		// fork new thread for generating ColorCodedMatrix
 		ColoredMatrixGeneratorThread cmtAfter = new ColoredMatrixGeneratorThread(after);
 		cmtAfter.run();
