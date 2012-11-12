@@ -82,6 +82,7 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 			Map<Object, Object> props = fetchProperties(result);
 			container.setProperties(props);
 			container.setID((String) props.get(properties.name));
+			//container.setProperty("cdk:Title", (String) props.get(properties.name));
 			
 			try {
 				sdfwriter.write(container);
@@ -117,6 +118,8 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 			IAtomContainer container = result.getMol();
 			Map<Object, Object> props = fetchProperties(result);
 			container.setProperties(props);
+			container.setID((String) props.get(properties.name));
+			//container.setProperty("cdk:Title", (String) props.get(properties.name));
 			
 			try {
 				sdfwriter.write(container);
