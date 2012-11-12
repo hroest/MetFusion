@@ -151,47 +151,37 @@ public class Similarity {
 		if(!hasAtomContainer)
 		{
 			for (String candidate1 : candidatesToSmiles.keySet()) {
-	//			System.out.print(candidate1 + " ");
 				for (String candidate2 : candidatesToSmiles.keySet()) {
 					if(countJ < countI || candidate1.equals(candidate2))
 					{
-	//					System.out.print("x ");
 						countJ++;
 						continue;
 					}		
 					float similarity = compareFingerprints(candidateToFingerprint.get(candidate1), candidateToFingerprint.get(candidate2));
 					matrix[countI][countJ] = similarity;
-					//allSimilarityValues.append(similarity + "\n");
 					
 					countJ++;
-	//				System.out.print(compareFingerprints(candidateToFingerprint.get(candidate1), candidateToFingerprint.get(candidate2)) + " ");
 				}
 				countJ = 0;
 				countI++;
-	//			System.out.println("");
 			}
 		}
 		else
 		{
 			for (String candidate1 : candidateToStructure.keySet()) {
-	//			System.out.print(candidate1 + " ");
 				for (String candidate2 : candidateToStructure.keySet()) {
 					if(countJ < countI || candidate1.equals(candidate2))
 					{
-	//					System.out.print("x ");
 						countJ++;
 						continue;
 					}		
 					float similarity = compareFingerprints(candidateToFingerprint.get(candidate1), candidateToFingerprint.get(candidate2));
 					matrix[countI][countJ] = similarity;
-					//allSimilarityValues.append(similarity + "\n");
 					
 					countJ++;
-	//				System.out.print(compareFingerprints(candidateToFingerprint.get(candidate1), candidateToFingerprint.get(candidate2)) + " ");
 				}
 				countJ = 0;
 				countI++;
-	//			System.out.println("");
 			}
 		}
 		
