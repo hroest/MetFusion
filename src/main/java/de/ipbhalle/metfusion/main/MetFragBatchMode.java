@@ -35,6 +35,7 @@ import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPISoapProxy;
 
 import de.ipbhalle.CDK.AtomContainerHandler;
+import de.ipbhalle.enumerations.Adducts;
 import de.ipbhalle.enumerations.Databases;
 import de.ipbhalle.enumerations.Fingerprints;
 import de.ipbhalle.metfrag.keggWebservice.KeggWebservice;
@@ -204,6 +205,9 @@ public class MetFragBatchMode implements Runnable {
 	
 	/** boolean indicating whether to use only compounds containing C,H,N,O,P,S or not. */
 	private boolean onlyCHNOPS = true;
+
+	/** boolean indicating if fragments are generated in memory or stored offline in temporary files */
+	private boolean generateFragmentsInMemory = true;
 	
 	/**
 	 * the list of results
@@ -234,15 +238,10 @@ public class MetFragBatchMode implements Runnable {
 	
 	private void fillAdductList() {
 		this.adductList = new ArrayList<SelectItem>();
-		adductList.add(new SelectItem(0d, "Neutral"));
-		adductList.add(new SelectItem(0.00054858d, "M+"));
-		adductList.add(new SelectItem(-1.007276455d, "[M+H+]"));
-		adductList.add(new SelectItem(-22.98921912d, "[M+Na]+"));
-		adductList.add(new SelectItem(-38.96315882d, "[M+K]+"));
-		adductList.add(new SelectItem(-0.00054858d, "M-"));
-		adductList.add(new SelectItem(1.007276455d, "[M-H]-"));
-		adductList.add(new SelectItem(22.98921912d, "[M-Na]-"));
-		adductList.add(new SelectItem(38.96315882d, "[M-K]-"));
+		Adducts[] adducts = Adducts.values();
+		for (int i = 0; i < adducts.length; i++) {
+			adductList.add(new SelectItem(adducts[i].getDifference(), adducts[i].getLabel()));
+		}
 	}
 	
 	private void fillLinkMap() {
@@ -260,6 +259,9 @@ public class MetFragBatchMode implements Runnable {
 			}
 			else if(db.equals(dbCHEMSPIDER)) {
 				linkMap.put(dbCHEMSPIDER, "http://www.chemspider.com/Chemical-Structure." + replaceID + ".html");	// + candidateID + ".html"
+			}
+			else if(db.equals(dbSDF)) {
+				// TODO: fill link map for SDF
 			}
 			else {
 				System.err.println("No link currently available for [" + db + "].");
@@ -327,10 +329,15 @@ public class MetFragBatchMode implements Runnable {
 			System.err.println("Error reading properties file!");
 		}
 		// load required property values
-		String jdbc = "", username = "", password = "", token = "";
+		String jdbc = "", username = "", password = "", token = "", pguser = "", pgpass = "", pgjdbc = "";
 		jdbc = props.getProperty("mfjdbc");
 		username = props.getProperty("mfusername");
 		password = props.getProperty("mfpassword");
+		
+		pgjdbc = props.getProperty("dbPostgres");
+		pguser = props.getProperty("userPostgres");
+		pgpass = props.getProperty("passwordPostgres");
+		
 		token = props.getProperty("token");
 		
 		// short decimal format for score and/or exact mass
@@ -355,25 +362,27 @@ public class MetFragBatchMode implements Runnable {
 			boolean breakOnlySelectedBonds = isBreakOnlySelectedBonds();
 			boolean uniqueInchi = isUniqueInchi();
 			boolean onlyCHNOPS = isOnlyCHNOPS();
-				
+			boolean generateFragmentsInMemory = isGenerateFragmentsInMemory();
+			
 			List<MetFragResult> result = new ArrayList<MetFragResult>();
 			if(database.equals(dbSDF))
 				result = MetFrag.startConvenienceSDF(spectrum, useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck,
 						breakAromaticRings, treeDepth, hydrogenTest, neutralLossInEveryLayer, bondEnergyScoring, 
 						breakOnlySelectedBonds, limit, Boolean.FALSE, selectedSDF);
 			else if(database.equals(Databases.chebi.toString())) {
-				jdbc = "jdbc:postgresql://rdbms2:5432/metchem";
-				username = "mgerlich";
-				password = "unreal0";
+				jdbc = pgjdbc;
+				username = pguser;
+				password = pgpass;
 				result = MetFrag.startConvenienceLocal(database, databaseID, molecularFormula, exactMass, spectrum,
 						useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, 
 						hydrogenTest, neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, 
-						jdbc, username, password, 2, onlyCHNOPS);
+						jdbc, username, password, 2, onlyCHNOPS, token);
 			}
 			else  result = MetFrag.startConvenienceMetFusion(database, databaseID, 
 					molecularFormula, exactMass, spectrum, useProxy, mzabs, mzppm, searchPPM, 
 					molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, hydrogenTest,
-					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password, uniqueInchi, onlyCHNOPS);
+					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password, 
+					uniqueInchi, onlyCHNOPS, generateFragmentsInMemory, token);
 			this.mfResults = result;
 			System.out.println("MetFrag result#: " + result.size() + "\n");
 			this.results = new ArrayList<Result>();
@@ -464,9 +473,10 @@ public class MetFragBatchMode implements Runnable {
 							name = names.get(0);	
 					}
 					else if(database.equals(dbCHEMSPIDER)) {
-						int id = Integer.parseInt(mfr.getCandidateID());
-						ExtendedCompoundInfo cpdInfo = chemSpiderProxy.getExtendedCompoundInfo(id, token);
-						name = cpdInfo.getCommonName();
+						name = mfr.getCandidateID();
+						//int id = Integer.parseInt(mfr.getCandidateID());
+						//ExtendedCompoundInfo cpdInfo = chemSpiderProxy.getExtendedCompoundInfo(id, token);
+						//name = cpdInfo.getCommonName();
 					}
 					else {
 						System.err.println("unknown database [" + database + "] - or not yet supported!");
@@ -795,6 +805,14 @@ public class MetFragBatchMode implements Runnable {
 
 	public void setOnlyCHNOPS(boolean onlyCHNOPS) {
 		this.onlyCHNOPS = onlyCHNOPS;
+	}
+
+	public boolean isGenerateFragmentsInMemory() {
+		return generateFragmentsInMemory;
+	}
+
+	public void setGenerateFragmentsInMemory(boolean generateFragmentsInMemory) {
+		this.generateFragmentsInMemory = generateFragmentsInMemory;
 	}
 
 }
