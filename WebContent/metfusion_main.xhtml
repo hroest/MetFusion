@@ -149,6 +149,28 @@
 								<ice:panelGroup effect="#{appBean.effectOutputText}">
 		    						<ice:message id="errallIon" for="allIon"></ice:message>
 		    					</ice:panelGroup>
+		    					
+		    					<!-- MS levels -->
+		    					<ice:panelGroup id="lblMBMSLvls" panelTooltip="lblMBMSLvlsTooltip">
+		    						<ice:outputLabel value="MS Levels:"></ice:outputLabel>
+		    						<ice:panelTooltip id="lblMBMSLvlsTooltip">
+		    							<f:facet name="header">
+		    								<ice:outputText value="MS Levels"></ice:outputText>
+		    							</f:facet>
+		    							<f:facet name="body">
+		    								<ice:outputText value="Specifies which MS level should be used for spectrum search."></ice:outputText>
+		    							</f:facet>
+		    						</ice:panelTooltip>
+		    					</ice:panelGroup>
+		    					<ice:panelGroup id="massbankMSlvl">
+		    						<ice:selectManyCheckbox id="allMSLvl" value="#{appBean.mblb.selectedMSLevel}" partialSubmit="false"
+		    							required="true" valueChangeListener="#{appBean.mblb.changeMSLevels}">
+		    							<f:selectItems value="#{appBean.mblb.availableMSLevels}" var="n" itemLabel="#{n}" itemValue="#{n}"/>	
+		    						</ice:selectManyCheckbox>
+		    					</ice:panelGroup>
+		    					<ice:panelGroup>
+		    					
+		    					</ice:panelGroup>
 		    				</ice:panelGrid>
 		    				
 		    				<ice:panelGroup id="msgMassBank" rendered="#{appBean.mblb.brokenMassBank}"

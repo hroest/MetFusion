@@ -37,7 +37,10 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
+import chemaxon.descriptors.ECFP;
+
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
+import de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities;
 import de.ipbhalle.metfusion.web.controller.GenericDatabaseBean;
 import de.ipbhalle.metfusion.web.controller.MetFragBean;
 import de.ipbhalle.metfusion.web.controller.PropertiesBean;
@@ -113,6 +116,18 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 //			new SelectItem("http://pfos.jp/MassBank/", "Pfos"),
 			new SelectItem(varOTHER, varOTHER)};
 	private String selectedServer = "";
+	
+	/** MassBank MS levels */
+	public static final String ms1 = "MS";
+	public static final String ms2 = "MS2";
+	public static final String ms3 = "MS3";
+	public static final String ms4 = "MS4";
+	public static final String msAll = "all";
+	private SelectItem[] availableMSLevels = {new SelectItem(msAll, msAll), new SelectItem(ms1, ms1), new SelectItem(ms2, ms2), 
+			new SelectItem(ms3, ms3), new SelectItem(ms4, ms4)};	// available MS levels
+	private String[] selectedMSLevel = {msAll, ms1, ms2, ms3, ms4};	// selected MS levels 
+	private final String parameterMSlvl = "&ms=";		// MassBank MS level parameter
+	private String msLevel = "";						// formatted MS level String
 	
 	/** Allow to use another server besides the default one. */
 	private boolean selectOtherServer = Boolean.FALSE;
@@ -390,6 +405,14 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 		}
 	}
 	
+	public void changeMSLevels(ValueChangeEvent event) {
+		String[] newVal = ((String[]) event.getNewValue());
+		this.msLevel = "";
+		for (int i = 0; i < newVal.length; i++) {
+			msLevel += parameterMSlvl + newVal[i];
+		}
+	}
+	
 	public void changeDatabase(ValueChangeEvent event) {
 		
 		String oldVal = ((String) event.getOldValue()).trim();
@@ -641,22 +664,13 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 		 */
 		String ion = "&ION=" + selectedIon;
 		inst += ion;
-
-		// String paramPeak =
-		// "273.096,22@289.086,107@290.118,14@291.096,999@292.113,162@293.054,34@579.169,37@580.179,15";
 		String paramPeak = formatPeaks();
 		String param = "quick=true&CEILING=1000&WEIGHT=SQUARE&NORM=SQRT&START=1&TOLUNIT=unit"
 				+ "&CORTYPE=COSINE&FLOOR=0&NUMTHRESHOLD=3&CORTHRESHOLD=0.8&TOLERANCE=0.3"
 				+ "&CUTOFF=" + cutoff + "&NUM=0&VAL=" + paramPeak.toString();
-		/**
-		 * TODO: add selector in web interface for MS mode
-		 */
-		param += "&ms=all&ms=MS&ms=MS2&ms=MS3&ms=MS4";
+		param += msLevel;	// add MS level information
 		param += inst;	// append ionization mode
 		System.out.println(param);
-		/**
-    		 * 
-    		 */
 
 		// retrieve result list
 		ArrayList<String> result = mbCommon.execMultiDispatcher(serverUrl, typeName, param);
@@ -856,6 +870,20 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
         List<String> duplicates = new ArrayList<String>();
 
         MassBankUtilities mbu = new MassBankUtilities(serverUrl, cacheMassBank);
+        ChemAxonUtilities cau = null;	// instantiate ChemAxon utilities only when appropriate Fingerprinter is used
+        boolean useChemAxon = Boolean.FALSE;
+//        String test = "ECFP";
+//        //if(getFingerprinter().equals(Fingerprints.ECFP)) {
+//        if(test.equals("ECFP")) {
+//        	cau = new ChemAxonUtilities(Boolean.FALSE);
+//        	useChemAxon = Boolean.TRUE;
+//        }
+//        //else if(getFingerprinter().equals(Fingerprints.FCFP)) {
+//        else if(test.equals(Fingerprints.FCFP.toString())) {
+//        	cau = new ChemAxonUtilities(Boolean.TRUE);
+//        	useChemAxon = Boolean.TRUE;
+//        }
+        
         InChIGeneratorFactory igf = null;
         try {
 			igf = InChIGeneratorFactory.getInstance();
@@ -993,6 +1021,14 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
                     //results.add(r);
                     //limitCounter++;
                     
+                    // generate ECFP
+                    if(useChemAxon) {
+	                    File f1 = new File(basePath, id + ".mol");	// path to mol file
+	                    ECFP ecfp = cau.generateECFPFromMol(f1);		// generate ECFP from mol file
+	                    r.setBitset(ecfp.toBitSet());				// set BitSet from ECFP
+	                    r.setEcfp(ecfp);							// store ECFP in result
+                    }
+                    
                     if(isUniqueInchi()) {		// if filter for unique InChI is on
 	                    String inchikey = r.getInchikey().split("-")[0];
 	                    if(inchi == null || inchi.isEmpty() || inchikey == null || inchikey.isEmpty()) {
@@ -1022,7 +1058,6 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 	                    	limitCounter++;							// increase limit counter
 	                    }
 	                    else {			// InChI-Key already present in map -> skip entry
-	                    	System.out.println(id + " not used! InChI-Key present");
 	                    	r.setImagePath(inchiMap.get(inchikey));	// use original structure image for duplicate
 	                    	unused.add(r);				// add result to unused list
 	                    }
@@ -1587,6 +1622,22 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 	@Override
 	public String getDatabaseName() {
 		return databaseName;
+	}
+
+	public SelectItem[] getAvailableMSLevels() {
+		return availableMSLevels;
+	}
+
+	public void setAvailableMSLevels(SelectItem[] availableMSLevels) {
+		this.availableMSLevels = availableMSLevels;
+	}
+
+	public String[] getSelectedMSLevel() {
+		return selectedMSLevel;
+	}
+
+	public void setSelectedMSLevel(String[] selectedMSLevel) {
+		this.selectedMSLevel = selectedMSLevel;
 	}
 
 }
