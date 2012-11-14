@@ -14,7 +14,7 @@ import javax.faces.convert.FacesConverter;
 @FacesConverter("de.ipbhalle.metfusion.web.controller.validation.SpectrumConverter")
 public class SpectrumConverter implements Converter {
 
-	private static final String linebreak = System.getProperty("line.separator");
+	private static final String linebreak = "\n";	//System.getProperty("line.separator");
 	
 	/** default intenstiy value used for spectrum seach */
 	private static final int DEFAULT_INT = 500;
@@ -41,7 +41,7 @@ public class SpectrumConverter implements Converter {
 		String[] split = peaklist.split(linebreak);
 		boolean oneLine = split.length == 1 ? true : false;
 		if(oneLine) {	// only one line detected, maybe multiple whitespace separated peaks
-			String[] temp = split[0].split(DEFAULT_WHITESPACE);
+			String[] temp = split[0].trim().split(DEFAULT_WHITESPACE);
 			if(temp.length % 2 == 0) {
 				for (int i = 0; i < temp.length-1; i += 2) {	// skip each 2nd entry
 					sb.append(temp[i]).append(DEFAULT_WHITESPACE).append(temp[i+1]).append(linebreak);
