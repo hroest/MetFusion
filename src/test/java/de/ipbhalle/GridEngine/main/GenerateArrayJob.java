@@ -24,7 +24,7 @@ public class GenerateArrayJob {
 		//File spectraDir = new File("/home/mgerlich/Datasets/Pesticides_new/Pesticides_111028/recdata/");
 		//File spectraDir = new File("/vol/data_extern/ryona@psc.riken.jp/queries20121003/lipid_MS2/120918_007P_pos_ammonium_adduct/");
 		//File spectraDir = new File("/home/mgerlich/projects/jan_stanstrup/rungroup6/");
-		File spectraDir = new File("/vol/data_extern/ryona@psc.riken.jp/queries20121003/secmet_QTOF/root_n_secmet_QTOF/");
+		File spectraDir = new File("/vol/data_extern/ryona@psc.riken.jp/queries20121003/secmet_QTOF/leaf_n__secmet_QTOF/");
 		File[] files = spectraDir.listFiles(new FileNameFilterImpl("", "txt"));
 		Arrays.sort(files);
 		
@@ -36,7 +36,7 @@ public class GenerateArrayJob {
 		//String outputDir = "/home/mgerlich/projects/metfusion_tp/results_18-10-2012";
 		//String outputDir = "/vol/data_extern/ryona@psc.riken.jp/queries20121003/results/120918_007P_pos_ammonium_adduct/";
 		//String outputDir = "/home/mgerlich/projects/jan_stanstrup/results/rungroup6/";
-		String outputDir = "/vol/data_extern/ryona@psc.riken.jp/queries20121003/secmet_QTOF/root_n_secmet_QTOF/results/";
+		String outputDir = "/vol/data_extern/ryona@psc.riken.jp/queries20121003/secmet_QTOF/leaf_n__secmet_QTOF/results/";
 
 		// the directory in which the jar file is located
 		String projectDir = "/home/mgerlich/projects/";
@@ -44,7 +44,7 @@ public class GenerateArrayJob {
 		// the directory where the shell scripts are stored
 		//String workDir = "/home/mgerlich/projects/eval_metfusion_ECFP/";
 		String workDir = projectDir;
-		String prefix = "root_n";
+		String prefix = "leaf_n";
 		File jobInfo = new File(workDir, prefix + "_sge_metfusion.sh");
 		jobInfo.createNewFile();
 		jobInfo.setExecutable(true);
