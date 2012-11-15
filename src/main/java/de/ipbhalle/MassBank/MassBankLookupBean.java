@@ -157,15 +157,19 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 	private boolean uniqueInchi = Boolean.FALSE;
 	private List<Result> unused;
 	
-	private String cacheMassBank = "/vol/massbank/Cache/";
+	//private String cacheMassBank = "/vol/massbank/Cache/";
 	
-//	private FacesContext fc = FacesContext.getCurrentInstance();
-//    private HttpSession session = (HttpSession) fc.getExternalContext().getSession(false);
-//    private String sessionString = session.getId();
-//    private ServletContext scontext = (ServletContext) fc.getExternalContext().getContext();
-    //private final String sep = System.getProperty("file.separator");
-//    private String webRoot = scontext.getRealPath(sep);
-    
+	private static final String fileSeparator = System.getProperty("file.separator");
+	private static final String os = System.getProperty("os.name");
+	private static final String currentDir = System.getProperty("user.dir");
+	private static final String tempDir = System.getProperty("java.io.tmpdir");
+	private String cacheMassBank = "";
+	public final String DEFAULT_CACHE = tempDir;
+	public final String DEFAULT_CACHE_LINUX = "/vol/massbank/Cache/";
+	
+	private static final String RECORDS = "records";
+	private static final String MOL = "mol";
+	
     private String sessionPath;
     
     private boolean brokenMassBank = false;
@@ -866,6 +870,18 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 		if(!tempPath.endsWith("/"))
 			tempPath += "/";
 		
+		File dir = null;
+		File cache = null;
+		if(!cacheMassBank.isEmpty()) {	// cache directory has been set
+        	dir = new File(cacheMassBank);
+        }
+        //else {
+        	if(os.startsWith("Windows"))
+    			dir = new File(DEFAULT_CACHE);
+    		else
+    			dir = new File(DEFAULT_CACHE_LINUX);
+        //}
+		
         List<Result> results = new ArrayList<Result>();
         List<String> duplicates = new ArrayList<String>();
 
@@ -947,19 +963,47 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
         		if(id.matches("[A-Z]{3}[0-9]{5}"))
         			prefix = id.substring(0, 3);
         		else prefix = id.substring(0, 2);
-                File dir = new File(cacheMassBank);
-                String[] institutes = dir.list();
-                File f = null;
+                cache = new File(dir, prefix);
+        		
                 String basePath = "";
-                for (int j = 0; j < institutes.length; j++) {
-                    if(institutes[j].equals(prefix)) {
-                        f = new File(dir, institutes[j] + "/mol/");
-                        basePath = f.getAbsolutePath();
-                        if(!basePath.endsWith("/"))
-                                basePath += "/";
-                        break;
-                    }
+                boolean createDir = false;
+                if(!cache.exists()) {		// cache folder does not exist, create it
+                	createDir = cache.mkdirs();
+                	if(createDir) {
+                		System.out.println("created directory [" + cache.getAbsolutePath() + "] -> " + createDir);
+                		File molDir = new File(cache, MOL);
+                        File recDir = new File(cache, RECORDS);
+                        System.out.println("created molDir ? " + molDir.mkdir() + "\treated recDir ? " + recDir.mkdir());	// create subdirectories
+                        basePath = molDir.getAbsolutePath();
+                	}
                 }
+                else {		// cache folder already exists 
+                	File molDir = new File(cache, fileSeparator + MOL + fileSeparator);
+                	if(!molDir.isDirectory())
+                		molDir.mkdirs();
+                	
+                	basePath = molDir.getAbsolutePath();
+                }
+//                String prefix = "";
+//        		if(id.matches("[A-Z]{3}[0-9]{5}"))
+//        			prefix = id.substring(0, 3);
+//        		else prefix = id.substring(0, 2);
+//                //File dir = new File(cacheMassBank);
+//                String[] institutes = dir.list();
+//                File f = null;
+//                String basePath = "";
+//                if(institutes != null & institutes.length > 0) {
+//                	for (int j = 0; j < institutes.length; j++) {
+//                        if(institutes[j].equals(prefix)) {
+//                            f = new File(dir, institutes[j] + "/mol/");
+//                            basePath = f.getAbsolutePath();
+//                            if(!basePath.endsWith("/"))
+//                                    basePath += "/";
+//                            break;
+//                        }
+//                    }
+//                }
+                
                 //boolean fetch = MassBankUtilities.fetchMol(name, id, site, basePath);
                 boolean fetch = false;
                 //boolean write = MassBankUtilities.writeMolFile(id, mol, basePath);
