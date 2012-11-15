@@ -15,6 +15,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
@@ -412,7 +413,8 @@ public class MetFragBean implements Runnable, Serializable {
 		
 		WrapperSpectrum spectrum = new WrapperSpectrum(inputSpectrum, mode, exactMass, true);
 		
-		String currentFolder = sep + "temp" + sep + sessionID + sep;
+		//String currentFolder = sep + "temp" + sep + sessionID + sep;
+		String currentFolder = "/temp/" + sessionID + "/";
 		//getSessionPath();	//webRoot + sep + "temp" + sep + sessionString + sep;
 		System.out.println("currentFolder -> " + currentFolder);
 		String tempPath = currentFolder;	//sep + "temp" + sep;
@@ -426,6 +428,7 @@ public class MetFragBean implements Runnable, Serializable {
 		
 		// short decimal format for score and/or exact mass
 		DecimalFormat threeDForm = new DecimalFormat("#.###");
+		//threeDForm = (DecimalFormat) DecimalFormat.getNumberInstance(new Locale(System.getProperty("user.language")));
 		
 		// load required property values
 		String jdbc = "", username = "", password = "", token = "";
@@ -500,7 +503,10 @@ public class MetFragBean implements Runnable, Serializable {
 					String formula = MolecularFormulaManipulator.getHTML(iformula);
 					// compute molecular mass
 					double emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
-					emass = Double.valueOf(threeDForm.format(emass));	// shorten exact mass to 3 decimal places
+					String threeDstring = threeDForm.format(emass);
+					if(threeDstring.contains(","))
+						threeDstring = threeDstring.replace(",", ".");
+					emass = Double.valueOf(threeDstring);	// shorten exact mass to 3 decimal places
 					
 					/**
 		             *  hydrogen handling
