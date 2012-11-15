@@ -312,6 +312,7 @@ public class MetFusionBean implements Serializable {
     	// set context environment
 		session = (HttpSession) fc.getExternalContext().getSession(false);
 		scontext = (ServletContext) fc.getExternalContext().getContext();
+		String sep = "/";
 		webRoot = scontext.getRealPath(sep);
 		String sessionPath = webRoot + sep + "temp" + sep + sessionString + sep;
 		System.out.println("tempPath -> " + sessionPath);
