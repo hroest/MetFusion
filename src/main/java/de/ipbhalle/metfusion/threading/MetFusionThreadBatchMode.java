@@ -126,6 +126,12 @@ public class MetFusionThreadBatchMode implements Runnable {
 		 * threading via runnable()
 		 */
 		
+		// both result lists are empty
+		if((massbank.getResults() == null || massbank.getResults().size() == 0) && (metfrag.getResults() == null || metfrag.getResults().size() == 0)) {
+			System.err.println("No results at all, both MassBank and MetFrag returned no results or had errors!");
+			return;
+		}
+		
 		if(massbank.getResults() == null || massbank.getResults().size() == 0) {
         	String errMessage = "Peak(s) not found in MassBank - check the settings and try again.";
             System.err.println(errMessage);
