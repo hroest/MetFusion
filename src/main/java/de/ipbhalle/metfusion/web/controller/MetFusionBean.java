@@ -52,6 +52,7 @@ import com.icesoft.faces.context.effects.Fade;
 import com.icesoft.faces.context.effects.Highlight;
 
 import de.ipbhalle.MassBank.MassBankLookupBean;
+import de.ipbhalle.enumerations.ResultTabs;
 import de.ipbhalle.enumerations.SpectralDB;
 import de.ipbhalle.metfusion.threading.MetFusionThread;
 import de.ipbhalle.metfusion.utilities.output.SDFOutputHandler;
@@ -177,9 +178,21 @@ public class MetFusionBean implements Serializable {
     private XLSOutputHandler exporter;
     private boolean createdResource = false;
     
-    /** output resource for rerankred results, stored in SD file */
+    /** output resource for reranked results, stored in SD file */
     private boolean createdResourceSDF = false;
     private Resource outputResourceSDF;
+    
+    /** output resource for database results, stored in SD file */
+    private boolean createdResourceSDFDatabase = false;
+    private Resource outputResourceSDFDatabase;
+    
+    /** output resource for fragmenter results, stored in SD file */
+    private boolean createdResourceSDFFragmenter = false;
+    private Resource outputResourceSDFFragmenter;
+    
+    /** output resource for unused results, stored in SD file */
+    private boolean createdResourceSDFUnused = false;
+    private Resource outputResourceSDFUnused;
     
     
     /** progress bar rendering */
@@ -285,6 +298,9 @@ public class MetFusionBean implements Serializable {
     	this.percentProgressGlobal = 0;
     	this.setCreatedResource(false);
     	this.setCreatedResourceSDF(Boolean.FALSE);
+    	this.setCreatedResourceSDFDatabase(Boolean.FALSE);
+    	this.setCreatedResourceSDFFragmenter(Boolean.FALSE);
+    	this.setCreatedResourceSDFUnused(Boolean.FALSE);
     	
     	setShowClusterResults(Boolean.FALSE);
     	mblb.setSearchProgress(0);
@@ -534,6 +550,55 @@ public class MetFusionBean implements Serializable {
 		setOutputResourceSDF(resource);
 		// enable download button for resource
 		setCreatedResourceSDF(Boolean.TRUE);
+    }
+    
+    public void generateOriginalResultResourceSDFHandler(List<Result> list, ResultTabs tab) {
+    	// setup filename
+    	SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy_k-m-s");
+		String time = sdf.format(new Date());
+		String resourceName = tab.toString() + "_" + time +  ".sdf";
+		String folder = "./temp" + sep + sessionString + sep;
+		
+		String path = webRoot + sep + "temp" + sep + sessionString + sep;
+		System.out.println("resource path -> " + path);
+		
+		File dir = new File(path);
+		if(!dir.exists())
+			dir.mkdirs();
+		// skip creation of output resource if file access is denied
+		if(!dir.canWrite()) {
+			setCreatedResource(Boolean.FALSE);
+			return;
+		}
+		
+		String completeName = path + resourceName;
+    	
+		SDFOutputHandler sdfHandler = new SDFOutputHandler(completeName);
+		sdfHandler.writeOriginalResults(list);
+		
+		// create SDFResource
+    	SDFResource resource = new SDFResource(ec, resourceName, folder);
+    	if(tab.equals(ResultTabs.database)) {
+    		// set SDFResource
+    		setOutputResourceSDFDatabase(resource);
+    		// enable download button for resource
+    		setCreatedResourceSDFDatabase(Boolean.TRUE);
+    	}
+    	else if (tab.equals(ResultTabs.fragmenter)) {
+    		// set SDFResource
+    		setOutputResourceSDFFragmenter(resource);
+    		// enable download button for resource
+    		setCreatedResourceSDFFragmenter(Boolean.TRUE);
+    	}
+    	else if (tab.equals(ResultTabs.unused)) {
+    		// set SDFResource
+    		setOutputResourceSDFUnused(resource);
+    		// enable download button for resource
+    		setCreatedResourceSDFUnused(Boolean.TRUE);
+    	}
+    	else {
+    		
+    	}
     }
     
     /**
@@ -1405,6 +1470,54 @@ public class MetFusionBean implements Serializable {
 
 	public Resource getOutputResourceSDF() {
 		return outputResourceSDF;
+	}
+
+	public boolean isCreatedResourceSDFDatabase() {
+		return createdResourceSDFDatabase;
+	}
+
+	public void setCreatedResourceSDFDatabase(boolean createdResourceSDFDatabase) {
+		this.createdResourceSDFDatabase = createdResourceSDFDatabase;
+	}
+
+	public Resource getOutputResourceSDFDatabase() {
+		return outputResourceSDFDatabase;
+	}
+
+	public void setOutputResourceSDFDatabase(Resource outputResourceSDFDatabase) {
+		this.outputResourceSDFDatabase = outputResourceSDFDatabase;
+	}
+
+	public boolean isCreatedResourceSDFFragmenter() {
+		return createdResourceSDFFragmenter;
+	}
+
+	public void setCreatedResourceSDFFragmenter(boolean createdResourceSDFFragmenter) {
+		this.createdResourceSDFFragmenter = createdResourceSDFFragmenter;
+	}
+
+	public Resource getOutputResourceSDFFragmenter() {
+		return outputResourceSDFFragmenter;
+	}
+
+	public void setOutputResourceSDFFragmenter(Resource outputResourceSDFFragmenter) {
+		this.outputResourceSDFFragmenter = outputResourceSDFFragmenter;
+	}
+
+	public boolean isCreatedResourceSDFUnused() {
+		return createdResourceSDFUnused;
+	}
+
+	public void setCreatedResourceSDFUnused(boolean createdResourceSDFUnused) {
+		this.createdResourceSDFUnused = createdResourceSDFUnused;
+	}
+
+	public Resource getOutputResourceSDFUnused() {
+		return outputResourceSDFUnused;
+	}
+
+	public void setOutputResourceSDFUnused(Resource outputResourceSDFUnused) {
+		this.outputResourceSDFUnused = outputResourceSDFUnused;
 	}
 
 }
