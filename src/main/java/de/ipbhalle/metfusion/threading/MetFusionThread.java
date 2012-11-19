@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 
 import javax.faces.application.FacesMessage;
 
+import de.ipbhalle.enumerations.ResultTabs;
 import de.ipbhalle.metfusion.integration.Similarity.SimilarityMetFusion;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoIntegrationWeighted;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoSimilarity;
@@ -125,6 +126,13 @@ public class MetFusionThread implements Runnable {
 //			}
 //		}
 		
+		// both result lists are empty
+		if((genericDatabase.getResults() == null || genericDatabase.getResults().size() == 0) && 
+				(metfrag.getResults() == null || metfrag.getResults().size() == 0)) {
+			System.err.println("No results at all, both " + databaseName + " and MetFrag returned no results or had errors!");
+			return;
+		}
+		
 		if(genericDatabase.getResults() == null || genericDatabase.getResults().size() == 0) {
         	String errMessage = "Peak(s) not found in " + databaseName + " - please check the settings and try again.";
             System.err.println(errMessage);
@@ -146,12 +154,17 @@ public class MetFusionThread implements Runnable {
 			metfusion.setShowClusterResults(false);
 			metfrag.setShowResult(true);
 			
+			metfusion.generateOriginalResultResourceSDFHandler(metfrag.getResults(), ResultTabs.fragmenter);
+			
             return;
         }
         else if(genericDatabase.getResults() != null) {
             System.out.println("# " + databaseName + " results: " + genericDatabase.getResults().size());
             genericDatabase.setShowResult(true);
             //setShowResultsDatabase(true);
+            metfusion.generateOriginalResultResourceSDFHandler(genericDatabase.getResults(), ResultTabs.database);
+            
+            metfusion.generateOriginalResultResourceSDFHandler(genericDatabase.getUnused(), ResultTabs.unused);
         }
         else {      // abort run and return
             //String errMessage = "EMPTY MassBank result! - Check settings.";
@@ -174,6 +187,8 @@ public class MetFusionThread implements Runnable {
 			genericDatabase.setShowResult(false);
 			metfusion.setShowClusterResults(false);
 			metfrag.setShowResult(true);
+			
+			metfusion.generateOriginalResultResourceSDFHandler(metfrag.getResults(), ResultTabs.fragmenter);
 			
             return;
         }
@@ -204,11 +219,14 @@ public class MetFusionThread implements Runnable {
 			metfrag.setShowResult(false);
 			genericDatabase.setShowResult(true);
 			
+			metfusion.generateOriginalResultResourceSDFHandler(genericDatabase.getResults(), ResultTabs.database);
+			
 			return;
         }
         else if(metfrag.getResults() != null) {
         	System.out.println("# MetFrag results: " + metfrag.getResults().size());
         	metfrag.setShowResult(true);
+        	metfusion.generateOriginalResultResourceSDFHandler(metfrag.getResults(), ResultTabs.fragmenter);
         }
         else {      // abort run and return
             String errMessage = "EMPTY MetFrag result! - please check settings.";
@@ -232,6 +250,8 @@ public class MetFusionThread implements Runnable {
 			metfusion.setShowResultsDatabase(true);
 			metfrag.setShowResult(false);
 			genericDatabase.setShowResult(true);
+			
+			metfusion.generateOriginalResultResourceSDFHandler(genericDatabase.getResults(), ResultTabs.database);
 			
             return;
         }
