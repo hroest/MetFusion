@@ -913,16 +913,13 @@
 					</ice:selectOneRadio>
 					
 					<ice:panelGroup style="background-color: MintCream; border: 1px solid ForestGreen;" rendered="#{appBean.createdResource}">
-						<ice:panelGrid columns="4">
+						<ice:panelGrid columns="2">
 							<ice:outputText value="Export all results into Excel file:"/>
 							<ice:outputResource id="outputResource" resource="#{appBean.outputResource}"
 								label="Save results in Excel document." mimeType="application/vnd.ms-excel"
-								fileName="#{appBean.outputResource.resourceName}" image="/images/icons/xls.png" rendered="#{appBean.createdResource}"/>
+								fileName="#{appBean.outputResource.resourceName}" image="/images/icons/xls.png" 
+								rendered="#{appBean.createdResource}"/>
 							
-							<ice:outputText value="or reranked results only into SD file:" rendered="#{appBean.createdResourceSDF}"/>
-							<ice:outputResource id="outputResourceSDF" rendered="#{appBean.createdResourceSDF}"
-								resource="#{appBean.outputResourceSDF}" label="Save reranked results in SD file." mimeType="text"
-								fileName="#{appBean.outputResourceSDF.resourceName}" image="/images/icons/sdf.png"/>
 						</ice:panelGrid>
     				</ice:panelGroup>
     				
@@ -933,6 +930,15 @@
       						
 					<ice:panelStack selectedPanel="#{appBean.selectedResult}">
 						<ice:panelGroup id="cluster">
+							<ice:panelGroup style="background-color: MintCream; border: 1px solid ForestGreen;">
+								<ice:panelGrid columns="2">
+									<ice:outputText value="or reranked results only into SD file:" rendered="#{appBean.createdResourceSDF}"/>
+									<ice:outputResource id="outputResourceSDF" rendered="#{appBean.createdResourceSDF}"
+										resource="#{appBean.outputResourceSDF}" label="Save reranked results in SD file." mimeType="text"
+										fileName="#{appBean.outputResourceSDF.resourceName}" image="/images/icons/sdf.png"/>
+								</ice:panelGrid>
+							</ice:panelGroup>
+						
 							<ice:dataTable id="tableCluster" value="#{appBean.tanimotoClusters}" rendered="#{appBean.showClusterResults}" 
 								var="entry" rows="20">
 								<f:facet name="header">
@@ -1045,6 +1051,15 @@
 						</ice:panelGroup>
 						
 						<ice:panelGroup id="fragmenter">
+							<ice:panelGroup style="background-color: MintCream; border: 1px solid ForestGreen;">
+								<ice:panelGrid columns="2">
+									<ice:outputText value="or fragmenter results only into SD file:" rendered="#{appBean.createdResourceSDFFragmenter}"/>
+									<ice:outputResource id="outputResourceSDFFragmenter" rendered="#{appBean.createdResourceSDFFragmenter}"
+										resource="#{appBean.outputResourceSDFFragmenter}" label="Save reranked results in SD file." mimeType="text"
+										fileName="#{appBean.outputResourceSDFFragmenter.resourceName}" image="/images/icons/sdf.png"/>
+								</ice:panelGrid>
+							</ice:panelGroup>
+						
 							<ice:dataTable id="fragmenterList" value="#{appBean.mfb.results}" 
 								rendered="#{appBean.mfb.showResult}" var="entry" rows="20">
 								<f:facet name="header">
@@ -1133,6 +1148,15 @@
 						</ice:panelGroup>
 						
 						<ice:panelGroup id="database">
+							<ice:panelGroup style="background-color: MintCream; border: 1px solid ForestGreen;">
+								<ice:panelGrid columns="2">
+									<ice:outputText value="or database results only into SD file:" rendered="#{appBean.createdResourceSDFDatabase}"/>
+									<ice:outputResource id="outputResourceSDFDatabase" rendered="#{appBean.createdResourceSDFDatabase}"
+										resource="#{appBean.outputResourceSDFDatabase}" label="Save reranked results in SD file." mimeType="text"
+										fileName="#{appBean.outputResourceSDFDatabase.resourceName}" image="/images/icons/sdf.png"/>
+								</ice:panelGrid>
+							</ice:panelGroup>
+						
 							<ice:dataTable id="databaseList" value="#{appBean.genericDatabase.results}"
 								rendered="#{appBean.genericDatabase.showResult}" var="entry" rows="20">
 								<f:facet name="header">
@@ -1211,6 +1235,16 @@
 						</ice:panelGroup>
 						
 						<ice:panelGroup id="unused">
+							<ice:panelGroup style="background-color: MintCream; border: 1px solid ForestGreen;">
+								<ice:panelGrid columns="2">
+									<ice:outputText value="or unused database entries only into SD file:" 
+										rendered="#{appBean.createdResourceSDFUnused}"/>
+									<ice:outputResource id="outputResourceSDFUnused" rendered="#{appBean.createdResourceSDFUnused}"
+										resource="#{appBean.outputResourceSDFUnused}" label="Save reranked results in SD file." mimeType="text"
+										fileName="#{appBean.outputResourceSDFUnused.resourceName}" image="/images/icons/sdf.png"/>
+								</ice:panelGrid>
+							</ice:panelGroup>
+						
 			    			<ice:dataTable value="#{appBean.genericDatabase.unused}" var="entry" id="unusedDatabaseEntries" rows="20">
 			    				<f:facet name="header">
 			    					<ice:outputText value="Unused #{appBean.genericDatabase.databaseName} Entries"/>
