@@ -49,6 +49,30 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		this.append = append;
 	}
 	
+	/**
+	 * Fetch properties for original result.
+	 * 
+	 * @param r - the original result
+	 * @return a map of keys and properties
+	 */
+	private Map<Object, Object> fetchProperties(Result r) {
+		Map<Object, Object> props = new HashMap<Object, Object>();
+
+		props.put(properties.origin, r.getPort());			// Origin of result
+		props.put(properties.id, r.getId());				// ID
+		props.put(properties.name, r.getName());			// Name
+		props.put(properties.origscore, r.getScore());		// original Score
+		props.put(properties.smiles, r.getSmiles());		// SMILES
+		
+		return props;
+	}
+	
+	/**
+	 * Fetch properties for extended result.
+	 * 
+	 * @param r - the extended result
+	 * @return a map of keys and properties
+	 */
 	private Map<Object, Object> fetchProperties(ResultExt r) {
 		Map<Object, Object> props = new HashMap<Object, Object>();
 
@@ -83,6 +107,41 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 			container.setProperties(props);
 			container.setID((String) props.get(properties.name));
 			//container.setProperty("cdk:Title", (String) props.get(properties.name));
+			
+			try {
+				sdfwriter.write(container);
+			} catch (CDKException e) {
+				System.err.println("Error writing container for molecule [" + result.getId() + "]");
+			}
+		}
+		
+		try {
+			sdfwriter.close();
+		} catch (IOException e) {
+			System.err.println("Could not close connection to file [" + filename + "]!");
+			return success;
+		}
+		success = Boolean.TRUE;
+		
+		return success;
+	}
+	
+	public boolean writeOriginalResults(List<Result> results) {
+		boolean success = Boolean.FALSE;
+		OutputStream os = null;
+		try {
+			os = new FileOutputStream(new File(filename), append);
+		} catch (FileNotFoundException e) {
+			System.err.println("Could not find file [" + filename + "]!");
+			return success;
+		}
+		
+		SDFWriter sdfwriter = new SDFWriter(os);
+		for (Result result : results) {
+			IAtomContainer container = result.getMol();
+			Map<Object, Object> props = fetchProperties(result);
+			container.setProperties(props);
+			container.setID((String) props.get(properties.name));
 			
 			try {
 				sdfwriter.write(container);
