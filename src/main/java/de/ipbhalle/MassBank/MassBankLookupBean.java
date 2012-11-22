@@ -110,9 +110,12 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 	
 	public static final String varOTHER = "other";
 	public static final String massbankJP = "http://www.massbank.jp/";
+	public static final String massbankMSBI = "http://msbi.ipb-halle.de/MassBank/";
+	public static final String massBankNORMAN = "http://massbank.normandata.eu/MassBank/";
+	
 	private SelectItem[] availableServers = {new SelectItem(massbankJP, "MassBank JP"), 
-			new SelectItem("http://msbi.ipb-halle.de/MassBank/", "MassBank DE"), 
-			new SelectItem("http://massbank.normandata.eu/MassBank/", "NORMAN-MassBank"),
+			new SelectItem(massbankMSBI, "MassBank DE"), 
+			new SelectItem(massBankNORMAN, "NORMAN-MassBank"),
 //			new SelectItem("http://pfos.jp/MassBank/", "Pfos"),
 			new SelectItem(varOTHER, varOTHER)};
 	private String selectedServer = "";
@@ -253,6 +256,16 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
         showResult = false;
         System.out.println("serverUrl: " + this.serverUrl);
         previousServer = this.serverUrl;		// update previous server to current one
+        
+        // set selected server
+        for (int i = 0; i < availableServers.length; i++) {
+			if(availableServers[i].getValue().equals(getServerUrl())) {
+				setSelectedServer((String) availableServers[i].getValue());
+				setSelectOtherServer(Boolean.FALSE);	// disable input field for other server
+	        	setOtherServer("");
+				break;
+			}
+		}
         
         if(allowOtherServer) {
 	        // set up server Url 
@@ -1136,6 +1149,7 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
         	System.out.println(missingEntriesNote);
         	setShowNote(Boolean.TRUE);
         }
+        else setShowNote(Boolean.FALSE);
 	}
 	
 	private String formatPeaks() {
