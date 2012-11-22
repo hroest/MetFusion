@@ -129,7 +129,21 @@ public class MetFusionThread implements Runnable {
 		// both result lists are empty
 		if((genericDatabase.getResults() == null || genericDatabase.getResults().size() == 0) && 
 				(metfrag.getResults() == null || metfrag.getResults().size() == 0)) {
-			System.err.println("No results at all, both " + databaseName + " and MetFrag returned no results or had errors!");
+			String errMessage = "No results at all, both " + databaseName + " and MetFrag returned no results or had errors!";
+			System.err.println(errMessage);
+			
+			metfusion.setErrorMessage(errMessage);
+			metfusion.setEnableStart(Boolean.TRUE);
+    		stepsDonePercent(totalSteps);
+			setActive(Boolean.FALSE);
+			
+			metfusion.setShowTable(true);
+			metfusion.setSelectedTab(numResultTab);
+			metfusion.setSelectedResult("cluster");
+			metfusion.setShowResultsFragmenter(false);
+			metfrag.setShowResult(false);
+			genericDatabase.setShowResult(false);
+			
 			return;
 		}
 		
