@@ -99,7 +99,8 @@
 		    						</ice:panelTooltip>
 		    					</ice:panelGroup>
 		    					<ice:inputText id="mbResult" value="#{appBean.mblb.limit}" required="true" 
-		    						requiredMessage="Please enter a number between 1 and 500.">
+		    						requiredMessage="Please enter a number between 1 and 500." 
+		    						validatorMessage="Please enter a number between 1 and 500.">
 		    						<f:validateLongRange minimum="1" maximum="500"></f:validateLongRange>
 		    					</ice:inputText>
 		    					<ice:panelGroup effect="#{appBean.effectOutputText}">
