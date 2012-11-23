@@ -143,6 +143,11 @@ public class MetFusionThreadBatchMode implements Runnable {
     		// write out MetFrag results
     		File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
     		List<Result> listMetFrag = metfrag.getResults();
+    		
+    		File incompleteSDF = new File(tempPath, addPrefixToFile("metfrag.sdf"));
+    		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
+    		sdfHandler.writeOriginalResults(listMetFrag);
+    		
     		try {
     			FileWriter fw = new FileWriter(incomplete);    			
     			fw.write("## MetFrag\n");
@@ -175,6 +180,11 @@ public class MetFusionThreadBatchMode implements Runnable {
     		// write out MetFrag results
     		File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
     		List<Result> listMetFrag = metfrag.getResults();
+    		
+    		File incompleteSDF = new File(tempPath, addPrefixToFile("metfrag.sdf"));
+    		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
+    		sdfHandler.writeOriginalResults(listMetFrag);
+    		
     		try {
     			FileWriter fw = new FileWriter(incomplete);    			
     			fw.write("## MetFrag\n");
@@ -204,6 +214,11 @@ public class MetFusionThreadBatchMode implements Runnable {
     		// write out MassBank results
     		File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
     		List<Result> listMassBank = massbank.getResults();
+    		
+    		File incompleteSDF = new File(tempPath, addPrefixToFile("massbank.sdf"));
+    		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
+    		sdfHandler.writeOriginalResults(listMassBank);
+    		
     		try {
     			FileWriter fw = new FileWriter(incomplete);    			
     			fw.write("## MassBank\n");
@@ -234,6 +249,11 @@ public class MetFusionThreadBatchMode implements Runnable {
     		// write out MassBank results
     		File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
     		List<Result> listMassBank = massbank.getResults();
+    		
+    		File incompleteSDF = new File(tempPath, addPrefixToFile("massbank.sdf"));
+    		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
+    		sdfHandler.writeOriginalResults(listMassBank);
+    		
     		try {
     			FileWriter fw = new FileWriter(incomplete);    			
     			fw.write("## MassBank\n");
@@ -256,6 +276,19 @@ public class MetFusionThreadBatchMode implements Runnable {
 		
 		File unused = new File(tempPath, addPrefixToFile("unused.log"));
 		writeUnused(massbank.getUnused(), unused);
+		
+		/** write SDFs out */
+		File massbankSDF = new File(tempPath, addPrefixToFile("massbank.sdf"));
+		SDFOutputHandler sdfHandlerMB = new SDFOutputHandler(massbankSDF.getAbsolutePath());
+		sdfHandlerMB.writeOriginalResults(listMassBank);
+		
+		File metfragSDF = new File(tempPath, addPrefixToFile("metfrag.sdf"));
+		SDFOutputHandler sdfHandlerMF = new SDFOutputHandler(metfragSDF.getAbsolutePath());
+		sdfHandlerMF.writeOriginalResults(listMassBank);
+		
+		File unusedSDF = new File(tempPath, addPrefixToFile("unused.sdf"));
+		SDFOutputHandler sdfHandlerU = new SDFOutputHandler(unusedSDF.getAbsolutePath());
+		sdfHandlerU.writeOriginalResults(listMassBank);
 		
 		/**
 		 * TODO: check output
