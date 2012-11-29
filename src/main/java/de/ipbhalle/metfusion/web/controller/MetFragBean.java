@@ -381,7 +381,7 @@ public class MetFragBean implements Runnable, Serializable {
 	    }
 	    
 	    for (FileInfo fileInfo : results.getFiles()) {	// JSF restriction to 1 uploaded file...
-	        if (fileInfo.isSaved() && fileInfo.getFileName().endsWith("sdf")) {		// TODO: check for valid SDF
+	        if (fileInfo.isSaved() & fileInfo.getFileName().endsWith("sdf")) {		// TODO: check for valid SDF
 	            // Process the file. Only save cloned copies of results or fileInfo
 	        	System.out.println(fileInfo.getFileName() + "\t" + fileInfo.getContentType());
 	        	this.selectedSDF = fileInfo.getFileName();
@@ -511,20 +511,20 @@ public class MetFragBean implements Runnable, Serializable {
 					/**
 		             *  hydrogen handling
 		             */
-//		            try {
-//		                AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-//		                CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-//		                hAdder.addImplicitHydrogens(container);
-//		                AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-//	                	
-//		                //container = AtomContainerHandler.addExplicitHydrogens(container);
-//					} catch (CDKException e) {
-//						System.err.println("error manipulating mol for " + mfr.getCandidateID());
-//						continue;
-//					}
+		            try {
+		                AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+		                CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
+		                hAdder.addImplicitHydrogens(container);
+		                AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
+	                	
+		                //container = AtomContainerHandler.addExplicitHydrogens(container);
+					} catch (CDKException e) {
+						System.err.println("error manipulating mol for " + mfr.getCandidateID());
+						continue;
+					}
 					
 					// remove hydrogens
-					container = AtomContainerManipulator.removeHydrogens(container);
+//					container = AtomContainerManipulator.removeHydrogens(container);
 					
 					String filename = mfr.getCandidateID() + DEFAULT_IMAGE_ENDING;
 					String url = linkMap.get(selectedDB);
@@ -554,6 +554,9 @@ public class MetFragBean implements Runnable, Serializable {
 						int id = Integer.parseInt(mfr.getCandidateID());
 						ExtendedCompoundInfo cpdInfo = chemSpiderProxy.getExtendedCompoundInfo(id, token);
 						name = cpdInfo.getCommonName();
+					}
+					else if(database.equals(dbSDF)) {
+						name = mfr.getCandidateID();
 					}
 					else {
 						System.err.println("unknown database - or not yet supported!");
