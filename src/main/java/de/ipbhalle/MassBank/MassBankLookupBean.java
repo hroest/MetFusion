@@ -400,6 +400,9 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 			String key = it.next();
 			List<String> insts = loaded.get(key);
 			int slot = 0;
+			if(key == null)
+				continue;
+			
 			if(key.equals(EI)) {
 				slot = indexEI;
 			}
@@ -1027,15 +1030,10 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
                 String inchi = links.get("inchi");	// IUPAC InChI from MassBank record
                 //System.out.println("smiles -> " + smiles);
                 IAtomContainer container = null;
+                /** TODO: order seems to matter! mol container via MassBank is different from InChI generated one !*/
                 // first look if container is present, then download if not
                 container = mbu.getContainer(id, basePath);
-                if(isUniqueInchi() && container == null && inchi != null && !inchi.isEmpty()) {	// check if InChI string is present
-	                try {	// create container via InChI
-						container = igf.getInChIToStructure(inchi, DefaultChemObjectBuilder.getInstance()).getAtomContainer();
-					} catch (CDKException e) {
-						container = null;
-					}
-                }
+                
                 if(container == null) {
                     fetch = mbu.fetchMol(name, id, site, basePath);
                     if(fetch) {
@@ -1055,6 +1053,15 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
                     }
                 }
 
+                /** TODO: order seems to matter! mol container via MassBank is different from InChI generated one !*/
+                if(isUniqueInchi() && container == null && inchi != null && !inchi.isEmpty()) {	// check if InChI string is present
+	                try {	// create container via InChI
+						container = igf.getInChIToStructure(inchi, DefaultChemObjectBuilder.getInstance()).getAtomContainer();
+					} catch (CDKException e) {
+						container = null;
+					}
+                }
+                
                 /**
                  *  if entry is not present yet, add it - else don't
                  */
