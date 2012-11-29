@@ -1053,17 +1053,17 @@ public class MassBankUtilities {
 		/**
 		 *  hydrogen handling
 		 */
-//		try {
-//			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
-//			CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
-//	        hAdder.addImplicitHydrogens(container);
-//	        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
-//		} catch (CDKException e) {
-//			return container;
-//		}
-//		return container;
+		try {
+			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(container);
+			CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(container.getBuilder());
+	        hAdder.addImplicitHydrogens(container);
+	        AtomContainerManipulator.convertImplicitToExplicitHydrogens(container);
+		} catch (CDKException e) {
+			return container;
+		}
+		return container;
 		
-		return AtomContainerManipulator.removeHydrogens(container);
+//		return AtomContainerManipulator.removeHydrogens(container);
 	}
 	
 	
