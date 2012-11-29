@@ -62,7 +62,8 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		props.put(properties.id, r.getId());				// ID
 		props.put(properties.name, r.getName());			// Name
 		props.put(properties.origscore, r.getScore());		// original Score
-		props.put(properties.smiles, r.getSmiles());		// SMILES
+		if(r.getSmiles() != null && !r.getSmiles().isEmpty())
+			props.put(properties.smiles, r.getSmiles());		// SMILES
 		
 		return props;
 	}
@@ -139,6 +140,9 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		SDFWriter sdfwriter = new SDFWriter(os);
 		for (Result result : results) {
 			IAtomContainer container = result.getMol();
+			if(container == null)
+				continue;
+			
 			Map<Object, Object> props = fetchProperties(result);
 			container.setProperties(props);
 			container.setID((String) props.get(properties.name));
