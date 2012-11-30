@@ -126,11 +126,12 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 	public static final String ms3 = "MS3";
 	public static final String ms4 = "MS4";
 	public static final String msAll = "all";
+	public static final String msNA = "N/A";	// N/A ms level
 	private SelectItem[] availableMSLevels = {new SelectItem(msAll, msAll), new SelectItem(ms1, ms1), new SelectItem(ms2, ms2), 
 			new SelectItem(ms3, ms3), new SelectItem(ms4, ms4)};	// available MS levels
 	private String[] selectedMSLevel = {msAll, ms1, ms2, ms3, ms4};	// selected MS levels 
 	private final String parameterMSlvl = "&ms=";		// MassBank MS level parameter
-	private String msLevel = "";						// formatted MS level String
+	private String msLevel = "&ms=all&ms=MS&ms=MS2&ms=MS3&ms=4";						// formatted MS level String
 	
 	/** Allow to use another server besides the default one. */
 	private boolean selectOtherServer = Boolean.FALSE;
@@ -715,7 +716,7 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 
 		// this.queryResults = result;
 		this.showResult = true;
-		System.out.println(result.size() + "\n");
+		System.out.println("MassBank results#: " + result.size() + "\n");
 
 		wrapResults();
 		
@@ -776,7 +777,8 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 		String param = "quick=true&CEILING=1000&WEIGHT=SQUARE&NORM=SQRT&START=1&TOLUNIT=unit"
 				+ "&CORTYPE=COSINE&FLOOR=0&NUMTHRESHOLD=3&CORTHRESHOLD=0.8&TOLERANCE=0.3"
 				+ "&CUTOFF=" + cutoff + "&NUM=0&VAL=" + paramPeak.toString();
-		param += inst;
+		param += msLevel;	// add MS level information
+		param += inst;		// append ionization mode
 		System.out.println(param);
 		/**
 		 * 
@@ -937,7 +939,7 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
         String sumFormula = "";
         
         int limitCounter = 0;
-        int resultLimit = (limit >= queryResults.size()) ? (queryResults.size()-1) : limit;
+        int resultLimit = (limit >= queryResults.size()) ? queryResults.size() : limit;
         for(int i = 0; i < queryResults.size(); i++) {
             String s = queryResults.get(i);
             this.searchCounter = limitCounter;
