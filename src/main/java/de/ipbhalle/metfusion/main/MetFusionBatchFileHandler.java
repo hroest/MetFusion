@@ -52,10 +52,19 @@ public class MetFusionBatchFileHandler {
 		Map<AvailableParameters, Object> settings = new HashMap<AvailableParameters, Object>();
 		BufferedReader br = new BufferedReader(new FileReader(batchFile));
 		String line = "", peaks = "";
+		AvailableParameters[] ap = AvailableParameters.values();
+		List<String> params = new ArrayList<String>();
+		for (int i = 0; i < ap.length; i++) {
+			params.add(ap[i].toString());
+		}
 		while((line = br.readLine()) != null) {
 			if(line.startsWith(prefix)) {		// found parameter
 				int position = line.indexOf(separator);	// find position of separator (after which parameter value follows)
 				String param = line.substring(1, position).trim();	// get name of parameter
+				if(!params.contains(param)) {		// skip unknown property
+					System.err.println("Unknown property [" + param + "]. Ignoring it!");
+					continue;
+				}
 				AvailableParameters av = AvailableParameters.valueOf(param);	// check for parameter name in enumeration of available parameters
 				Object value = line.substring(position+1).trim();	// get value of parameter
 				settings.put(av, value);
@@ -77,6 +86,7 @@ public class MetFusionBatchFileHandler {
 		String[] mz = new String[lines.length];
 		String[] ints = new String[lines.length];
 		for (int i = 0; i < lines.length; i++) {
+			lines[i] = lines[i].replaceAll("[ \t\\x0B\f\r]+", DEFAULT_SEPARATOR);	// replace each white space by default one
 			String[] split = lines[i].split(DEFAULT_SEPARATOR);
 			if(split.length == 1) {		// only m/z, set relative intensity to 500
 				mz[i] = split[0];
@@ -198,7 +208,9 @@ public class MetFusionBatchFileHandler {
 	}
 	
 	public static void main(String[] args) {
-		MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/mgerlich/Documents/metfusion_param_default.mf"));
+		//MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/mgerlich/Documents/metfusion_param_default.mf"));
+		MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/sneumann/CASMI/msbi.ipb-halle.de/contest/metfrag/metfrag-category2-challenge1.mf"));
+		
 		try {
 			mbfr.readFile();
 		} catch (IOException e) {
