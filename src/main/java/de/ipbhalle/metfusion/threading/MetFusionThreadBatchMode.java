@@ -420,7 +420,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 		/**
 		 *  new colored similarity matrix after metfusion
 		 */
-		TanimotoSimilarity after = new TanimotoSimilarity(listMassBank, redraw);	//, 3, 0.5f);
+		TanimotoSimilarity after = new TanimotoSimilarity(listMassBank, redraw, isUseECFP());	//, 3, 0.5f);
 		// fork new thread for generating ColorCodedMatrix
 //		ColoredMatrixGeneratorThread cmtAfter = new ColoredMatrixGeneratorThread(after);
 //		cmtAfter.run();
