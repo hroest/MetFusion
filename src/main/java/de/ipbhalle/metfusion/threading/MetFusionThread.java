@@ -15,7 +15,6 @@ import de.ipbhalle.enumerations.ResultTabs;
 import de.ipbhalle.metfusion.integration.Similarity.SimilarityMetFusion;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoIntegrationWeighted;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoSimilarity;
-import de.ipbhalle.metfusion.utilities.output.SDFOutputHandler;
 import de.ipbhalle.metfusion.web.controller.GenericDatabaseBean;
 import de.ipbhalle.metfusion.web.controller.MetFragBean;
 import de.ipbhalle.metfusion.web.controller.MetFusionBean;
@@ -412,7 +411,8 @@ public class MetFusionThread implements Runnable {
 		setActive(Boolean.FALSE);
 		metfusion.setEnableStart(Boolean.TRUE);
 		long time2 = System.currentTimeMillis() - time1;
-		System.out.println("time spent -> " + time2 + " ms");
+		time2 = time2 / 1000;	// from milliseconds to seconds
+		System.out.println("time spent -> " + time2 + " s");
 	}
 
 	/**
