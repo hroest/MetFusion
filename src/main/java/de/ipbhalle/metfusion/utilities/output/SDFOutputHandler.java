@@ -62,6 +62,7 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		props.put(properties.id, r.getId());				// ID
 		props.put(properties.name, r.getName());			// Name
 		props.put(properties.origscore, r.getScore());		// original Score
+		props.put(properties.peaksExplained, r.getMatchingPeaks());	// number of peaks explained
 		if(r.getSmiles() != null && !r.getSmiles().isEmpty())
 			props.put(properties.smiles, r.getSmiles());		// SMILES
 		

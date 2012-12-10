@@ -935,6 +935,7 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
         String name = "";
         String id = "";
         double score = 0.0d;
+        int numHits = 0;
         String site = "";
         String sumFormula = "";
         
@@ -966,6 +967,14 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
                 id = split[1].trim();
                 sumFormula = split[3].trim();
                 score = Double.parseDouble(split[4].substring(split[4].indexOf(".")));
+                // 	number of matched fragment peaks from MassBank
+                int pos1 = split[4].indexOf(".");
+                if ( pos1 > 0 ) { 
+					numHits = Integer.parseInt(split[4].substring(0, pos1).trim());
+				}
+				else {
+					numHits = Integer.parseInt(split[4]);
+				}
                 site = split[5];
 
                 String url = getServerUrl();
@@ -1084,6 +1093,7 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
                     //results.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
                     String imgPath = tempPath + id + ".png";
                     Result r = new Result(databaseName, id, name, score, container, url, imgPath, formula, emass);
+                    r.setMatchingPeaks(numHits);		// set number of matched peaks
                     //results.add(r);
                     //limitCounter++;
                     
@@ -1136,7 +1146,9 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 
                 // add unused results (duplicate or no mol container) to list
                 if(!fetch && container == null) {
-                	unused.add(new Result(databaseName, id, name, score, container, url, tempPath + id + ".png"));
+                	Result r = new Result(databaseName, id, name, score, container, url, tempPath + id + ".png");
+                	r.setMatchingPeaks(numHits);		// set number of matched peaks
+                	unused.add(r);
                 	System.out.println("unused -> " + id);
                 }
             }

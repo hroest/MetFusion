@@ -275,6 +275,7 @@ public class MassBankBatchMode implements Runnable {
         String name = "";
         String id = "";
         double score = 0.0d;
+        int numHits = 0;
         String site = "";
         String sumFormula = "";
         
@@ -303,6 +304,14 @@ public class MassBankBatchMode implements Runnable {
                 id = split[1].trim();
                 sumFormula = split[3].trim();
                 score = Double.parseDouble(split[4].substring(split[4].indexOf(".")));
+                // number of matched fragment peaks from MassBank
+                int pos1 = split[4].indexOf(".");
+                if ( pos1 > 0 ) { 
+					numHits = Integer.parseInt(split[4].substring(0, pos1).trim());
+				}
+				else {
+					numHits = Integer.parseInt(split[4]);
+				}
                 site = split[5];
 
                 //String record = MassBankUtilities.retrieveRecord(id, site);
@@ -413,8 +422,8 @@ public class MassBankBatchMode implements Runnable {
 					//else emass = MassBankUtilities.retrieveExactMass(id, site);
 					else emass = mbu.retrieveExactMass(id, site);
 
-					if(smiles.isEmpty())	// create SMILES if empty
-						smiles = sg.createSMILES(container);
+//					if(smiles.isEmpty())	// create SMILES if empty
+//						smiles = sg.createSMILES(container);
 					
 					duplicates.add(name);
                     //results.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
@@ -422,6 +431,7 @@ public class MassBankBatchMode implements Runnable {
 					//r.setSmiles(smiles);
 					String imgPath = tempPath + id + ".png";
                     Result r = new Result("MassBank", id, name, score, container, "", imgPath, formula, emass);
+                    r.setMatchingPeaks(numHits);		// set number of matched peaks
                     
                     // generate ECFP
                     if(useChemAxon) {
@@ -478,6 +488,7 @@ public class MassBankBatchMode implements Runnable {
                     //unused.add(new Result("MassBank", id, name, score, container, url, relImagePath + id + ".png"));
                 	Result r = new Result("MassBank", id, name, score, container, "", tempPath + id + ".png");
                 	r.setSmiles(smiles);
+                	r.setMatchingPeaks(numHits);		// set number of matched peaks
                 	
                 	unused.add(r);
                 }
