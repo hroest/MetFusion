@@ -228,9 +228,8 @@ public class Result {
 		this.name = r.getName();
 		this.score = r.getScore();
 		this.mol = r.getMol();
-		this.score = r.getScore();
 		this.scoreShort = r.getScoreShort();
-		this.tiedRank = 1;
+		//this.tiedRank = 1;
 		
 		this.inchi = r.getInchi();
 		this.inchikey = r.getInchikey();
