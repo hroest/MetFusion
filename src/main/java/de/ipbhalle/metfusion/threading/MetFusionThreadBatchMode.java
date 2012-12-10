@@ -284,11 +284,11 @@ public class MetFusionThreadBatchMode implements Runnable {
 		
 		File metfragSDF = new File(tempPath, addPrefixToFile("metfrag.sdf"));
 		SDFOutputHandler sdfHandlerMF = new SDFOutputHandler(metfragSDF.getAbsolutePath());
-		sdfHandlerMF.writeOriginalResults(listMassBank);
+		sdfHandlerMF.writeOriginalResults(listMetFrag);
 		
 		File unusedSDF = new File(tempPath, addPrefixToFile("unused.sdf"));
 		SDFOutputHandler sdfHandlerU = new SDFOutputHandler(unusedSDF.getAbsolutePath());
-		sdfHandlerU.writeOriginalResults(listMassBank);
+		sdfHandlerU.writeOriginalResults(massbank.getUnused());
 		
 		/**
 		 * TODO: check output
