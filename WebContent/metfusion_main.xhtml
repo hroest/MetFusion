@@ -1282,6 +1282,10 @@
 								<ice:column>
 									<f:facet name="header">Score</f:facet>
 									#{entry.score}
+									<br/><br/>
+									<ice:outputFormat value="Peaks explained: {0}">
+										<f:param value="#{entry.matchingPeaks}"/>
+									</ice:outputFormat>
 								</ice:column>
 			    			</ice:dataTable>
 			    			
