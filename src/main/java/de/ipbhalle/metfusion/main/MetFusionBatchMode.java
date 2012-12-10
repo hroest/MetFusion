@@ -248,7 +248,6 @@ public class MetFusionBatchMode {
 			File f = new File(mfbm.settings.get(ARGUMENTS.record));
 			prefix = f.getName().substring(0, f.getName().lastIndexOf("."));	// name of batch file - use as prefix for output files!
 			MassBankUtilities mbu = new MassBankUtilities();
-			//String[] result = MassBankUtilities.getPeaklistFromFile(f);		// read in record
 			String[] result = mbu.getPeaklistFromFile(f);		// read in record
 			
 			mbbm.setInputSpectrum(result[0]);		// set peaks for MassBank
@@ -270,6 +269,9 @@ public class MetFusionBatchMode {
 			
 			metfragbm.setSelectedDB(Databases.pubchem.toString());	// default to Pubchem database
 		}
+		
+		// set ionization for MetFrag
+		metfragbm.setMode(ion.getValue());
 		
 		if(mfbm.checkPROXY)		// if proxy switch was set, use proxy in MetFrag
 			metfragbm.setProxy(Boolean.TRUE);
