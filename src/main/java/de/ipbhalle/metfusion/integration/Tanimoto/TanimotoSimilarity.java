@@ -394,7 +394,8 @@ public class TanimotoSimilarity implements ISimilarity, Runnable {
 			// write column header
 			if(i < (primaries.size() - 1)) {
 				formatter.format(primaries.get(i).getId());
-				formatter.format("[%1.3f]\t", primaries.get(i).getScore());	// write score followed by a tab
+				formatter.format("[%1.3f][%s]\t", primaries.get(i).getScore(), 
+						primaries.get(i).getInchikey().split("-")[0]);	// write score followed by a tab
 			}
 			else {
 				formatter.format(primaries.get(i).getId());
@@ -406,7 +407,8 @@ public class TanimotoSimilarity implements ISimilarity, Runnable {
 			for (int j = 0; j < data[i].length; j++) {	// columns
 				if(j == 0 ) {			// write row header
 					formatter.format(candidates.get(i).getId());
-					formatter.format("[%1.3f]\t", candidates.get(i).getScore());
+					formatter.format("[%1.3f][%s]\t", candidates.get(i).getScore(), 
+							candidates.get(i).getInchikey().split("-")[0]);
 				}
 				
 				if(j < (data[i].length - 1)) {
