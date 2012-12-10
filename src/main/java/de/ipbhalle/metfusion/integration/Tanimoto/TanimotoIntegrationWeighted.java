@@ -79,6 +79,7 @@ public class TanimotoIntegrationWeighted extends Integration {
 			ScoreRankPair srp = candQueue.poll();
 			//newCandidates.add(new Result(candidates.get(srp.getIndex()), srp.getRank()));
 			Result r = candidates.get(srp.getIndex());
+			//System.out.println("candidate " + i + " " + r.getId() + "  " + r.getScore() + "  " + srp.getScore());
 			r.setTiedRank(srp.getRank());
 			newCandidates.add(r);
 		}
@@ -87,6 +88,7 @@ public class TanimotoIntegrationWeighted extends Integration {
 			ScoreRankPair srp = primQueue.poll();
 			//newPrimaries.add(new Result(primaries.get(srp.getIndex()), srp.getRank()));
 			Result r = primaries.get(srp.getIndex());
+			//System.out.println("primaries " + i + " " + r.getId() + "  " + r.getScore() + "  " + srp.getScore());
 			r.setTiedRank(srp.getRank());
 			newPrimaries.add(r);
 		}
