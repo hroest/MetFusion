@@ -5,9 +5,6 @@
  */
 package de.ipbhalle.metfusion.web.controller;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -15,12 +12,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
 
-import javax.el.ELContext;
-import javax.el.ELResolver;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
@@ -31,8 +24,6 @@ import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpSession;
 
 import org.icefaces.component.fileentry.FileEntry;
 import org.icefaces.component.fileentry.FileEntryEvent;
@@ -52,7 +43,6 @@ import chemaxon.descriptors.ECFP;
 import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPISoapProxy;
 
-import de.ipbhalle.MassBank.MassBankLookupBean;
 import de.ipbhalle.enumerations.Adducts;
 import de.ipbhalle.enumerations.Fingerprints;
 import de.ipbhalle.metfrag.keggWebservice.KeggWebservice;
@@ -233,6 +223,9 @@ public class MetFragBean implements Runnable, Serializable {
 	/** boolean indicating whether to use only compounds with C,H,N,O,P,S or not */
 	private boolean onlyCHNOPS = true;
 	
+	/** boolean indicating if fragments are generated in memory or stored offline in temporary files */
+	private boolean generateFragmentsInMemory = true;
+	
 	/**
 	 * the list of results
 	 */
@@ -360,7 +353,7 @@ public class MetFragBean implements Runnable, Serializable {
 		}
 		else {		// compute new mass according to sum formula
 			IMolecularFormula mf = MolecularFormulaManipulator.getMolecularFormula(newVal, DefaultChemObjectBuilder.getInstance());
-			this.exactMass = MolecularFormulaManipulator.getNaturalExactMass(mf);
+			this.exactMass = MolecularFormulaManipulator.getTotalExactMass(mf);
 			this.parentIon = this.exactMass;		// set parent ion to match exact mass
 			setViaFormula(Boolean.TRUE);
 			setMolecularFormula(newVal);
@@ -456,6 +449,7 @@ public class MetFragBean implements Runnable, Serializable {
 			boolean breakOnlySelectedBonds = isBreakOnlySelectedBonds();
 			boolean uniqueInchi = isUniqueInchi();
 			boolean onlyCHNOPS = isOnlyCHNOPS();
+			boolean generateFragmentsInMemory = isGenerateFragmentsInMemory();
 			
 			List<MetFragResult> result = new ArrayList<MetFragResult>();
 			if(database.equals(dbSDF))
@@ -466,7 +460,7 @@ public class MetFragBean implements Runnable, Serializable {
 					molecularFormula, exactMass, spectrum, useProxy, mzabs, mzppm, searchPPM, 
 					molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, hydrogenTest,
 					neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, jdbc, username, password, 
-					uniqueInchi, onlyCHNOPS, true, token);
+					uniqueInchi, onlyCHNOPS, generateFragmentsInMemory, token);
 			this.mfResults = result;
 			System.out.println("MetFrag result#: " + result.size() + "\n");
 			this.results = new ArrayList<Result>();
@@ -479,7 +473,7 @@ public class MetFragBean implements Runnable, Serializable {
 			PubChemLocal pl = new PubChemLocal(jdbc, username, password);
 			
 			int current = 0;
-			SmilesGenerator sg = new SmilesGenerator();
+			//SmilesGenerator sg = new SmilesGenerator();
 			ChemAxonUtilities cau = null;	// instantiate ChemAxon utilities only when appropriate Fingerprinter is used
 	        boolean useChemAxon = Boolean.FALSE;
 //	        String test = "ECFP";
@@ -570,15 +564,15 @@ public class MetFragBean implements Runnable, Serializable {
 					String landingURL = landingPage + params;
 					
 					// create SMILES from IAtomContainer
-					String smiles = sg.createSMILES(container);
+					//String smiles = sg.createSMILES(container);
 					
 					Result r = new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename,
 							landingURL, formula, emass, mfr.getPeaksExplained());
-					r.setSmiles(smiles);
+					//r.setSmiles(smiles);
 					
 					// create ECFP from SMILES
 					if(useChemAxon) {
-						ECFP ecfp = cau.generateECFPFromName(smiles);
+						ECFP ecfp = cau.generateECFPFromName(r.getSmiles());
 						r.setEcfp(ecfp);
 						r.setBitset(ecfp.toBitSet());
 					}
@@ -968,6 +962,14 @@ public class MetFragBean implements Runnable, Serializable {
 
 	public String getDbSDF() {
 		return dbSDF;
+	}
+
+	public boolean isGenerateFragmentsInMemory() {
+		return generateFragmentsInMemory;
+	}
+
+	public void setGenerateFragmentsInMemory(boolean generateFragmentsInMemory) {
+		this.generateFragmentsInMemory = generateFragmentsInMemory;
 	}
 
 }
