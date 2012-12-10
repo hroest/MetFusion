@@ -37,6 +37,11 @@ public class PropertiesBean {
 		fc.getExternalContext().getApplicationMap().put("propertiesBean", this);
 	}
 	
+	public PropertiesBean(String file) {
+		this.propFile = file;
+		getConfig();
+	}
+	
 	private void getConfig()
 	{
 		this.properties = new Properties();
