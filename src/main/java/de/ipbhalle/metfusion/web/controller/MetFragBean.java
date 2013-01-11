@@ -45,6 +45,7 @@ import com.chemspider.www.MassSpecAPISoapProxy;
 
 import de.ipbhalle.enumerations.Adducts;
 import de.ipbhalle.enumerations.Fingerprints;
+import de.ipbhalle.metfrag.keggWebservice.KeggRestService;
 import de.ipbhalle.metfrag.keggWebservice.KeggWebservice;
 import de.ipbhalle.metfrag.main.MetFrag;
 import de.ipbhalle.metfrag.main.MetFragResult;
@@ -404,7 +405,14 @@ public class MetFragBean implements Runnable, Serializable {
 			return;
 		}
 		
-		WrapperSpectrum spectrum = new WrapperSpectrum(inputSpectrum, mode, exactMass, true);
+		boolean isPositive = true;
+		if(mode == -1)
+			isPositive = false;
+		else if(mode == 0)
+			isPositive = true;
+		else isPositive = true;
+		
+		WrapperSpectrum spectrum = new WrapperSpectrum(inputSpectrum, mode, exactMass, isPositive);
 		
 		//String currentFolder = sep + "temp" + sep + sessionID + sep;
 		String currentFolder = "/temp/" + sessionID + "/";
@@ -529,7 +537,9 @@ public class MetFragBean implements Runnable, Serializable {
 					List<String> names = new ArrayList<String>();
 					String name = "";
 					if(database.equals(dbKEGG)) {
-						String[] temp = KeggWebservice.KEGGgetNameByCpd(mfr.getCandidateID());
+						//String[] temp = KeggWebservice.KEGGgetNameByCpd(mfr.getCandidateID());
+						String ids = KeggRestService.KEGGgetNameByCpd(mfr.getCandidateID());
+						String[] temp = ids.split("\n");
 						if(temp != null && temp.length > 0) {
 							for (int i = 0; i < temp.length; i++) {
 								names.add(temp[i]);
