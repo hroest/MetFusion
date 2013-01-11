@@ -209,7 +209,8 @@ public class MetFusionBatchFileHandler {
 	
 	public static void main(String[] args) {
 		//MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/mgerlich/Documents/metfusion_param_default.mf"));
-		MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/sneumann/CASMI/msbi.ipb-halle.de/contest/metfrag/metfrag-category2-challenge1.mf"));
+		//MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/sneumann/CASMI/msbi.ipb-halle.de/contest/metfrag/metfrag-category2-challenge1.mf"));
+		MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/mgerlich/Downloads/skype_transfer/136m0498_MSMS.mf"));
 		
 		try {
 			mbfr.readFile();
