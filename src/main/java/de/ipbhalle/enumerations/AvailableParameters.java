@@ -6,6 +6,8 @@ package de.ipbhalle.enumerations;
 
 /** Enumeration that holds all available/allowed parameter keywords. */
 public enum AvailableParameters {
-	mbLimit, mbCutoff, mbIonization, mbInstruments,
-	mfDatabase, mfDatabaseIDs, mfFormula, mfLimit, mfParentIon, mfAdduct, mfExactMass, mfSearchPPM, mfMZabs, mfMZppm, clustering, peaks;
+	mbLimit, mbCutoff, mbIonization, mbInstruments,		// MassBank parameters
+	mfDatabase, mfDatabaseIDs, mfFormula, mfLimit, mfParentIon, mfAdduct, mfExactMass, mfSearchPPM, mfMZabs, mfMZppm,	// MetFrag parameters 
+	clustering, peaks,						// MetFusion parameters
+	substrucPresent, substrucAbsent;		// substructure search includes/excludes
 }
