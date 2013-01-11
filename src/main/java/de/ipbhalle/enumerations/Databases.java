@@ -5,5 +5,6 @@
 package de.ipbhalle.enumerations;
 
 public enum Databases {
-kegg, pubchem, chemspider, beilstein, knapsack, massbank, sdf, chebi
+kegg, pubchem, chemspider, sdf, chebi
+// beilstein, knapsack, massbank, 
 }
