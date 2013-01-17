@@ -8,10 +8,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -30,6 +32,7 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import chemaxon.descriptors.ECFP;
+import chemaxon.reaction.ReactionException;
 
 import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPISoapProxy;
@@ -38,6 +41,7 @@ import de.ipbhalle.CDK.AtomContainerHandler;
 import de.ipbhalle.enumerations.Adducts;
 import de.ipbhalle.enumerations.Databases;
 import de.ipbhalle.enumerations.Fingerprints;
+import de.ipbhalle.metfrag.keggWebservice.KeggRestService;
 import de.ipbhalle.metfrag.keggWebservice.KeggWebservice;
 import de.ipbhalle.metfrag.main.MetFrag;
 import de.ipbhalle.metfrag.main.MetFragResult;
@@ -64,6 +68,10 @@ public class MetFragBatchMode implements Runnable {
 	 */
 	private final String dbCHEMSPIDER = "chemspider";
 	/**
+	 * identifier for Chebi
+	 */
+	private final String dbCHEBI = Databases.chebi.toString();
+	/**
 	 * identifier for SDF Upload
 	 */
 	private final String dbSDF = "sdf";
@@ -81,7 +89,7 @@ public class MetFragBatchMode implements Runnable {
 	 * SelectItem options for upstream DB
 	 */
 	private SelectItem[] databases = {new SelectItem(dbKEGG, "KEGG"), new SelectItem(dbPUBCHEM, "PubChem"),
-			new SelectItem(dbCHEMSPIDER, "ChemSpider"), new SelectItem(dbSDF, "SDF Upload")};
+			new SelectItem(dbCHEMSPIDER, "ChemSpider"), new SelectItem(dbSDF, "SDF Upload"), new SelectItem(dbCHEBI, "ChEBI")};
 	
 	/**
 	 * constant which identifes part of a string to be replaced with corresponding DB ID
@@ -227,13 +235,62 @@ public class MetFragBatchMode implements Runnable {
 	
 	private String fileSep = System.getProperty("file.separator");
 	
-	
+	Properties props;
 	private Fingerprints fingerprinter = Fingerprints.CDK;		// default to CDK standard fingerprinter
 	
 	public MetFragBatchMode(String workDir) {
 		sessionPath = workDir;
 		fillAdductList();
 		fillLinkMap();
+		
+		Properties props = new Properties();
+		FileInputStream in;
+		try {
+			String file = System.getProperty("property.file.path");
+			if(file == null)
+				file = "";
+			if(!file.endsWith(fileSep))
+				file += fileSep;
+				
+			in = new FileInputStream(file + "settings.properties");
+			props.load(in);
+			in.close();
+		} catch (FileNotFoundException e1) {
+			System.err.println("Error loading properties file! - File not found.");
+		} catch (IOException e) {
+			System.err.println("Error reading properties file!");
+		}
+		this.props = props;
+	}
+	
+	public MetFragBatchMode(String workDir, String settingsPath) {
+		sessionPath = workDir;
+		fillAdductList();
+		fillLinkMap();
+		setup(settingsPath);
+	}
+	
+	private void setup(String settingsPath) {
+		File f = new File(settingsPath);
+		
+		Properties props = new Properties();
+		FileInputStream in = null;
+		try {
+			in = new FileInputStream(new File(f, "settings.properties"));
+			props.load(in);
+			in.close();
+		} catch (FileNotFoundException e1) {
+			System.err.println("Error loading properties file! - File not found.");
+		} catch (IOException e) {
+			System.err.println("Error reading properties file!");
+		} finally {
+			try {
+				in.close();
+			} catch (IOException e) {
+			}
+		}
+		
+		this.props = props;
 	}
 	
 	private void fillAdductList() {
@@ -263,6 +320,9 @@ public class MetFragBatchMode implements Runnable {
 			else if(db.equals(dbSDF)) {
 				// TODO: fill link map for SDF
 			}
+			else if(db.equals(Databases.chebi.toString())) {
+				linkMap.put(Databases.chebi.toString(), "http://www.ebi.ac.uk/chebi/advancedSearchFT.do?searchString=");
+			}
 			else {
 				System.err.println("No link currently available for [" + db + "].");
 			}
@@ -275,7 +335,10 @@ public class MetFragBatchMode implements Runnable {
 	public static void main(String[] args) {
 		MetFragBatchMode metfragbm = new MetFragBatchMode("/home/mgerlich/Desktop/testBatchmode/");
 		
-		MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/mgerlich/Documents/metfusion_param_default.mf"));
+		//MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/mgerlich/Documents/metfusion_param_default.mf"));
+		//String settingsPath = "/home/mgerlich/Documents/metfusion_param_default.mf";
+		String settingsPath = "/home/mgerlich/projects/jan_stanstrup/website_gives_other_results_than_jar/1_13.mf";
+		MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File(settingsPath));
 		try {
 			mbfr.readFile();
 		} catch (IOException e) {
@@ -295,14 +358,25 @@ public class MetFragBatchMode implements Runnable {
 		metfragbm.setSearchppm(settings.getMfSearchPPM());
 		metfragbm.setLimit(settings.getMfLimit());
 		metfragbm.setDatabaseID(settings.getMfDatabaseIDs());
-
+		
+		metfragbm.setUniqueInchi(true);
+		metfragbm.setOnlyCHNOPS(true);
+		
 		metfragbm.run();
 	}
 
 	@Override
 	public void run() {
 		this.setDone(Boolean.FALSE);
-		WrapperSpectrum spectrum = new WrapperSpectrum(inputSpectrum, mode, exactMass, true);
+		
+		boolean isPositive = true;
+		if(mode == -1)
+			isPositive = false;
+		else if(mode == 0)
+			isPositive = true;
+		else isPositive = true;
+		
+		WrapperSpectrum spectrum = new WrapperSpectrum(inputSpectrum, mode, exactMass, isPositive);
 		
 		/**sessionPath
 		 * TODO: auskommentiert für Evaluationsläufe
@@ -311,23 +385,6 @@ public class MetFragBatchMode implements Runnable {
 		System.out.println("currentFolder -> " + currentFolder);
 		String tempPath = currentFolder;	//sep + "temp" + sep;
 		
-		Properties props = new Properties();
-		FileInputStream in;
-		try {
-			String file = System.getProperty("property.file.path");
-			if(file == null)
-				file = "";
-			if(!file.endsWith(fileSep))
-				file += fileSep;
-				
-			in = new FileInputStream(file + "settings.properties");
-			props.load(in);
-			in.close();
-		} catch (FileNotFoundException e1) {
-			System.err.println("Error loading properties file! - File not found.");
-		} catch (IOException e) {
-			System.err.println("Error reading properties file!");
-		}
 		// load required property values
 		String jdbc = "", username = "", password = "", token = "", pguser = "", pgpass = "", pgjdbc = "";
 		jdbc = props.getProperty("mfjdbc");
@@ -389,8 +446,11 @@ public class MetFragBatchMode implements Runnable {
 			this.results.clear();
 			
 			MassSpecAPISoapProxy chemSpiderProxy = null;
+			PubChemLocal pl = null;
 			if(database.equals(dbCHEMSPIDER))
 				chemSpiderProxy = new MassSpecAPISoapProxy();
+			else if(database.equals(dbPUBCHEM))
+				pl = new PubChemLocal(jdbc, username, password);
 			
 			int current = 0;
 			SmilesGenerator sg = new SmilesGenerator();
@@ -449,7 +509,9 @@ public class MetFragBatchMode implements Runnable {
 					List<String> names = new ArrayList<String>();
 					String name = "";
 					if(database.equals(dbKEGG)) {
-						String[] temp = KeggWebservice.KEGGgetNameByCpd(mfr.getCandidateID());
+						//String[] temp = KeggWebservice.KEGGgetNameByCpd(mfr.getCandidateID());
+						String ids = KeggRestService.KEGGgetNameByCpd(mfr.getCandidateID());
+						String[] temp = ids.split("\n");
 						if(temp != null && temp.length > 0) {
 							for (int i = 0; i < temp.length; i++) {
 								names.add(temp[i]);
@@ -462,7 +524,6 @@ public class MetFragBatchMode implements Runnable {
 						/**
 						 * local pubchem
 						 */
-						PubChemLocal pl = new PubChemLocal(jdbc, username, password);
 						names = pl.getNames(mfr.getCandidateID());
 						
 						/**
@@ -474,9 +535,16 @@ public class MetFragBatchMode implements Runnable {
 					}
 					else if(database.equals(dbCHEMSPIDER)) {
 						name = mfr.getCandidateID();
-						//int id = Integer.parseInt(mfr.getCandidateID());
-						//ExtendedCompoundInfo cpdInfo = chemSpiderProxy.getExtendedCompoundInfo(id, token);
-						//name = cpdInfo.getCommonName();
+//						int id = Integer.parseInt(mfr.getCandidateID());
+//						try {
+//							ExtendedCompoundInfo cpdInfo = chemSpiderProxy.getExtendedCompoundInfo(id, token);
+//							name = cpdInfo.getCommonName();
+//						} catch (RemoteException re) {
+//							name = mfr.getCandidateID();
+//						}
+					}
+					else if(database.equals(dbCHEBI)) {
+						name = mfr.getCandidateID();
 					}
 					else {
 						System.err.println("unknown database [" + database + "] - or not yet supported!");
@@ -486,15 +554,15 @@ public class MetFragBatchMode implements Runnable {
 						name = mfr.getCandidateID();
 					
 					// create SMILES from IAtomContainer
-					String smiles = sg.createSMILES(container);
+					//String smiles = sg.createSMILES(container);
 					
 					Result r = new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename,
 							"", formula, emass, mfr.getPeaksExplained());
-					r.setSmiles(smiles);
+					//r.setSmiles(smiles);
 					
 					// create ECFP from SMILES
 					if(useChemAxon) {
-						ECFP ecfp = cau.generateECFPFromName(smiles);
+						ECFP ecfp = cau.generateECFPFromName(r.getSmiles());
 						r.setEcfp(ecfp);
 						r.setBitset(ecfp.toBitSet());
 					}
