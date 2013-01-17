@@ -30,9 +30,10 @@ public class MetFusionBatchMode {
 
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
-	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, fp, fragOffline};
+	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, fp, fragOffline, db};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
-	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, checkUNIQUE, checkFP, checkFRAGOFFLINE;
+	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, 
+		checkUNIQUE, checkFP, checkFRAGOFFLINE, checkDB;
 	private Map<ARGUMENTS, String> settings;
 	private final static String DEFAULT_SERVER = "http://www.massbank.jp/";
 	
@@ -79,6 +80,7 @@ public class MetFusionBatchMode {
 		boolean success = false;
 		OutputFormats[] of = OutputFormats.values();
 		Fingerprints[] fps = Fingerprints.values();
+		Databases[] dbs = Databases.values();
 		
 		if(args.length < 4) {	// at least -mf and -sdf OR -out needs to be specified
 			System.out.println("Please provide the following arguments:");
@@ -98,6 +100,10 @@ public class MetFusionBatchMode {
 			System.out.print("optionally: -fp ");
 			for (Fingerprints fp : fps) {
 				System.out.print("[" + fp + "] ");
+			}
+			System.out.println("\noptionally: -db compound datase");
+			for (Databases db : dbs) {
+				System.out.print("[" + db + "] ");
 			}
 			
 			System.out.println("\n\nExample call: java -jar JARFILE -mf settings.mf #this uses the current directory for output!");
@@ -147,6 +153,8 @@ public class MetFusionBatchMode {
 					this.checkFRAGOFFLINE = Boolean.TRUE;	// fragOffline does not have an additional property, mark as set/unset and continue
 					continue;
 				}
+				if(temp.equals(ARGUMENTS.db.toString()))
+					this.checkDB = Boolean.TRUE;
 				
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
 				i++;	// skip value, iterate over new argument
@@ -257,6 +265,17 @@ public class MetFusionBatchMode {
 			if(result[2].startsWith("CO")) 
 				metfragbm.setMzabs(0d);
 			
+			// TODO: EAWAG spectra, orbitrap settings
+			if(result[2].startsWith("EA")) {
+				metfragbm.setMzabs(0.001d);
+				metfragbm.setMzppm(5);
+				metfragbm.setSearchppm(5);
+				metfragbm.setOnlyCHNOPS(false);
+				metfragbm.setMolecularFormula(result[4]);
+				
+				mbbm.setSelectedInstruments(settings.getMbInstruments() + ",APCI-ITFT");	// add orbitrap instrument
+			}
+						
 			// TODO: use formula for query/exact mass
 //			if(!result[4].isEmpty())
 //				metfragbm.setMolecularFormula(result[4]);
@@ -267,8 +286,12 @@ public class MetFusionBatchMode {
 			
 			ion = Ionizations.valueOf(result[3]);				// set correct ionization from record
 			
-			metfragbm.setSelectedDB(Databases.pubchem.toString());	// default to Pubchem database
 		}
+		
+		// set compound database for MetFrag
+		if(!mfbm.checkDB)	// TODO bedingung für leere selectedDB und db aus settings datei
+			metfragbm.setSelectedDB(Databases.pubchem.toString());	// default to PubChem database
+		else metfragbm.setSelectedDB(mfbm.settings.get(ARGUMENTS.db));
 		
 		// set ionization for MetFrag
 		metfragbm.setMode(ion.getValue());
