@@ -487,7 +487,7 @@
 								<ice:panelGroup rendered="#{appBean.mfb.renderSDF}">
 <!--									<ace:fileEntry id="fileEntrySDF" callback="#{fileMD5EncodingCallback}" rendered="#{appBean.mfb.renderSDF}" />-->
 									<ace:fileEntry id="fileEntryComp" label="SDF Upload" relativePath="temp" useSessionSubdir="true"
-									fileEntryListener="#{appBean.mfb.listener}" useOriginalFilename="true" 
+									fileEntryListener="#{appBean.mfb.listener}" useOriginalFilename="true"  callback="#{fileMD5EncodingCallback}"
 									maxFileCount="1" maxFileCountMessage="Only one file per upload allowed!">
 <!-- 										<f:validator for="fileEntryComp" validatorId="uploadValidator"/> -->
 									</ace:fileEntry>
