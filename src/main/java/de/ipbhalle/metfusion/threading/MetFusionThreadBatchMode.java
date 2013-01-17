@@ -402,7 +402,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 		for (int i = 0; i < resultingOrder.size(); i++) {
 			ResultExt r = resultingOrder.get(i);
 			try {
-				fw.write(r.getSmiles() + lineSeparator);
+				fw.write(r.getSmiles() + " " + r.getResultScore() + lineSeparator);
 			} catch (IOException e) {
 				System.err.println("Error writing to file [" + smilesOut.getAbsolutePath() + "]");
 			}
