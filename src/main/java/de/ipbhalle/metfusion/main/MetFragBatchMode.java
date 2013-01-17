@@ -13,7 +13,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -21,7 +20,6 @@ import java.util.Properties;
 
 import javax.faces.model.SelectItem;
 
-import massbank.BatchService;
 
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -32,17 +30,14 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import chemaxon.descriptors.ECFP;
-import chemaxon.reaction.ReactionException;
 
 import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPISoapProxy;
 
-import de.ipbhalle.CDK.AtomContainerHandler;
 import de.ipbhalle.enumerations.Adducts;
 import de.ipbhalle.enumerations.Databases;
 import de.ipbhalle.enumerations.Fingerprints;
 import de.ipbhalle.metfrag.keggWebservice.KeggRestService;
-import de.ipbhalle.metfrag.keggWebservice.KeggWebservice;
 import de.ipbhalle.metfrag.main.MetFrag;
 import de.ipbhalle.metfrag.main.MetFragResult;
 import de.ipbhalle.metfrag.molDatabase.PubChemLocal;
@@ -378,9 +373,6 @@ public class MetFragBatchMode implements Runnable {
 		
 		WrapperSpectrum spectrum = new WrapperSpectrum(inputSpectrum, mode, exactMass, isPositive);
 		
-		/**sessionPath
-		 * TODO: auskommentiert für Evaluationsläufe
-		 */
 		String currentFolder = sessionPath;
 		System.out.println("currentFolder -> " + currentFolder);
 		String tempPath = currentFolder;	//sep + "temp" + sep;
@@ -453,7 +445,7 @@ public class MetFragBatchMode implements Runnable {
 				pl = new PubChemLocal(jdbc, username, password);
 			
 			int current = 0;
-			SmilesGenerator sg = new SmilesGenerator();
+			//SmilesGenerator sg = new SmilesGenerator();
 			ChemAxonUtilities cau = null;	// instantiate ChemAxon utilities only when appropriate Fingerprinter is used
 	        boolean useChemAxon = Boolean.FALSE;
 	        if(getFingerprinter().equals(Fingerprints.ECFP)) {
@@ -535,13 +527,13 @@ public class MetFragBatchMode implements Runnable {
 					}
 					else if(database.equals(dbCHEMSPIDER)) {
 						name = mfr.getCandidateID();
-//						int id = Integer.parseInt(mfr.getCandidateID());
-//						try {
-//							ExtendedCompoundInfo cpdInfo = chemSpiderProxy.getExtendedCompoundInfo(id, token);
-//							name = cpdInfo.getCommonName();
-//						} catch (RemoteException re) {
-//							name = mfr.getCandidateID();
-//						}
+						int id = Integer.parseInt(mfr.getCandidateID());
+						try {
+							ExtendedCompoundInfo cpdInfo = chemSpiderProxy.getExtendedCompoundInfo(id, token);
+							name = cpdInfo.getCommonName();
+						} catch (RemoteException re) {
+							name = mfr.getCandidateID();
+						}
 					}
 					else if(database.equals(dbCHEBI)) {
 						name = mfr.getCandidateID();
