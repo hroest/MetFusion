@@ -74,7 +74,7 @@ public class MassBankUtilities {
 	private static final String tempDir = System.getProperty("java.io.tmpdir");
 	
 	/** The Constant cacheMassBank. */
-	private String cacheMassBank = "/vol/massbank/Cache/";
+	private String cacheMassBank = tempDir;	//"/vol/massbank/Cache/";
 	
 	private String cacheDir;
 	
@@ -526,12 +526,12 @@ public class MassBankUtilities {
 		GetConfig conf = new GetConfig(baseUrl);
 		serverUrl = conf.getServerUrl();
 		String typeName = MassBankCommon.CGI_TBL[MassBankCommon.CGI_TBL_NUM_TYPE][MassBankCommon.CGI_TBL_TYPE_RECORD];
-		ArrayList result = mbcommon.execMultiDispatcher( serverUrl, typeName, "id=" + id );
+		ArrayList<String> result = mbcommon.execMultiDispatcher( serverUrl, typeName, "id=" + id );
 		String line = "";
 		Boolean isFound = false;
 		String[] val = null;
 		for ( int i = 0; i < result.size(); i++ ) {
-			line = (String)result.get(i);
+			line = result.get(i);
 			if ( !line.equals("") ) {
 				val = line.split("\t");
 				if ( val[0].equals(id) ) {
@@ -563,7 +563,7 @@ public class MassBankUtilities {
 		File dir = null;
 		if(os.startsWith("Windows"))
 			dir = new File(tempDir);
-		else dir = new File(cacheMassBank);
+		else dir = new File(cacheDir);
 		String[] institutes = dir.list();
 		File f = null;
         boolean found = false;
@@ -616,7 +616,7 @@ public class MassBankUtilities {
 		if(os.startsWith("Windows")) {
 			dir = new File(currentDir);
 		}
-		else dir = new File(cacheMassBank);
+		else dir = new File(cacheDir);
 		//File dir = new File(cacheMassBank);
 		String[] institutes = dir.list();
 		File f = null;
@@ -725,7 +725,7 @@ public class MassBankUtilities {
 		if(os.startsWith("Windows")) {
 			dir = new File(currentDir);
 		}
-		else dir = new File(cacheMassBank);
+		else dir = new File(cacheDir);
 		//File dir = new File(cacheMassBank);
 		String[] institutes = dir.list();
 		File f = null;
@@ -804,7 +804,7 @@ public class MassBankUtilities {
 		if(os.startsWith("Windows"))
 			dir = new File(tempDir);
 		//else dir = new File(cacheMassBank);
-		else dir = new File(cacheMassBank);
+		else dir = new File(cacheDir);
 		//File dir = new File(cacheMassBank);
 		String[] institutes = dir.list();
 		File f = null;
@@ -973,7 +973,7 @@ public class MassBankUtilities {
 			if(dir == null || !dir.canWrite())
 				dir = new File(currentDir);
 		}
-		else dir = new File(cacheMassBank);
+		else dir = new File(cacheDir);
 		//File dir = new File(cacheMassBank);
 		String[] institutes = dir.list();
 		File f = null;
