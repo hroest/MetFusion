@@ -39,7 +39,7 @@ import massbank.MassBankCommon;
 
 public class MassBankBatchMode implements Runnable {
 
-	private String serverUrl = "http://www.massbank.jp/";	//"http://www.massbank.jp/";
+	private String serverUrl = "http://www.massbank.jp/";
 	
 	private static final String fileSeparator = System.getProperty("file.separator");
 	private static final String os = System.getProperty("os.name");
@@ -47,7 +47,7 @@ public class MassBankBatchMode implements Runnable {
 	private static final String tempDir = System.getProperty("java.io.tmpdir");
 	private String cacheMassBank = "";
 	public final String DEFAULT_CACHE = tempDir;
-	public final String DEFAULT_CACHE_LINUX = "/vol/massbank/Cache/";
+	public final String DEFAULT_CACHE_LINUX = tempDir;	//"/vol/massbank/Cache/";
 	
 	private MassBankCommon mbCommon;
 	private GetConfig config;
