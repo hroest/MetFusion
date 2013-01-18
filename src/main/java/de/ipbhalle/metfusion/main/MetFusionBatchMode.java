@@ -241,7 +241,15 @@ public class MetFusionBatchMode {
 		mbbm.setLimit(settings.getMbLimit());
 		
 		metfragbm.setInputSpectrum(settings.getPeaks());
-		metfragbm.setSelectedDB(settings.getMfDatabase().toString());
+		
+		// set compound database for MetFrag
+		String selectedDB = settings.getMfDatabase().toString();
+		if(selectedDB != null && !selectedDB.isEmpty())
+			metfragbm.setSelectedDB(settings.getMfDatabase().toString());
+		else if(!mfbm.checkDB)	// TODO bedingung für leere selectedDB und db aus settings datei
+				metfragbm.setSelectedDB(Databases.pubchem.toString());	// default to PubChem database
+		else metfragbm.setSelectedDB(mfbm.settings.get(ARGUMENTS.db));
+		
 		metfragbm.setMolecularFormula(settings.getMfFormula());
 		metfragbm.setSelectedAdduct(settings.getMfAdduct().getDifference());
 		metfragbm.setParentIon(settings.getMfParentIon());
@@ -287,11 +295,6 @@ public class MetFusionBatchMode {
 			ion = Ionizations.valueOf(result[3]);				// set correct ionization from record
 			
 		}
-		
-		// set compound database for MetFrag
-		if(!mfbm.checkDB)	// TODO bedingung für leere selectedDB und db aus settings datei
-			metfragbm.setSelectedDB(Databases.pubchem.toString());	// default to PubChem database
-		else metfragbm.setSelectedDB(mfbm.settings.get(ARGUMENTS.db));
 		
 		// set ionization for MetFrag
 		metfragbm.setMode(ion.getValue());
