@@ -169,7 +169,7 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 	private static final String tempDir = System.getProperty("java.io.tmpdir");
 	private String cacheMassBank = "";
 	public final String DEFAULT_CACHE = tempDir;
-	public final String DEFAULT_CACHE_LINUX = "/vol/massbank/Cache/";
+	public final String DEFAULT_CACHE_LINUX = tempDir;	//"/vol/massbank/Cache/";
 	
 	private static final String RECORDS = "records";
 	private static final String MOL = "mol";
