@@ -30,10 +30,10 @@ public class MetFusionBatchMode {
 
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
-	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, fp, fragOffline, db};
+	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, fp, fragOffline, db, chnops};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
 	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, 
-		checkUNIQUE, checkFP, checkFRAGOFFLINE, checkDB;
+		checkUNIQUE, checkFP, checkFRAGOFFLINE, checkDB, checkCHNOPS;
 	private Map<ARGUMENTS, String> settings;
 	private final static String DEFAULT_SERVER = "http://www.massbank.jp/";
 	
@@ -93,6 +93,7 @@ public class MetFusionBatchMode {
 				System.out.print("[" + format + "] ");
 			}
 			System.out.println("\noptionally: -proxy\t\t(use proxy if provided)");
+			System.out.println("optionally: -chnops\t\t(only retrieve (biological) compounds based on C,H,N,O,P,S)");
 			System.out.println("optionally: -server http://www.your-massbank.server/");
 			System.out.println("optionally: -cache /path/to/cache");
 			System.out.println("optionally: -unique\t\t(filter out duplicates)");
@@ -115,6 +116,7 @@ public class MetFusionBatchMode {
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -proxy -unique");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -fp ECFP");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -fragOffline");
+			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -chnops");
 			
 			return success;
 		}
@@ -155,6 +157,10 @@ public class MetFusionBatchMode {
 				}
 				if(temp.equals(ARGUMENTS.db.toString()))
 					this.checkDB = Boolean.TRUE;
+				if(temp.equals(ARGUMENTS.chnops.toString())) {
+					this.checkCHNOPS = Boolean.TRUE;	// chnops does not have an additional property, mark as set/unset and continue
+					continue;
+				}
 				
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
 				i++;	// skip value, iterate over new argument
@@ -311,6 +317,10 @@ public class MetFusionBatchMode {
 		if(mfbm.checkFRAGOFFLINE) {
 			metfragbm.setGenerateFragmentsInMemory(Boolean.FALSE);
 		}
+		
+		if(mfbm.checkCHNOPS)	// only biological compounds containing C,H,N,O,P,S ?
+			metfragbm.setOnlyCHNOPS(true);
+		else metfragbm.setOnlyCHNOPS(false);
 		
 		// sdf path
 		if(mfbm.isCheckSDF()) {	// mfbm.checkSDF

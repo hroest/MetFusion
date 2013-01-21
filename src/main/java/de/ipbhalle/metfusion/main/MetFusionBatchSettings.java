@@ -5,7 +5,6 @@
 package de.ipbhalle.metfusion.main;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +38,7 @@ public class MetFusionBatchSettings {
 	private double mfMZabs = 0.01d;
 	private double mfMZppm = 10.0d;
 	private boolean clustering = Boolean.TRUE;
+	private boolean onlyCHNOPS = Boolean.TRUE;
 	private String peaks = "273.096 22\n289.086 107\n290.118 14\n291.096 999\n292.113 162\n293.054 34\n579.169 37\n580.179 15";
 	
 	private Map<AvailableParameters, Object> storedSettings;
@@ -72,6 +72,7 @@ public class MetFusionBatchSettings {
 		storedSettings.put(AvailableParameters.mfMZppm, mfMZppm);
 		storedSettings.put(AvailableParameters.clustering, clustering);
 		storedSettings.put(AvailableParameters.peaks, peaks);
+		storedSettings.put(AvailableParameters.onlyCHNOPS, onlyCHNOPS);
 	}
 	
 	/**
@@ -113,6 +114,8 @@ public class MetFusionBatchSettings {
 				
 				case clustering: this.clustering = (Boolean) settings.get(key);	break;
 				case peaks: this.peaks = (String) settings.get(key);	break;
+				case onlyCHNOPS: this.onlyCHNOPS = (Boolean) settings.get(key); break;
+				
 				default: ;	break;
 			}
 		}
@@ -164,6 +167,7 @@ public class MetFusionBatchSettings {
 				
 				case clustering: this.clustering = (Boolean.parseBoolean((String) settings.get(key)));	break;
 				case peaks: this.peaks = (String) settings.get(key);	break;
+				case onlyCHNOPS: this.onlyCHNOPS = (Boolean.parseBoolean((String) settings.get(key)));	break; 
 				default: ;	break;
 			}
 		}
@@ -193,6 +197,7 @@ public class MetFusionBatchSettings {
 		System.out.println(def.mfMZppm);
 		System.out.println(def.clustering);
 		System.out.println(def.peaks);
+		System.out.println(def.onlyCHNOPS);
 		
 		MetFusionBatchFileHandler mbfh = new MetFusionBatchFileHandler(new File("/home/mgerlich/Documents/metfusion_param_default.mf"));
 		mbfh.writeFile(new File("/home/mgerlich/Documents/metfusion_param_default.mf"), def);
@@ -324,6 +329,14 @@ public class MetFusionBatchSettings {
 
 	public void setMfDatabase(Databases mfDatabase) {
 		this.mfDatabase = mfDatabase;
+	}
+
+	public void setOnlyCHNOPS(boolean onlyCHNOPS) {
+		this.onlyCHNOPS = onlyCHNOPS;
+	}
+
+	public boolean isOnlyCHNOPS() {
+		return onlyCHNOPS;
 	}
 
 }
