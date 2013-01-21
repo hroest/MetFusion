@@ -244,11 +244,12 @@ public class MetFusionBatchMode {
 		
 		// set compound database for MetFrag
 		String selectedDB = settings.getMfDatabase().toString();
-		if(selectedDB != null && !selectedDB.isEmpty())
+		if(mfbm.checkDB)	// take db argument from command line first
+			metfragbm.setSelectedDB(mfbm.settings.get(ARGUMENTS.db));
+		else if(selectedDB != null && !selectedDB.isEmpty())	// take db argument from settings second
 			metfragbm.setSelectedDB(settings.getMfDatabase().toString());
-		else if(!mfbm.checkDB)	// TODO bedingung für leere selectedDB und db aus settings datei
-				metfragbm.setSelectedDB(Databases.pubchem.toString());	// default to PubChem database
-		else metfragbm.setSelectedDB(mfbm.settings.get(ARGUMENTS.db));
+		else if(!mfbm.checkDB)
+				metfragbm.setSelectedDB(Databases.pubchem.toString());	// default to PubChem database finally
 		
 		metfragbm.setMolecularFormula(settings.getMfFormula());
 		metfragbm.setSelectedAdduct(settings.getMfAdduct().getDifference());
