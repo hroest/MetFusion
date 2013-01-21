@@ -8,6 +8,6 @@ package de.ipbhalle.enumerations;
 public enum AvailableParameters {
 	mbLimit, mbCutoff, mbIonization, mbInstruments,		// MassBank parameters
 	mfDatabase, mfDatabaseIDs, mfFormula, mfLimit, mfParentIon, mfAdduct, mfExactMass, mfSearchPPM, mfMZabs, mfMZppm,	// MetFrag parameters 
-	clustering, peaks,						// MetFusion parameters
+	clustering, peaks, onlyCHNOPS,					// MetFusion parameters
 	substrucPresent, substrucAbsent;		// substructure search includes/excludes
 }
