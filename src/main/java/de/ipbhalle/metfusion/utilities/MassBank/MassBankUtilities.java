@@ -63,7 +63,6 @@ public class MassBankUtilities {
 
 	/** The Constant baseUrl. */
 	private String baseUrl = "http://www.massbank.jp/";	
-	//"http://www.massbank.jp/";	//  http://msbi.ipb-halle.de/MassBank/
 	
 	/** The server url. */
 	private String serverUrl;
@@ -74,7 +73,7 @@ public class MassBankUtilities {
 	private static final String tempDir = System.getProperty("java.io.tmpdir");
 	
 	/** The Constant cacheMassBank. */
-	private String cacheMassBank = tempDir;	//"/vol/massbank/Cache/";
+	private String cacheMassBank = tempDir;
 	
 	private String cacheDir;
 	
@@ -1323,5 +1322,13 @@ public class MassBankUtilities {
 		}
 		
 		return container;
+	}
+
+	public String getCacheMassBank() {
+		return cacheMassBank;
+	}
+
+	public void setCacheMassBank(String cacheMassBank) {
+		this.cacheMassBank = cacheMassBank;
 	}
 }
