@@ -893,12 +893,12 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 		if(!cacheMassBank.isEmpty()) {	// cache directory has been set
         	dir = new File(cacheMassBank);
         }
-        //else {
+        else {
         	if(os.startsWith("Windows"))
     			dir = new File(DEFAULT_CACHE);
     		else
     			dir = new File(DEFAULT_CACHE_LINUX);
-        //}
+        }
 		
         List<Result> results = new ArrayList<Result>();
         List<String> duplicates = new ArrayList<String>();
