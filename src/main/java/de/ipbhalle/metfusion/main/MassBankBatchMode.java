@@ -5,12 +5,15 @@
 package de.ipbhalle.metfusion.main;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.faces.model.SelectItem;
 
@@ -121,6 +124,32 @@ public class MassBankBatchMode implements Runnable {
 			}
 			counter++;
 			this.instruments.put(next, items);
+		}
+		
+		try{
+			Properties props = new Properties();
+			FileInputStream in;
+			try {
+				String file = System.getProperty("property.file.path");
+				if(file == null)
+					file = "";
+				if(!file.endsWith(fileSeparator))
+					file += fileSeparator;
+					
+				in = new FileInputStream(file + "settings.properties");
+				props.load(in);
+				in.close();
+				
+				String propCacheDir = props.getProperty("databaseCache");	// read cache directory from properties file
+				if(propCacheDir != null && !propCacheDir.isEmpty())		// if this property is set, use the designated directory rather the default
+					cacheMassBank = propCacheDir;
+			} catch (FileNotFoundException e1) {
+				System.err.println("Error loading properties file! - File not found.");
+			} catch (IOException e) {
+				System.err.println("Error reading properties file!");
+			}
+		}catch(Exception e) {
+			
 		}
 	}
 
