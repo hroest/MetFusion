@@ -266,6 +266,7 @@ public class MetFusionBatchMode {
 		metfragbm.setSearchppm(settings.getMfSearchPPM());
 		metfragbm.setLimit(settings.getMfLimit());
 		metfragbm.setDatabaseID(settings.getMfDatabaseIDs());
+		metfragbm.setOnlyCHNOPS(settings.isOnlyCHNOPS());
 		
 		if(mfbm.checkRECORD) {			// overwrite default settings with record specific ones
 			File f = new File(mfbm.settings.get(ARGUMENTS.record));
