@@ -38,7 +38,7 @@ public class MetFusionBatchSettings {
 	private double mfMZabs = 0.01d;
 	private double mfMZppm = 10.0d;
 	private boolean clustering = Boolean.TRUE;
-	private boolean onlyCHNOPS = Boolean.TRUE;
+	private boolean onlyCHNOPS = Boolean.FALSE;
 	private String peaks = "273.096 22\n289.086 107\n290.118 14\n291.096 999\n292.113 162\n293.054 34\n579.169 37\n580.179 15";
 	
 	private Map<AvailableParameters, Object> storedSettings;
