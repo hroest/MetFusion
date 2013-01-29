@@ -6,12 +6,10 @@ package de.ipbhalle.metfusion.utilities.output;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -21,13 +19,11 @@ import jxl.Workbook;
 import jxl.WorkbookSettings;
 import jxl.format.Colour;
 import jxl.format.UnderlineStyle;
-import jxl.write.Formula;
 import jxl.write.Label;
 import jxl.write.Number;
 import jxl.write.WritableCell;
 import jxl.write.WritableCellFormat;
 import jxl.write.WritableFont;
-import jxl.write.WritableImage;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
@@ -35,7 +31,6 @@ import jxl.write.biff.RowsExceededException;
 
 import de.ipbhalle.enumerations.AvailableParameters;
 import de.ipbhalle.metfusion.web.controller.ResultExtGroupBean;
-import de.ipbhalle.metfusion.wrapper.CellKey;
 import de.ipbhalle.metfusion.wrapper.ColorNode;
 import de.ipbhalle.metfusion.wrapper.ColorcodedMatrix;
 import de.ipbhalle.metfusion.wrapper.Result;
