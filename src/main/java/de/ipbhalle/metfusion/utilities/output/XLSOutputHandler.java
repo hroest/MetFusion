@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import jxl.CellView;
 import jxl.Workbook;
@@ -28,6 +29,7 @@ import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
 import jxl.write.biff.RowsExceededException;
 
+import de.ipbhalle.enumerations.AvailableParameters;
 import de.ipbhalle.metfusion.web.controller.ResultExtGroupBean;
 import de.ipbhalle.metfusion.wrapper.CellKey;
 import de.ipbhalle.metfusion.wrapper.ColorNode;
@@ -58,7 +60,7 @@ public class XLSOutputHandler implements IOutputHandler {
 	private static final String METFUSION = "MetFusion";
 	private String databaseName = "MassBank";	// default database name is MassBank
 	private String fragmenterName =  "MetFrag";	// default fragmener name is MetFrag
-	
+	private String settings = "settings";
 	
 	/**
 	 * Default constructor, uses filename and does not append to this file.
@@ -159,6 +161,82 @@ public class XLSOutputHandler implements IOutputHandler {
 		Label label;
 		label = new Label(column, row, s, times);
 		sheet.addCell(label);
+	}
+	
+	public boolean writeSettings(Map<AvailableParameters, Object> settings) {
+		boolean success = false;
+		workbook.createSheet(this.settings, sheetCounter);
+		WritableSheet sheet = workbook.getSheet(sheetCounter);
+		int currentRow = 1;	// start in second row because first row is reserver for header
+		int currentCol = 0;
+		
+		WritableCell headerSetting = new Label(0, 0, "Setting", arial12format);
+		WritableCell headerValue = new Label(1, 0, "Value", arial12format);
+		try
+		{
+			sheet.addCell(headerSetting);
+			sheet.addCell(headerValue);
+		} catch (WriteException e) {
+			System.out.println("Could not write Excel sheet headers!");
+			e.printStackTrace();
+			return success;
+		}
+		
+		Set<AvailableParameters> keys = settings.keySet();
+		for (AvailableParameters ap : keys) {
+			currentCol = 0;
+			Object o = settings.get(ap);
+			if(o == null)		// skip empty settings
+				continue;
+			
+			// output is text
+			WritableCell cellSetting = new Label(currentCol, currentRow, ap.toString(), arial10format);
+			WritableCell cellValue = null;
+			currentCol++;
+			if(o instanceof String) {
+				String s = (String) o;
+				cellValue = new Label(currentCol, currentRow, s, arial10format);
+			}
+			else if (o instanceof String[]) {
+				String[] s = (String[]) o;
+				String temp = "";
+				for (int i = 0; i < s.length; i++) {
+					temp += s[i] + ",";
+				}
+				temp = temp.substring(0, temp.length()-1);	// remove trailing ,
+				cellValue = new Label(currentCol, currentRow, temp, arial10format);
+			}
+			else if (o instanceof Double) {
+				cellValue = new Number(currentCol, currentRow, (Double) o, arial10format);
+			}
+			else if (o instanceof Integer) {
+				cellValue = new Number(currentCol, currentRow, (Integer) o, arial10format);
+			}
+			else if (o instanceof Boolean) {
+				cellValue = new Label(currentCol, currentRow, ((Boolean) o).toString(), arial10format);
+			}
+			else {	// default to String
+				cellValue = new Label(currentCol, currentRow, o.toString(), arial10format);
+			}
+			
+			try
+			{
+				sheet.addCell(cellSetting);
+				sheet.addCell(cellValue);
+			} catch (WriteException e) {
+				System.out.println("Could not write excel cell");
+				e.printStackTrace();
+			}
+			
+			currentCol++;
+			currentRow++;
+		}
+		success = true;
+		
+		if(success)		// increment sheetCounter only when current sheet was processed successfully
+			sheetCounter++;
+		
+		return success;
 	}
 	
 	private boolean writeSheet(List<?> data, WritableSheet sheet) {

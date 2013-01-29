@@ -12,8 +12,10 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -52,6 +54,7 @@ import com.icesoft.faces.context.effects.Fade;
 import com.icesoft.faces.context.effects.Highlight;
 
 import de.ipbhalle.MassBank.MassBankLookupBean;
+import de.ipbhalle.enumerations.AvailableParameters;
 import de.ipbhalle.enumerations.ResultTabs;
 import de.ipbhalle.enumerations.SpectralDB;
 import de.ipbhalle.metfusion.threading.MetFusionThread;
@@ -601,6 +604,32 @@ public class MetFusionBean implements Serializable {
     	}
     }
     
+    private Map<AvailableParameters, Object> fetchSettings() {
+    	Map<AvailableParameters, Object> m = new HashMap<AvailableParameters, Object>();
+    	m.put(AvailableParameters.clustering, true);
+    	m.put(AvailableParameters.mbCutoff, mblb.getCutoff());
+    	m.put(AvailableParameters.mbInstruments, mblb.getSelectedInstruments());
+    	m.put(AvailableParameters.mbIonization, mblb.getSelectedIon());
+    	m.put(AvailableParameters.mbLimit, mblb.getLimit());
+    	m.put(AvailableParameters.mfAdduct, mfb.getSelectedAdduct());
+    	m.put(AvailableParameters.mfDatabase, mfb.getSelectedDB());
+    	m.put(AvailableParameters.mfDatabaseIDs, mfb.getDatabaseID());
+    	m.put(AvailableParameters.mfExactMass, mfb.getExactMass());
+    	m.put(AvailableParameters.mfFormula, mfb.getMolecularFormula());
+    	m.put(AvailableParameters.mfLimit, mfb.getLimit());
+    	m.put(AvailableParameters.mfMZabs, mfb.getMzabs());
+    	m.put(AvailableParameters.mfMZppm, mfb.getMzppm());
+    	m.put(AvailableParameters.mfParentIon, mfb.getParentIon());
+    	m.put(AvailableParameters.mfSearchPPM, mfb.getSearchppm());
+    	m.put(AvailableParameters.onlyCHNOPS, mfb.isOnlyCHNOPS());
+    	m.put(AvailableParameters.peaks, mblb.getInputSpectrum());
+    	m.put(AvailableParameters.substrucAbsent, "not yet implemented");
+    	m.put(AvailableParameters.substrucPresent, "not yet implemented");
+    	m.put(AvailableParameters.spectralDB, genericDatabase.getDatabaseName());
+    	
+    	return m;
+    }
+    
     /**
      * Generates an output resource for the current workflow results, everything is stored inside a single Excel xls file
 	 * where each workflow output ports is stored as a separate sheet, also including the computed colored matrices.
@@ -634,6 +663,7 @@ public class MetFusionBean implements Serializable {
         xlsHandler.writeAllResults(mfb.getResults(), genericDatabase.getResults(), getSecondOrder(), getTanimotoClusters());
         xlsHandler.writeOriginalMatrix(getColorMatrix(), "Original Matrix");
         xlsHandler.writeModifiedMatrix(getColorMatrixAfter(), "Reranked Matrix");
+        xlsHandler.writeSettings(fetchSettings());
         
         try {
 			xlsHandler.finishWorkbook();
