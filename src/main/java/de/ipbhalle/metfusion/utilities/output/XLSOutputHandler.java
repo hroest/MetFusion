@@ -7,10 +7,14 @@ package de.ipbhalle.metfusion.utilities.output;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import jxl.CellView;
 import jxl.Workbook;
@@ -182,7 +186,9 @@ public class XLSOutputHandler implements IOutputHandler {
 			return success;
 		}
 		
-		Set<AvailableParameters> keys = settings.keySet();
+		//Set<AvailableParameters> keys = settings.keySet();
+		AvailableParameters[] keys = AvailableParameters.values();
+		Arrays.sort(keys);
 		for (AvailableParameters ap : keys) {
 			currentCol = 0;
 			Object o = settings.get(ap);
@@ -242,7 +248,6 @@ public class XLSOutputHandler implements IOutputHandler {
 	private boolean writeSheet(List<?> data, WritableSheet sheet) {
 		int currentRow = 1;	// start in second row because first row is reserver for header
 		int currentCol = 0;
-//		WritableImage wi = null;
 		
 		for (Object object : data) {
 			currentCol = 0;
@@ -260,6 +265,7 @@ public class XLSOutputHandler implements IOutputHandler {
 				WritableCell headerOrigScore = new Label(3, 0, "Original Score", arial12format);
 				WritableCell headerNewScore = new Label(4, 0, "MetFusion Score", arial12format);
 				WritableCell headerStructure = new Label(5, 0, "Structure", arial12format);
+				WritableCell headerFormula = new Label(6, 0, "Molecular Formula", arial12format);
 				try
 				{
 					sheet.addCell(headerRank);
@@ -268,6 +274,7 @@ public class XLSOutputHandler implements IOutputHandler {
 					sheet.addCell(headerOrigScore);
 					sheet.addCell(headerNewScore);
 					sheet.addCell(headerStructure);
+					sheet.addCell(headerFormula);
 				} catch (WriteException e) {
 					System.out.println("Could not write Excel sheet headers!");
 					e.printStackTrace();
@@ -286,9 +293,11 @@ public class XLSOutputHandler implements IOutputHandler {
 				WritableCell cellNewScore = new Number(currentCol, currentRow, result.getResultScore(), arial10format);
 				currentCol++;
 				WritableCell cellSmiles = new Label(currentCol, currentRow, result.getSmiles(), arial10format);
-//				File temp = new File(".", result.getImagePath());
-//				if(temp.exists())
-//					wi = new WritableImage(currentCol, currentRow, 1, 3, temp);
+				currentCol++;
+				IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(result.getMol());
+				String formula = MolecularFormulaManipulator.getString(iformula, true);
+				WritableCell cellFormula = new Label(currentCol, currentRow, formula, arial10format);
+				currentCol++;
 				
 				try
 				{
@@ -298,7 +307,7 @@ public class XLSOutputHandler implements IOutputHandler {
 					sheet.addCell(cellOrigScore);
 					sheet.addCell(cellNewScore);
 					sheet.addCell(cellSmiles);
-//					sheet.addImage(wi);
+					sheet.addCell(cellFormula);
 				} catch (WriteException e) {
 					System.out.println("Could not write excel cell");
 					e.printStackTrace();
@@ -312,6 +321,7 @@ public class XLSOutputHandler implements IOutputHandler {
 				WritableCell headerName = new Label(2, 0, "Compound Name", arial12format);
 				WritableCell headerOrigScore = new Label(3, 0, "Original Score", arial12format);
 				WritableCell headerStructure = new Label(4, 0, "Structure", arial12format);
+				WritableCell headerFormula = new Label(5, 0, "Molecular Formula", arial12format);
 				try
 				{
 					sheet.addCell(headerRank);
@@ -319,6 +329,7 @@ public class XLSOutputHandler implements IOutputHandler {
 					sheet.addCell(headerName);
 					sheet.addCell(headerOrigScore);
 					sheet.addCell(headerStructure);
+					sheet.addCell(headerFormula);
 				} catch (WriteException e) {
 					System.out.println("Could not write Excel sheet headers!");
 					e.printStackTrace();
@@ -333,9 +344,11 @@ public class XLSOutputHandler implements IOutputHandler {
 				WritableCell cellOrigScore = new Number(currentCol, currentRow, result.getScoreShort(), arial10format);
 				currentCol++;
 				WritableCell cellSmiles = new Label(currentCol, currentRow, result.getSmiles(), arial10format);
-//				File temp = new File(".", result.getImagePath());
-//				if(temp.exists())
-//					wi = new WritableImage(currentCol, currentRow, 1, 3, temp);
+				currentCol++;
+				IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(result.getMol());
+				String formula = MolecularFormulaManipulator.getString(iformula, true);
+				WritableCell cellFormula = new Label(currentCol, currentRow, formula, arial10format);
+				currentCol++;
 				
 				try
 				{
@@ -344,7 +357,7 @@ public class XLSOutputHandler implements IOutputHandler {
 					sheet.addCell(cellName);
 					sheet.addCell(cellOrigScore);
 					sheet.addCell(cellSmiles);
-//					sheet.addImage(wi);
+					sheet.addCell(cellFormula);
 				} catch (WriteException e) {
 					System.out.println("Could not write excel cell");
 					e.printStackTrace();
