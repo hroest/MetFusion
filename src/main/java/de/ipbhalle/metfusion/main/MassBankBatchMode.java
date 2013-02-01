@@ -310,7 +310,7 @@ public class MassBankBatchMode implements Runnable {
         
         int limitCounter = 0;
         int resultLimit = (limit >= queryResults.size()) ? queryResults.size() : limit;
-        SmilesGenerator sg = new SmilesGenerator();		// SmilesGenerator for IAtomContainer
+        SmilesGenerator sg = new SmilesGenerator(true);		// SmilesGenerator for IAtomContainer
         
         for(int i = 0; i < queryResults.size(); i++) {
             String s = queryResults.get(i);
