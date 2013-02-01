@@ -40,6 +40,7 @@ public class MetFusionBatchFileHandler {
 		this.batchFile = file;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void readFile() throws IOException {
 		if(batchFile.exists() && batchFile.isFile() && batchFile.canRead())
 			System.out.println("Found file [" + batchFile.getAbsolutePath() + "]");
@@ -67,7 +68,20 @@ public class MetFusionBatchFileHandler {
 				}
 				AvailableParameters av = AvailableParameters.valueOf(param);	// check for parameter name in enumeration of available parameters
 				Object value = line.substring(position+1).trim();	// get value of parameter
-				settings.put(av, value);
+				if(av.equals(AvailableParameters.substrucAbsent) | av.equals(AvailableParameters.substrucPresent)) {	// one of the list/multiple items
+					List<String> l = null;
+					if(settings.containsKey(av)) {		// update list
+						l = (List<String>) settings.get(av);
+						if(!l.contains((String) value))
+							l.add((String) value);
+					}
+					else {								// create new list
+						l = new ArrayList<String>();
+						l.add((String) value);
+					}
+					settings.put(av, l);				// store list
+				}
+				else settings.put(av, value);
 			}
 			else if(!line.isEmpty()) {	// assume peaklist
 				peaks += line.trim() + "\n";
@@ -127,7 +141,19 @@ public class MetFusionBatchFileHandler {
 			Map<AvailableParameters, Object> settings = batchSettings.transferSettings();
 			Set<AvailableParameters> keys = settings.keySet();
 			for (AvailableParameters key : keys) {
-				System.out.println("[" + key + "] -> " + settings.get(key));
+				Object o = settings.get(key);
+				if(o instanceof List) {
+					@SuppressWarnings("unchecked")
+					List<String> l = (List<String>) o;
+					if(l.isEmpty()) 
+						System.out.println("[" + key + "] -> ");
+					else {
+						for (String s : l) {
+							System.out.println("[" + key + "] -> " + s);
+						}
+					}
+				}
+				else System.out.println("[" + key + "] -> " + o);
 			}
 		}
 		else System.err.println("Empty settings!");
@@ -210,7 +236,9 @@ public class MetFusionBatchFileHandler {
 	public static void main(String[] args) {
 		//MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/mgerlich/Documents/metfusion_param_default.mf"));
 		//MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/sneumann/CASMI/msbi.ipb-halle.de/contest/metfrag/metfrag-category2-challenge1.mf"));
-		MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/mgerlich/Downloads/skype_transfer/136m0498_MSMS.mf"));
+		//MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(new File("/home/mgerlich/Downloads/skype_transfer/136m0498_MSMS.mf"));
+		MetFusionBatchFileHandler mbfr = new MetFusionBatchFileHandler(
+				new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/192m0757a_MSMS.mf"));
 		
 		try {
 			mbfr.readFile();

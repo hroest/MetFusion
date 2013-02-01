@@ -5,7 +5,10 @@
 package de.ipbhalle.metfusion.main;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,6 +16,7 @@ import de.ipbhalle.enumerations.Adducts;
 import de.ipbhalle.enumerations.AvailableParameters;
 import de.ipbhalle.enumerations.Databases;
 import de.ipbhalle.enumerations.Ionizations;
+import de.ipbhalle.enumerations.SpectralDB;
 
 /**
  * Support class that holds all parameter settings for MassBank (database), MetFrag (fragmenter) and MetFusion.
@@ -40,6 +44,10 @@ public class MetFusionBatchSettings {
 	private boolean clustering = Boolean.TRUE;
 	private boolean onlyCHNOPS = Boolean.FALSE;
 	private String peaks = "273.096 22\n289.086 107\n290.118 14\n291.096 999\n292.113 162\n293.054 34\n579.169 37\n580.179 15";
+	private SpectralDB spectralDB = SpectralDB.MassBank;
+	private String sdfFile = "";
+	private List<String> substrucPresent = new ArrayList<String>();
+	private List<String> substrucAbsent = new ArrayList<String>();
 	
 	private Map<AvailableParameters, Object> storedSettings;
 	
@@ -73,6 +81,10 @@ public class MetFusionBatchSettings {
 		storedSettings.put(AvailableParameters.clustering, clustering);
 		storedSettings.put(AvailableParameters.peaks, peaks);
 		storedSettings.put(AvailableParameters.onlyCHNOPS, onlyCHNOPS);
+		storedSettings.put(AvailableParameters.spectralDB, spectralDB);
+		storedSettings.put(AvailableParameters.sdfFile, sdfFile);
+		storedSettings.put(AvailableParameters.substrucPresent, substrucPresent);
+		storedSettings.put(AvailableParameters.substrucAbsent, substrucAbsent);
 	}
 	
 	/**
@@ -91,6 +103,7 @@ public class MetFusionBatchSettings {
 	 *  
 	 * @param settings The map of available parameters and settings to be loaded.
 	 */
+	@SuppressWarnings("unchecked")
 	public void loadSettings(Map<AvailableParameters, Object> settings) {
 		this.storedSettings = settings;
 		Set<AvailableParameters> keys = settings.keySet();
@@ -115,6 +128,10 @@ public class MetFusionBatchSettings {
 				case clustering: this.clustering = (Boolean) settings.get(key);	break;
 				case peaks: this.peaks = (String) settings.get(key);	break;
 				case onlyCHNOPS: this.onlyCHNOPS = (Boolean) settings.get(key); break;
+				case spectralDB: this.spectralDB = (SpectralDB) settings.get(key); break;
+				case sdfFile: this.sdfFile = (String) settings.get(key);	break;
+				case substrucAbsent: this.substrucAbsent = (List<String>) settings.get(key); break;
+				case substrucPresent: this.substrucPresent = (List<String>) settings.get(key); break;
 				
 				default: ;	break;
 			}
@@ -128,6 +145,7 @@ public class MetFusionBatchSettings {
 	 *  
 	 * @param settings The map of available parameters and settings to be loaded.
 	 */
+	@SuppressWarnings("unchecked")
 	public void loadSettingsFromFile(Map<AvailableParameters, Object> settings) {
 		this.storedSettings = settings;
 		Set<AvailableParameters> keys = settings.keySet();
@@ -167,7 +185,12 @@ public class MetFusionBatchSettings {
 				
 				case clustering: this.clustering = (Boolean.parseBoolean((String) settings.get(key)));	break;
 				case peaks: this.peaks = (String) settings.get(key);	break;
-				case onlyCHNOPS: this.onlyCHNOPS = (Boolean.parseBoolean((String) settings.get(key)));	break; 
+				case onlyCHNOPS: this.onlyCHNOPS = (Boolean.parseBoolean((String) settings.get(key)));	break;
+				case spectralDB: this.spectralDB = SpectralDB.valueOf((String) settings.get(key)); break;
+				case sdfFile: this.sdfFile = (String) settings.get(key);	break;
+				case substrucAbsent: this.substrucAbsent = (List<String>) settings.get(key); break;
+				case substrucPresent: this.substrucPresent = (List<String>) settings.get(key); break;
+				
 				default: ;	break;
 			}
 		}
@@ -198,8 +221,17 @@ public class MetFusionBatchSettings {
 		System.out.println(def.clustering);
 		System.out.println(def.peaks);
 		System.out.println(def.onlyCHNOPS);
+		System.out.println(def.spectralDB);
+		System.out.println(def.sdfFile);
 		
 		MetFusionBatchFileHandler mbfh = new MetFusionBatchFileHandler(new File("/home/mgerlich/Documents/metfusion_param_default.mf"));
+		try {
+			mbfh.readFile();
+			mbfh.printSettings();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		mbfh.writeFile(new File("/home/mgerlich/Documents/metfusion_param_default.mf"), def);
 	}
 
@@ -337,6 +369,38 @@ public class MetFusionBatchSettings {
 
 	public boolean isOnlyCHNOPS() {
 		return onlyCHNOPS;
+	}
+
+	public SpectralDB getSpectralDB() {
+		return spectralDB;
+	}
+
+	public void setSpectralDB(SpectralDB spectralDB) {
+		this.spectralDB = spectralDB;
+	}
+
+	public String getSdfFile() {
+		return sdfFile;
+	}
+
+	public void setSdfFile(String sdfFile) {
+		this.sdfFile = sdfFile;
+	}
+
+	public List<String> getSubstrucPresent() {
+		return substrucPresent;
+	}
+
+	public void setSubstrucPresent(List<String> substrucPresent) {
+		this.substrucPresent = substrucPresent;
+	}
+
+	public List<String> getSubstrucAbsent() {
+		return substrucAbsent;
+	}
+
+	public void setSubstrucAbsent(List<String> substrucAbsent) {
+		this.substrucAbsent = substrucAbsent;
 	}
 
 }
