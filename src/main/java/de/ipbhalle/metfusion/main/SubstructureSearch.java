@@ -63,25 +63,15 @@ public class SubstructureSearch implements Runnable {
 	
 	private void queryIncludes() {
 		if(includes.size() == 1) {		// only one substructure filter
-			try {
-				resultsOriginal = queryDatabase(includes.get(0));
-				resultsRemaining = skipNonUsed(resultsOriginal);
-				System.out.println("includes == 1 \toriginal = " + resultsOriginal.size());
-			} catch (CDKException e) {
-				resultsOriginal = new ArrayList<ResultSubstructure>();
-				e.printStackTrace();
-			}
+			resultsOriginal = queryDatabase(includes.get(0));
+			resultsRemaining = skipNonUsed(resultsOriginal);
+			System.out.println("includes == 1 \toriginal = " + resultsOriginal.size());
 		}
 		else if(includes.size() > 1) {
 			for (int i = 0; i < includes.size(); i++) {
 				if(i == 0) {
-					try {
-						resultsOriginal = queryDatabase(includes.get(0));
-						resultsRemaining = skipNonUsed(resultsOriginal);
-					} catch (CDKException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					resultsOriginal = queryDatabase(includes.get(0));
+					resultsRemaining = skipNonUsed(resultsOriginal);
 				}
 				else {
 					resultsRemaining = filterCandidates(resultsRemaining, includes.get(i), substrucPresent);
@@ -106,7 +96,7 @@ public class SubstructureSearch implements Runnable {
 		return remaining;
 	}
 	
-	private List<ResultSubstructure> queryDatabase(String substrucPresent) throws CDKException {
+	private List<ResultSubstructure> queryDatabase(String substrucPresent) {
 		List<ResultSubstructure> candidates = new ArrayList<ResultSubstructure>();
 		
 		MassSpecAPISoapProxy chemSpiderProxy = new MassSpecAPISoapProxy();
@@ -117,7 +107,7 @@ public class SubstructureSearch implements Runnable {
 		
 		CommonSearchOptions cso = new CommonSearchOptions();
 		cso.setComplexity(EComplexity.Single);
-		cso.setIsotopic(EIsotopic.NotLabeled);
+		cso.setIsotopic(EIsotopic.NotLabeled);	// NotLabeled when using Formula search
 		cso.setHasSpectra(false);
 		cso.setHasPatents(false);
 		String transactionID = "";
@@ -166,8 +156,8 @@ public class SubstructureSearch implements Runnable {
 					candidates.add(new ResultSubstructure(chemspiderInfo[i], ac, used));
 				}
 			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.err.println("Error retrieving information and parsing results.");
+				return candidates;
 			}
 		}
 		
@@ -190,6 +180,9 @@ public class SubstructureSearch implements Runnable {
 		// filter out container that contain strucAbsent 
 		boolean matches = false;
 		for (ResultSubstructure rs : candidates) {
+			if(!rs.isUsed())
+				continue;
+			
 			// SMARTS matching
 			try {
 				matches = sqt.matches(rs.getContainer());
@@ -228,13 +221,7 @@ public class SubstructureSearch implements Runnable {
 			System.err.println("Nothing left!");
 			//return;
 		}
-		// TODO
-		this.resultsRemaining = new ArrayList<ResultSubstructure>();
-		for (ResultSubstructure rs : resultsOriginal) {
-			if(rs.isUsed())
-				resultsRemaining.add(rs);
-		}
-		
+		this.resultsRemaining = current;	// after substrucPresent and substrucAbsent filtering
 		System.out.println("resultsRemaining -> " + resultsRemaining.size());
 		// use remaining candidates as intermediate entry to MetFrag?
 		// or create SDF and invoke MetFrag SDF fragmentation?
@@ -286,8 +273,8 @@ public class SubstructureSearch implements Runnable {
 		sso.setMolecule("Cc1cccc2nnnc12");
 		
 		CommonSearchOptions cso = new CommonSearchOptions();
-		cso.setComplexity(EComplexity.Single);
-		cso.setIsotopic(EIsotopic.NotLabeled);
+		cso.setComplexity(EComplexity.Any);
+		cso.setIsotopic(EIsotopic.Any);		// NotLabeled when using Formula search
 		cso.setHasSpectra(false);
 		cso.setHasPatents(false);
 		String transactionID = "";
