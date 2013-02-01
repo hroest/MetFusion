@@ -285,7 +285,7 @@ public class Result {
 	protected void generateSMILES() {
 		String smiles = "";
 		if(this.smiles.isEmpty() && getMol() != null) {
-			SmilesGenerator sg = new SmilesGenerator();
+			SmilesGenerator sg = new SmilesGenerator(true);
 			smiles = sg.createSMILES(getMol());
 			setSmiles(smiles);
 		}
