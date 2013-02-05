@@ -97,7 +97,6 @@ public class MassBankBatchMode implements Runnable {
 
 		Map<String, List<String>> instGroup = instInfo.getTypeGroup();
 		Iterator<String> it = instGroup.keySet().iterator();
-		int counter = 0;
 		StringBuilder sb = new StringBuilder();
 
 		// iterate over instrument groups
@@ -122,7 +121,6 @@ public class MassBankBatchMode implements Runnable {
 					instruments[i] = ""; // deselect all remaining instruments
 											// (EI, Others)
 			}
-			counter++;
 			this.instruments.put(next, items);
 		}
 		
@@ -310,7 +308,7 @@ public class MassBankBatchMode implements Runnable {
         
         int limitCounter = 0;
         int resultLimit = (limit >= queryResults.size()) ? queryResults.size() : limit;
-        SmilesGenerator sg = new SmilesGenerator(true);		// SmilesGenerator for IAtomContainer
+        //SmilesGenerator sg = new SmilesGenerator(true);		// SmilesGenerator for IAtomContainer
         
         for(int i = 0; i < queryResults.size(); i++) {
             String s = queryResults.get(i);
