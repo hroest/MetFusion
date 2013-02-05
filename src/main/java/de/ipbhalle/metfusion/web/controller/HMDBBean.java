@@ -89,28 +89,29 @@ public class HMDBBean implements GenericDatabaseBean {
 
 	private List<Result> performQuery(searchType type) {
 		List<Result> results = new ArrayList<Result>();
-		String query = "";
+		String query = formatURL(type);
 		
-		switch(type) {
-		case MS:
-			query = formatURL(type);
-			results = parseGCandNMRResults(query, type);
-			break;
-			
-		case MSMS: results = parseGCandNMRResults(queryUrlMSMS, type);
-			break;
-			
-		case GCMS: results = parseGCandNMRResults(queryUrlGCMS, type);
-			break;
-			
-		case NMR1D: results = parseGCandNMRResults(queryUrlNMR1D, type);
-			break;
-			
-		case NMR2D: results = parseGCandNMRResults(queryUrlNMR2D, type);
-			break;
-			
-		default: System.err.println("No defined search type!");		
-		}
+		results = parseGCandNMRResults(query, type);
+		
+//		switch(type) {
+//		case MS:
+//			results = parseGCandNMRResults(query, type);
+//			break;
+//			
+//		case MSMS: results = parseGCandNMRResults(query, type);
+//			break;
+//			
+//		case GCMS: results = parseGCandNMRResults(query, type);
+//			break;
+//			
+//		case NMR1D: results = parseGCandNMRResults(query, type);
+//			break;
+//			
+//		case NMR2D: results = parseGCandNMRResults(query, type);
+//			break;
+//			
+//		default: System.err.println("No defined search type!");		
+//		}
 			
 		return results;
 	}
@@ -168,6 +169,10 @@ public class HMDBBean implements GenericDatabaseBean {
 		// table rows
 		//Elements rows = doc.getElementsByTag("table");	// first row contains header <th>, afterwards only data <td>
 		//Element table = doc.getElementById("nmr_two_d_search_results");	// first row contains header <th>, afterwards only data <td>
+		
+		// GCMS, NMR1D + NMR2D provide the same result table style (5 columns)
+		// MSMS has 7 columns
+		// MS has 6 columns but multiple tables
 		Element table = null;
 		switch(type) {
 		
