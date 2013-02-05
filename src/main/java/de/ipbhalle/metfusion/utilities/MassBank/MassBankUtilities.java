@@ -86,14 +86,14 @@ public class MassBankUtilities {
 	public MassBankUtilities() {
 		this.cacheDir = tempDir;
 		
-		mbcommon = new MassBankCommon();
+		setMbcommon(new MassBankCommon());
 		config = new GetConfig(baseUrl);
 	}
 	
 	public MassBankUtilities(String cacheDir) {
 		this.cacheDir = cacheDir;
 		
-		mbcommon = new MassBankCommon();
+		setMbcommon(new MassBankCommon());
 		config = new GetConfig(baseUrl);
 	}
 	
@@ -101,7 +101,7 @@ public class MassBankUtilities {
 		this.baseUrl = serverUrl;
 		this.cacheDir = cacheDir;
 		
-		mbcommon = new MassBankCommon();
+		setMbcommon(new MassBankCommon());
 		config = new GetConfig(baseUrl);
 	}
 	
@@ -569,7 +569,7 @@ public class MassBankUtilities {
         if(institutes != null) {
 			for (int i = 0; i < institutes.length; i++) {
 				if(institutes[i].equals(prefix)) {
-					f = new File(dir, institutes[i] +  fileSeparator + "records" + fileSeparator + id + ".txt");
+					f = new File(dir, institutes[i] +  fileSeparator + RECORDS + fileSeparator + id + ".txt");
 	                found = true;
 	                return;     // return if record was found
 	            }
@@ -584,9 +584,9 @@ public class MassBankUtilities {
 			else createDir = true;
 			
 			if(createDir) {
-				File newDir = new File(f, fileSeparator + "records" + fileSeparator);
+				File newDir = new File(f, fileSeparator + RECORDS + fileSeparator);
 				newDir.mkdirs();
-				newDir = new File(f, fileSeparator + "mol" + fileSeparator);
+				newDir = new File(f, fileSeparator + MOL + fileSeparator);
 				newDir.mkdirs();
 			}
 				return;
@@ -621,7 +621,7 @@ public class MassBankUtilities {
 		File f = null;
 		for (int i = 0; i < institutes.length; i++) {
 			if(institutes[i].equals(prefix)) {
-				f = new File(dir, institutes[i] + "/records/" + id + ".txt");
+				f = new File(dir, institutes[i] + fileSeparator + RECORDS + fileSeparator + id + ".txt");
 				break;
 			}
 		}
@@ -730,7 +730,7 @@ public class MassBankUtilities {
 		File f = null;
 		for (int i = 0; i < institutes.length; i++) {
 			if(institutes[i].equals(prefix)) {
-				f = new File(dir, institutes[i] + "/records/" + id + ".txt");
+				f = new File(dir, institutes[i] + fileSeparator + RECORDS + fileSeparator + id + ".txt");
 				break;
 			}
 		}
@@ -811,7 +811,7 @@ public class MassBankUtilities {
 		if(institutes != null) {
 			for (int i = 0; i < institutes.length; i++) {
 				if(institutes[i].equals(prefix)) {
-					f = new File(dir, institutes[i] + fileSeparator + "records" + fileSeparator);
+					f = new File(dir, institutes[i] + fileSeparator + RECORDS + fileSeparator);
 					found = true;
 					f = new File(f, id + ".txt");
 					
@@ -825,8 +825,8 @@ public class MassBankUtilities {
           if(!f.exists())
               createDir = f.mkdir();
           System.out.println("created directory [" + f.getAbsolutePath() + "] -> " + createDir);
-          File molDir = new File(f, fileSeparator + "mol" + fileSeparator);
-          File recDir = new File(f, fileSeparator + "records" + fileSeparator);
+          File molDir = new File(f, fileSeparator + MOL + fileSeparator);
+          File recDir = new File(f, fileSeparator + RECORDS + fileSeparator);
           System.out.println("molDir ? " + molDir.mkdirs() + "\trecDir ? " + recDir.mkdirs());
           
           f = new File(recDir, id + ".txt");
@@ -978,7 +978,7 @@ public class MassBankUtilities {
 		File f = null;
 		for (int i = 0; i < institutes.length; i++) {
 			if(institutes[i].equals(prefix)) {
-				f = new File(dir, institutes[i] + fileSeparator + "records" + fileSeparator + id + ".txt");
+				f = new File(dir, institutes[i] + fileSeparator + RECORDS + fileSeparator + id + ".txt");
 				break;
 			}
 		}
@@ -1330,5 +1330,13 @@ public class MassBankUtilities {
 
 	public void setCacheMassBank(String cacheMassBank) {
 		this.cacheMassBank = cacheMassBank;
+	}
+
+	public MassBankCommon getMbcommon() {
+		return mbcommon;
+	}
+
+	public void setMbcommon(MassBankCommon mbcommon) {
+		this.mbcommon = mbcommon;
 	}
 }
