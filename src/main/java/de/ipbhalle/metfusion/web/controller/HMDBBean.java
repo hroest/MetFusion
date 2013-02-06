@@ -43,6 +43,9 @@ public class HMDBBean implements GenericDatabaseBean {
 			"utf8=" + utf8 + "&nucleus=%s" + "&peaks=%s" +
 			"&cs_tolerance=%f" + "&commit=Search";
 	private final String tableNMR1D = "nmr_one_d_search_results";
+	private String libraryNMR1D;
+	private String peaksNMR1D;
+	private float toleranceNMR1D;
 	
 	/** 2D NMR types */
 	public enum library {tocsy, hsqc};
@@ -50,6 +53,9 @@ public class HMDBBean implements GenericDatabaseBean {
 			"utf8=" + utf8 + "&library=%s" + "&peaks=%s" +
 			"&x_tolerance=%f" + "&y_tolerance=%f" +	"&commit=Search";
 	private final String tableNMR2D = "nmr_two_d_search_results";
+	private String peaksNMR2D;
+	private float toleranceNMR2Dx;
+	private float toleranceNMR2Dy;
 	
 	/** MS search ionization modes */
 	public enum msIon {positive, negative, neutral};
@@ -57,6 +63,9 @@ public class HMDBBean implements GenericDatabaseBean {
 	private String queryUrlMS = "http://www.hmdb.ca/spectra/ms/search?" +
 			"utf8=" + utf8 + "&query_masses=%s" + "&tolerance=%f" +	"&mode=%s" + "&commit=Search";
 	private final String tableMS = "ms-search-result"; 	// ms-search-table, gibt mehrere je nach anfrage
+	private String peaksMS = "175\n209.98\n2011.971";
+	private float toleranceMS = 0.05f;
+	private String modeMS = msIon.positive.toString();
 	
 	/** MSMS search ionization modes */
 	public enum msmsIon {Positive, Negative, NA};
@@ -68,13 +77,24 @@ public class HMDBBean implements GenericDatabaseBean {
 			"&ionization_mode=%s" +	"&collision_energy_level=%s" +
 			"&peaks=%s" + "&mass_charge_tolerance=%f" +	"&commit=Search";
 	private final String tableMSMS = "ms_ms_search_results";
-	
+	private float precursorMSMS = 146.0f;
+	private float toleranceMSMSprecursor = 0.1f;
+	private String modeMSMS = msmsIon.Positive.toString();
+	private String ceMSMS = msmsCE.Low.toString();
+	private String peaksMSMS = "40.948 0.174\n56.022 0.424\n84.37 53.488\n101.50 8.285\n102.401 0.775\n129.670 100.000\n146.966 20.070";
+	private float toleranceMSMSmz = 0.5f;
+		
 	/** GCMS search types */
 	public enum gcmsType {retention_index, retention_time};
 	private String queryUrlGCMS = "http://www.hmdb.ca/spectra/c_ms/search?" +
 			"utf8=" + utf8 + "&retention_type=%s" + "&retention=%f" + "&retention_tolerance=%f" +
 			"&peaks=%s" + "&mass_charge_tolerence=%f" +	"&commit=Search";
 	private final String tableGCMS = "index";		// suche nach class index oder tag table
+	private String typeGCMS = gcmsType.retention_index.toString();
+	private float retentionGCMS = 1072.0f;
+	private float toleranceGCMSretention = 1f;
+	private String peaksGCMS = "73\n147\n117\n190\n191\n148\n66\n75";
+	private float toleranceGCMSmz = 0.0f;
 	
 	
 	public HMDBBean() {
@@ -545,5 +565,164 @@ public class HMDBBean implements GenericDatabaseBean {
 		this.searchProgress = searchProgress;
 	}
 
+	public String getPeaksNMR1D() {
+		return peaksNMR1D;
+	}
+
+	public void setPeaksNMR1D(String peaksNMR1D) {
+		this.peaksNMR1D = peaksNMR1D;
+	}
+
+	public float getToleranceNMR1D() {
+		return toleranceNMR1D;
+	}
+
+	public void setToleranceNMR1D(float toleranceNMR1D) {
+		this.toleranceNMR1D = toleranceNMR1D;
+	}
+
+	public String getPeaksNMR2D() {
+		return peaksNMR2D;
+	}
+
+	public void setPeaksNMR2D(String peaksNMR2D) {
+		this.peaksNMR2D = peaksNMR2D;
+	}
+
+	public float getToleranceNMR2Dx() {
+		return toleranceNMR2Dx;
+	}
+
+	public void setToleranceNMR2Dx(float toleranceNMR2Dx) {
+		this.toleranceNMR2Dx = toleranceNMR2Dx;
+	}
+
+	public float getToleranceNMR2Dy() {
+		return toleranceNMR2Dy;
+	}
+
+	public void setToleranceNMR2Dy(float toleranceNMR2Dy) {
+		this.toleranceNMR2Dy = toleranceNMR2Dy;
+	}
+
+	public String getLibraryNMR1D() {
+		return libraryNMR1D;
+	}
+
+	public void setLibraryNMR1D(String libraryNMR1D) {
+		this.libraryNMR1D = libraryNMR1D;
+	}
+	
+	public String getPeaksMS() {
+		return peaksMS;
+	}
+
+	public void setPeaksMS(String peaksMS) {
+		this.peaksMS = peaksMS;
+	}
+
+	public float getToleranceMS() {
+		return toleranceMS;
+	}
+
+	public void setToleranceMS(float toleranceMS) {
+		this.toleranceMS = toleranceMS;
+	}
+
+	public String getModeMS() {
+		return modeMS;
+	}
+
+	public void setModeMS(String modeMS) {
+		this.modeMS = modeMS;
+	}
+
+	public float getPrecursorMSMS() {
+		return precursorMSMS;
+	}
+
+	public void setPrecursorMSMS(float precursorMSMS) {
+		this.precursorMSMS = precursorMSMS;
+	}
+
+	public float getToleranceMSMSprecursor() {
+		return toleranceMSMSprecursor;
+	}
+
+	public void setToleranceMSMSprecursor(float toleranceMSMSprecursor) {
+		this.toleranceMSMSprecursor = toleranceMSMSprecursor;
+	}
+
+	public String getModeMSMS() {
+		return modeMSMS;
+	}
+
+	public void setModeMSMS(String modeMSMS) {
+		this.modeMSMS = modeMSMS;
+	}
+
+	public String getCeMSMS() {
+		return ceMSMS;
+	}
+
+	public void setCeMSMS(String ceMSMS) {
+		this.ceMSMS = ceMSMS;
+	}
+
+	public String getPeaksMSMS() {
+		return peaksMSMS;
+	}
+
+	public void setPeaksMSMS(String peaksMSMS) {
+		this.peaksMSMS = peaksMSMS;
+	}
+
+	public float getToleranceMSMSmz() {
+		return toleranceMSMSmz;
+	}
+
+	public void setToleranceMSMSmz(float toleranceMSMSmz) {
+		this.toleranceMSMSmz = toleranceMSMSmz;
+	}
+
+	public String getTypeGCMS() {
+		return typeGCMS;
+	}
+
+	public void setTypeGCMS(String typeGCMS) {
+		this.typeGCMS = typeGCMS;
+	}
+
+	public float getRetentionGCMS() {
+		return retentionGCMS;
+	}
+
+	public void setRetentionGCMS(float retentionGCMS) {
+		this.retentionGCMS = retentionGCMS;
+	}
+
+	public float getToleranceGCMSretention() {
+		return toleranceGCMSretention;
+	}
+
+	public void setToleranceGCMSretention(float toleranceGCMSretention) {
+		this.toleranceGCMSretention = toleranceGCMSretention;
+	}
+
+	public String getPeaksGCMS() {
+		return peaksGCMS;
+	}
+
+	public void setPeaksGCMS(String peaksGCMS) {
+		this.peaksGCMS = peaksGCMS;
+	}
+
+	public float getToleranceGCMSmz() {
+		return toleranceGCMSmz;
+	}
+
+	public void setToleranceGCMSmz(float toleranceGCMSmz) {
+		this.toleranceGCMSmz = toleranceGCMSmz;
+	}
 
 }
