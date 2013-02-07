@@ -70,12 +70,16 @@ public class SubstructureSearch implements Runnable {
 			resultsOriginal = queryDatabase(includes.get(0));
 			resultsRemaining = skipNonUsed(resultsOriginal);
 			System.out.println("includes == 1 \toriginal = " + resultsOriginal.size());
+			System.out.println("includes == 1 \tskipNonUsed = " + resultsRemaining.size());
 		}
 		else if(includes.size() > 1) {
 			for (int i = 0; i < includes.size(); i++) {
 				if(i == 0) {
 					resultsOriginal = queryDatabase(includes.get(0));
 					resultsRemaining = skipNonUsed(resultsOriginal);
+					
+					System.out.println("\toriginal = " + resultsOriginal.size());
+					System.out.println("\tskipNonUsed = " + resultsRemaining.size());
 				}
 				else {
 					resultsRemaining = filterCandidates(resultsRemaining, includes.get(i), substrucPresent);
@@ -146,7 +150,7 @@ public class SubstructureSearch implements Runnable {
 				chemspiderInfo = chemSpiderProxy.getExtendedCompoundInfoArray(CSIDs, token);
 				System.out.println("# matches -> " + chemspiderInfo.length);
 				for (int i = 0; i < chemspiderInfo.length; i++) {
-					System.out.println(chemspiderInfo[i].getCSID() + "\t" + chemspiderInfo[i].getSMILES());
+					//System.out.println(chemspiderInfo[i].getCSID() + "\t" + chemspiderInfo[i].getSMILES());
 					IAtomContainer ac = null;
 					boolean used = false;
 					try {
@@ -261,9 +265,9 @@ public class SubstructureSearch implements Runnable {
 		String token = "eeca1d0f-4c03-4d81-aa96-328cdccf171a";
 		//test();
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/192m0757a_MSMS.mf");
-		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/164m0445a_MSMS.mf");
+		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/164m0445a_MSMS.mf");
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/148m0859_MSMS.mf");
-		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/136m0498_MSMS.mf");
+		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/136m0498_MSMS.mf");
 		
 		MetFusionBatchFileHandler mbf = new MetFusionBatchFileHandler(file);
 		try {
