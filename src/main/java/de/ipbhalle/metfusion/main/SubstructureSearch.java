@@ -28,9 +28,11 @@ import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.smiles.smarts.SMARTSQueryTool;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import com.chemspider.www.CommonSearchOptions;
 import com.chemspider.www.EComplexity;
@@ -48,6 +50,7 @@ public class SubstructureSearch implements Runnable {
 	private List<String> includes;
 	private List<String> excludes;
 	private String token;
+	private String molecularFormula;
 	public final boolean substrucPresent = Boolean.TRUE;
 	public final boolean substrucAbsent = Boolean.FALSE;
 	private ExtendedCompoundInfo[] chemspiderInfo;
@@ -55,10 +58,11 @@ public class SubstructureSearch implements Runnable {
 	private List<ResultSubstructure> resultsRemaining;
 	
 	
-	public SubstructureSearch(List<String> includes, List<String> excludes, String token) {
+	public SubstructureSearch(List<String> includes, List<String> excludes, String token, String formula) {
 		this.includes = includes;
 		this.excludes = excludes;
 		this.setToken(token);
+		this.setMolecularFormula(formula);
 	}
 	
 	private void queryIncludes() {
@@ -201,6 +205,26 @@ public class SubstructureSearch implements Runnable {
 		return remaining;
 	}
 	
+	private List<ResultSubstructure> filterCandidatesByMolecularFormula(List<ResultSubstructure> candidates) {
+		if(molecularFormula.isEmpty())		// return unmodified candidate list if no molecular formula is present
+			return candidates;
+		
+		IMolecularFormula filter = MolecularFormulaManipulator.getMolecularFormula(molecularFormula, DefaultChemObjectBuilder.getInstance());
+		List<ResultSubstructure> remaining = new ArrayList<ResultSubstructure>();
+		for (ResultSubstructure rs : candidates) {
+			IMolecularFormula toCheck = MolecularFormulaManipulator.getMolecularFormula(rs.getContainer());
+			if(MolecularFormulaManipulator.compare(filter, toCheck))
+				remaining.add(rs);
+			else {
+				System.out.println("Filter formula [" + molecularFormula + "] does not match candidate formula [" + 
+						MolecularFormulaManipulator.getHillString(toCheck) + "].");
+			}
+			// alternative: mit elements und getAtomCount/getElementCount prüfen ob alle Elemente in filter
+			// <= Elemente in toCheck sind
+		}
+		return remaining;
+	}
+			
 	@Override
 	public void run() {
 		// retrieve candidates and filter candidates -> substrucPresent
@@ -221,6 +245,12 @@ public class SubstructureSearch implements Runnable {
 			System.err.println("Nothing left!");
 			//return;
 		}
+		// filter remaining stuff for molecular formula, if present
+		if(!molecularFormula.isEmpty()) {
+			current = filterCandidatesByMolecularFormula(current);
+			System.out.println("#remaining after molecular formula filter -> " + current.size());
+		}
+		
 		this.resultsRemaining = current;	// after substrucPresent and substrucAbsent filtering
 		System.out.println("resultsRemaining -> " + resultsRemaining.size());
 		// use remaining candidates as intermediate entry to MetFrag?
@@ -231,14 +261,18 @@ public class SubstructureSearch implements Runnable {
 		String token = "eeca1d0f-4c03-4d81-aa96-328cdccf171a";
 		//test();
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/192m0757a_MSMS.mf");
-		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/164m0445a_MSMS.mf");
+		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/164m0445a_MSMS.mf");
+		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/148m0859_MSMS.mf");
+		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/136m0498_MSMS.mf");
+		
 		MetFusionBatchFileHandler mbf = new MetFusionBatchFileHandler(file);
 		try {
 			mbf.readFile();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println("Error reading from MetFusion settings file [" + file.getAbsolutePath() + "]. Aborting!");
+			System.exit(-1);
 		}
+		
 		MetFusionBatchSettings settings = mbf.getBatchSettings();
 		List<String> absent = settings.getSubstrucAbsent();
 		List<String> present = settings.getSubstrucPresent();
@@ -248,7 +282,9 @@ public class SubstructureSearch implements Runnable {
 		for (String s : absent) {
 			System.out.println("absent -> " + s);
 		}
-		SubstructureSearch ss = new SubstructureSearch(present, absent, token);
+		String formula = settings.getMfFormula();
+		System.out.println("formula -> " + formula);
+		SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula);
 		ss.run();
 	}
 	
@@ -432,6 +468,14 @@ public class SubstructureSearch implements Runnable {
 
 	public void setResultsRemaining(List<ResultSubstructure> resultsRemaining) {
 		this.resultsRemaining = resultsRemaining;
+	}
+
+	public String getMolecularFormula() {
+		return molecularFormula;
+	}
+
+	public void setMolecularFormula(String molecularFormula) {
+		this.molecularFormula = molecularFormula;
 	}
 
 }
