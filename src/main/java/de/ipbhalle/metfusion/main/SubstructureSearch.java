@@ -18,20 +18,43 @@
 
 package de.ipbhalle.metfusion.main;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
+import javax.xml.rpc.ServiceException;
+
+import org.apache.commons.io.IOUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.openscience.cdk.DefaultChemObjectBuilder;
+import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
+import org.openscience.cdk.aromaticity.DoubleBondAcceptingAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.io.MDLV2000Writer;
+import org.openscience.cdk.io.listener.PropertiesListener;
+import org.openscience.cdk.io.setting.IOSetting;
 import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
+import org.openscience.cdk.layout.StructureDiagramGenerator;
+import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.smiles.smarts.SMARTSQueryTool;
+import org.openscience.cdk.tools.CDKHydrogenAdder;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import com.chemspider.www.CommonSearchOptions;
@@ -40,9 +63,12 @@ import com.chemspider.www.EIsotopic;
 import com.chemspider.www.ERequestStatus;
 import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPISoapProxy;
+import com.chemspider.www.OpenBabelLocator;
+import com.chemspider.www.OpenBabelSoap;
 import com.chemspider.www.SearchSoapProxy;
 import com.chemspider.www.SubstructureSearchOptions;
 
+import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
 import de.ipbhalle.metfusion.wrapper.ResultSubstructure;
 
 public class SubstructureSearch implements Runnable {
@@ -68,6 +94,7 @@ public class SubstructureSearch implements Runnable {
 	private void queryIncludes() {
 		if(includes.size() == 1) {		// only one substructure filter
 			resultsOriginal = queryDatabase(includes.get(0));
+			//resultsOriginal = queryDatabaseWithFormula(molecularFormula);
 			resultsRemaining = skipNonUsed(resultsOriginal);
 			System.out.println("includes == 1 \toriginal = " + resultsOriginal.size());
 			System.out.println("includes == 1 \tskipNonUsed = " + resultsRemaining.size());
@@ -76,6 +103,7 @@ public class SubstructureSearch implements Runnable {
 			for (int i = 0; i < includes.size(); i++) {
 				if(i == 0) {
 					resultsOriginal = queryDatabase(includes.get(0));
+					//resultsOriginal = queryDatabaseWithFormula(molecularFormula);
 					resultsRemaining = skipNonUsed(resultsOriginal);
 					
 					System.out.println("\toriginal = " + resultsOriginal.size());
@@ -104,23 +132,136 @@ public class SubstructureSearch implements Runnable {
 		return remaining;
 	}
 	
+	private List<ResultSubstructure> queryDatabaseWithFormula(String formula) {
+		List<ResultSubstructure> candidates = new ArrayList<ResultSubstructure>();
+		
+		MassSpecAPISoapProxy msp = new MassSpecAPISoapProxy();
+		String[] ids = null;
+		int[] CSIDs = null;
+		try {
+			ids = msp.searchByFormula2(formula);
+			CSIDs = new int[ids.length];
+			for (int i = 0; i < CSIDs.length; i++) {
+				CSIDs[i] = Integer.parseInt(ids[i]);
+			}
+		} catch (RemoteException e) {
+			System.err.println("Error querying with formula [" + formula + "]!");
+			return candidates;
+		}
+		
+		try {
+			chemspiderInfo = msp.getExtendedCompoundInfoArray(CSIDs, token);
+			System.out.println("# matches -> " + chemspiderInfo.length);
+		} catch (RemoteException e) {
+			System.err.println("Error retrieving compound info array!");
+			return candidates;
+		}
+		
+		SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+		for (int i = 0; i < chemspiderInfo.length; i++) {
+			System.out.println(chemspiderInfo[i].getCSID() + "\t" + chemspiderInfo[i].getSMILES());
+			IAtomContainer ac = null;
+			boolean used = false;
+			try {
+				ac = sp.parseSmiles(chemspiderInfo[i].getSMILES());
+				used = true;
+			}
+			catch(InvalidSmilesException ise) {
+				ac = null;
+				System.err.println("skipping " + chemspiderInfo[i].getCSID());
+			}
+			
+			candidates.add(new ResultSubstructure(chemspiderInfo[i], ac, used));
+		}
+		
+		return candidates;
+	}
+	
 	private List<ResultSubstructure> queryDatabase(String substrucPresent) {
 		List<ResultSubstructure> candidates = new ArrayList<ResultSubstructure>();
 		
+		// convert input SMILES to MOL format for ChemSpider service
+		SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+//		sp.setPreservingAromaticity(false);
+//		String mol = "";
+//		String s = "";
+//		try {
+//			IMolecule temp = sp.parseSmiles(substrucPresent);
+//			System.out.println("aromatic Hueckel? -> " + CDKHueckelAromaticityDetector.detectAromaticity(temp));
+//			System.out.println("aromatic double bond? -> " + DoubleBondAcceptingAromaticityDetector.detectAromaticity(temp));
+//			// create coordinates
+//            StructureDiagramGenerator sdg = new StructureDiagramGenerator();
+//            sdg.setMolecule(temp);
+//            sdg.generateCoordinates();
+//            IMolecule layedOutMol = sdg.getMolecule();
+//            //
+//            
+//			byte[] b = null;
+//			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//			MDLV2000Writer writer = new MDLV2000Writer(bos);
+//			IOSetting[] ios = writer.getIOSettings();
+//			for (int i = 0; i < ios.length; i++) {
+//				System.out.println(ios[i].getName() + "\t" + ios[i].getSetting());
+//			}
+//			Properties customSettings = new Properties();
+//			customSettings.setProperty("ForceWriteAs2DCoordinates", "true");
+//			customSettings.setProperty("WriteAromaticBondTypes", "true");
+//			PropertiesListener listener = new PropertiesListener(customSettings);
+//			writer.addChemObjectIOListener(listener);
+//			 
+//			writer.write(layedOutMol);
+//			writer.close();
+//			b = bos.toByteArray();
+//			mol = new String(b, "UTF-8");
+//			System.out.println(mol);
+//			MassBankUtilities mbu = new MassBankUtilities();
+//			IAtomContainer test2 = mbu.getContainer(mol);
+//			//IAtomContainer test2 = mbu.getContainerUnmodified("c1cccc2nnnc12", "/home/mgerlich/projects/metfusion_tp/BTs/");
+//			System.out.println("aromatic Hueckel? -> " + CDKHueckelAromaticityDetector.detectAromaticity(test2));
+//			System.out.println("aromatic? -> " + DoubleBondAcceptingAromaticityDetector.detectAromaticity(test2));
+//			SmilesGenerator sg = new SmilesGenerator(true);
+//			s = sg.createSMILES(layedOutMol);
+//			System.out.println("old smiles -> " + substrucPresent);
+//			System.out.println("smiles -> " + s);
+//		} catch (InvalidSmilesException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		} catch (CDKException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		OpenBabelLocator obl = new OpenBabelLocator();
+		String obmol = "";
+		try {
+			OpenBabelSoap obsoap = obl.getOpenBabelSoap();
+			obmol = obsoap.convert(substrucPresent, "smi", "mol");
+			System.out.println("obmol\n" + obmol);
+		} catch (ServiceException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		MassSpecAPISoapProxy chemSpiderProxy = new MassSpecAPISoapProxy();
 		SearchSoapProxy ssp = new SearchSoapProxy();
-		SubstructureSearchOptions sso = new SubstructureSearchOptions();
-		sso.setMatchTautomers(false);
-		sso.setMolecule(substrucPresent);
+		SubstructureSearchOptions sso = new SubstructureSearchOptions(substrucPresent, false);
+		//sso.setMatchTautomers(false);
+		//sso.setMolecule(substrucPresent);
 		
-		CommonSearchOptions cso = new CommonSearchOptions();
-		cso.setComplexity(EComplexity.Single);
-		cso.setIsotopic(EIsotopic.NotLabeled);	// NotLabeled when using Formula search
-		cso.setHasSpectra(false);
-		cso.setHasPatents(false);
+		CommonSearchOptions cso = new CommonSearchOptions(EComplexity.Single, EIsotopic.NotLabeled, false, false);
+		//cso.setComplexity(EComplexity.Single);
+		//cso.setIsotopic(EIsotopic.NotLabeled);	// NotLabeled when using Formula search
+//		cso.setComplexity(EComplexity.Any);
+//		cso.setIsotopic(EIsotopic.Any);
+		//cso.setHasSpectra(false);
+		//cso.setHasPatents(false);
 		String transactionID = "";
 		ERequestStatus ers = null;
-		SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
 		
 		try {
 			transactionID = ssp.substructureSearch(sso, cso, token);
@@ -144,29 +285,128 @@ public class SubstructureSearch implements Runnable {
 		}
 		
 		if(ers.equals(ERequestStatus.ResultReady)) {
+			int[] CSIDs = null;
 			System.out.println("woohoo");
 			try {
-				int[] CSIDs = ssp.getAsyncSearchResult(transactionID, token);
-				chemspiderInfo = chemSpiderProxy.getExtendedCompoundInfoArray(CSIDs, token);
-				System.out.println("# matches -> " + chemspiderInfo.length);
-				for (int i = 0; i < chemspiderInfo.length; i++) {
-					//System.out.println(chemspiderInfo[i].getCSID() + "\t" + chemspiderInfo[i].getSMILES());
-					IAtomContainer ac = null;
-					boolean used = false;
-					try {
-						ac = sp.parseSmiles(chemspiderInfo[i].getSMILES());
-						used = true;
-					}
-					catch(InvalidSmilesException ise) {
-						System.err.println("skipping " + chemspiderInfo[i].getCSID());
-					}
-					
-					candidates.add(new ResultSubstructure(chemspiderInfo[i], ac, used));
-				}
-			} catch (RemoteException e) {
-				System.err.println("Error retrieving information and parsing results.");
-				return candidates;
+				CSIDs = ssp.getAsyncSearchResult(transactionID, token); 
 			}
+			catch (RemoteException e) {
+				System.err.println("Error retrieving information and parsing results.");
+				
+				String resultURL = "http://www.chemspider.com/Search.asmx/GetAsyncSearchResult?rid=%s&token=%s";
+				String format = String.format(resultURL, transactionID, token);
+				try {
+					URL u = new URL(format);
+					URLConnection con = u.openConnection();
+					InputStream is = con.getInputStream();
+					String ids = IOUtils.toString(is);
+					is.close();
+					
+					Document doc = Jsoup.parse(ids);
+					Elements elem = doc.getElementsByTag("int");
+					CSIDs = new int[elem.size()];
+					for (int i = 0; i < CSIDs.length; i++) {
+						CSIDs[i] = Integer.parseInt(elem.get(i).text().trim());
+					}
+				} catch (MalformedURLException e1) {
+					System.err.println("Wrong URL for retrieving results!\n" + format);
+				} catch (IOException e1) {
+					System.err.println("Error parsing results!");
+				}
+			}
+				
+			if(CSIDs == null || CSIDs.length == 0)
+				return candidates;
+			
+			System.out.println("#CSIDs -> " + CSIDs.length);
+			int arrLength = CSIDs.length;
+			int splitLength = 1000;
+//				if(CSIDs.length > splitLength)
+//					CSIDs = Arrays.copyOf(CSIDs, splitLength);
+			int[] temp = new int[1];
+			int numSplits = arrLength / splitLength;
+			int remaining = arrLength % splitLength;
+			if(numSplits == 0) {
+				try {
+					chemspiderInfo = chemSpiderProxy.getExtendedCompoundInfoArray(CSIDs, token);
+				} catch (RemoteException e) {
+					System.err.println("Error retrieving information and parsing results.");
+					return candidates;
+				}
+			}
+			else {
+				int pos = 0;
+				int current = 0;
+				List<ExtendedCompoundInfo> eci = new ArrayList<ExtendedCompoundInfo>();
+				for (int i = 0; i < numSplits; i++) {
+					System.out.println("split [" + i + "] from " + numSplits);
+					temp = Arrays.copyOfRange(CSIDs, pos, pos+splitLength);
+					ExtendedCompoundInfo[] part;
+					try {
+						part = chemSpiderProxy.getExtendedCompoundInfoArray(temp, token);
+					} catch (RemoteException e1) {
+						System.err.println("Error retrieving information and parsing results for split [" + i + "].");
+						pos = pos+splitLength;
+						continue;
+					}
+					for (int j = 0; j < part.length; j++) {
+						eci.add(part[j]);
+						//chemspiderInfo[current] = part[j];
+						current++;
+					}
+					pos = pos+splitLength;
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+						System.err.println("Error while thread sleep!");
+					}
+				}
+				// add remaining stuff
+				if(remaining > 0) {
+					temp = Arrays.copyOfRange(CSIDs, pos, pos+remaining);
+					ExtendedCompoundInfo[] part;
+					try {
+						part = chemSpiderProxy.getExtendedCompoundInfoArray(temp, token);
+					} catch (RemoteException e) {
+						System.err.println("Error retrieving information and parsing results.");
+						return candidates;
+					}
+					for (int j = 0; j < part.length; j++) {
+						eci.add(part[j]);
+						//chemspiderInfo[current] = part[j];
+						current++;
+					}
+				}
+				
+				// copy list into array
+				chemspiderInfo = new ExtendedCompoundInfo[eci.size()];
+				for (int i = 0; i < chemspiderInfo.length; i++) {
+					chemspiderInfo[i] = eci.get(i);
+				}
+			}
+			
+//			chemspiderInfo = chemSpiderProxy.getExtendedCompoundInfoArray(CSIDs, token);
+//			chemspiderInfo = new ExtendedCompoundInfo[CSIDs.length];
+//			for (int i = 0; i < chemspiderInfo.length; i++) {
+//				chemspiderInfo[i] = chemSpiderProxy.getExtendedCompoundInfo(CSIDs[i], token);
+//			}
+			System.out.println("# matches -> " + chemspiderInfo.length);
+			for (int i = 0; i < chemspiderInfo.length; i++) {
+				System.out.println(chemspiderInfo[i].getCSID() + "\t" + chemspiderInfo[i].getSMILES());
+				IAtomContainer ac = null;
+				boolean used = false;
+				try {
+					ac = sp.parseSmiles(chemspiderInfo[i].getSMILES());
+					used = true;
+				}
+				catch(InvalidSmilesException ise) {
+					ac = null;
+					System.err.println("skipping " + chemspiderInfo[i].getCSID());
+				}
+				
+				candidates.add(new ResultSubstructure(chemspiderInfo[i], ac, used));
+			}
+			
 		}
 		
 		return candidates;
@@ -216,12 +456,41 @@ public class SubstructureSearch implements Runnable {
 		IMolecularFormula filter = MolecularFormulaManipulator.getMolecularFormula(molecularFormula, DefaultChemObjectBuilder.getInstance());
 		List<ResultSubstructure> remaining = new ArrayList<ResultSubstructure>();
 		for (ResultSubstructure rs : candidates) {
-			IMolecularFormula toCheck = MolecularFormulaManipulator.getMolecularFormula(rs.getContainer());
-			if(MolecularFormulaManipulator.compare(filter, toCheck))
+			IAtomContainer ac = rs.getContainer();
+			try {
+				AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(ac);
+//				CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(ac.getBuilder());
+//		        hAdder.addImplicitHydrogens(ac);
+//		        AtomContainerManipulator.convertImplicitToExplicitHydrogens(ac);
+			} catch (CDKException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			IMolecularFormula toCheck = MolecularFormulaManipulator.getMolecularFormula(ac);
+//			if(MolecularFormulaManipulator.compare(filter, toCheck))
+//				remaining.add(rs);
+//			else {
+//				System.out.println("Filter formula [" + molecularFormula + "] does not match candidate formula [" + 
+//						MolecularFormulaManipulator.getHillString(toCheck) + "].");
+//			}
+			
+			String csFormula = rs.getInfo().getMF();
+			if(csFormula == null)
+				csFormula = "";
+			
+			csFormula = csFormula.replaceAll("[_{}]+", "");
+			
+			//if(MolecularFormulaManipulator.getHillString(filter).equals(MolecularFormulaManipulator.getHillString(toCheck))) {
+			//if(molecularFormula.trim().equals(rs.getInfo().getMF().trim())) {
+			if(molecularFormula.trim().compareTo(csFormula) == 0) { 
 				remaining.add(rs);
+//				System.out.println("[" + rs.getId() + "] -> filter formula [" + molecularFormula + "] does match candidate formula [" + 
+//						MolecularFormulaManipulator.getHillString(toCheck) + "].");
+			}
 			else {
-				System.out.println("Filter formula [" + molecularFormula + "] does not match candidate formula [" + 
-						MolecularFormulaManipulator.getHillString(toCheck) + "].");
+//				System.err.println(rs.getId() + " formula " + MolecularFormulaManipulator.getHillString(toCheck) +
+//						" does not match " + MolecularFormulaManipulator.getHillString(filter));
+				System.err.println(molecularFormula + " does not match " + csFormula);
 			}
 			// alternative: mit elements und getAtomCount/getElementCount prüfen ob alle Elemente in filter
 			// <= Elemente in toCheck sind
@@ -259,15 +528,21 @@ public class SubstructureSearch implements Runnable {
 		System.out.println("resultsRemaining -> " + resultsRemaining.size());
 		// use remaining candidates as intermediate entry to MetFrag?
 		// or create SDF and invoke MetFrag SDF fragmentation?
+		/**
+		 * TODO: ChemSpider IDs als Input für MetFrag, danach regulär MetFusionBatchMode
+		 */
 	}
 	
 	public static void main(String[] args) {
 		String token = "eeca1d0f-4c03-4d81-aa96-328cdccf171a";
+		//String token = "a1004d0f-9d37-47e0-acdd-35e58e34f603";
 		//test();
-		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/192m0757a_MSMS.mf");
-		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/164m0445a_MSMS.mf");
+		
+		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/136m0498_MSMS.mf");
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/148m0859_MSMS.mf");
-		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/136m0498_MSMS.mf");
+		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/164m0445a_MSMS.mf");
+		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/192m0757a_MSMS.mf");
+		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/naringenin.mf");
 		
 		MetFusionBatchFileHandler mbf = new MetFusionBatchFileHandler(file);
 		try {
@@ -288,8 +563,26 @@ public class SubstructureSearch implements Runnable {
 		}
 		String formula = settings.getMfFormula();
 		System.out.println("formula -> " + formula);
+		
 		SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula);
 		ss.run();
+		List<ResultSubstructure> remaining = ss.getResultsRemaining();
+		StringBuilder sb = new StringBuilder();
+		String sep = ",";
+		for (ResultSubstructure rs : remaining) {
+			sb.append(rs.getId()).append(sep);
+		}
+		String ids = sb.toString();
+		if(!ids.isEmpty()) {
+			ids = ids.substring(0, ids.length()-1);
+			System.out.println("ids -> " + ids);
+			settings.setMfDatabaseIDs(ids);
+			String filename = file.getName();
+			String prefix = filename.substring(0, filename.lastIndexOf("."));
+			filename = filename.replace(prefix, prefix + "_ids");
+			File output = new File(file.getParent(), filename);
+			mbf.writeFile(output, settings);
+		}
 	}
 	
 	public static void test() {
