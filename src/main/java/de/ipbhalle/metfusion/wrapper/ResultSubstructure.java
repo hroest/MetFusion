@@ -31,6 +31,7 @@ public class ResultSubstructure extends Result {
 	
 	
 	public ResultSubstructure(ExtendedCompoundInfo info, IAtomContainer container, boolean used) {
+		super("SubstructureSearch", String.valueOf(info.getCSID()), info.getCommonName(), 1.0d);
 		this.info = info;
 		this.container = container;
 		this.used = used;
