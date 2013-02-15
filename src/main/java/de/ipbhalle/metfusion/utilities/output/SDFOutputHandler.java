@@ -13,9 +13,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.openscience.cdk.Molecule;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.io.SDFWriter;
+import org.openscience.cdk.layout.StructureDiagramGenerator;
 
 import de.ipbhalle.metfusion.web.controller.ResultExtGroupBean;
 import de.ipbhalle.metfusion.wrapper.Result;
@@ -103,17 +106,29 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		}
 		
 		SDFWriter sdfwriter = new SDFWriter(os);
+		StructureDiagramGenerator sdg = new StructureDiagramGenerator();
 		for (ResultExt result : results) {
 			IAtomContainer container = result.getMol();
 			Map<Object, Object> props = fetchProperties(result);
-			container.setProperties(props);
-			container.setID((String) props.get(properties.name));
-			//container.setProperty("cdk:Title", (String) props.get(properties.name));
-			
-			try {
-				sdfwriter.write(container);
-			} catch (CDKException e) {
-				System.err.println("Error writing container for molecule [" + result.getId() + "]");
+			IMolecule temp = new Molecule(container);
+			sdg.setMolecule(temp);
+			IMolecule layedOutMol = null;
+			// try to generate 2D coordinates
+		    try {
+				sdg.generateCoordinates();
+				layedOutMol = sdg.getMolecule();
+				layedOutMol.setProperties(props);
+				layedOutMol.setID((String) props.get(properties.name));
+				sdfwriter.write(layedOutMol);
+			} catch (CDKException e) {		// else use AtomContainer without 2D information
+				System.err.println("Error generating 2D coordinates for molecule [" + result.getId() + "], trying container without 2D coordinates!");
+				try {
+					container.setProperties(props);
+					container.setID((String) props.get(properties.name));
+					sdfwriter.write(container);
+				} catch (CDKException e1) {
+					System.err.println("Error writing container for molecule [" + result.getId() + "]");
+				}
 			}
 		}
 		
@@ -130,6 +145,9 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 	
 	public boolean writeOriginalResults(List<Result> results) {
 		boolean success = Boolean.FALSE;
+		if(results == null || results.isEmpty())
+			return true;
+		
 		OutputStream os = null;
 		try {
 			os = new FileOutputStream(new File(filename), append);
@@ -139,19 +157,29 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		}
 		
 		SDFWriter sdfwriter = new SDFWriter(os);
+		StructureDiagramGenerator sdg = new StructureDiagramGenerator();
 		for (Result result : results) {
 			IAtomContainer container = result.getMol();
-			if(container == null)
-				continue;
-			
 			Map<Object, Object> props = fetchProperties(result);
-			container.setProperties(props);
-			container.setID((String) props.get(properties.name));
-			
-			try {
-				sdfwriter.write(container);
-			} catch (CDKException e) {
-				System.err.println("Error writing container for molecule [" + result.getId() + "]");
+			IMolecule temp = new Molecule(container);
+			sdg.setMolecule(temp);
+			IMolecule layedOutMol = null;
+			// try to generate 2D coordinates
+		    try {
+				sdg.generateCoordinates();
+				layedOutMol = sdg.getMolecule();
+				layedOutMol.setProperties(props);
+				layedOutMol.setID((String) props.get(properties.name));
+				sdfwriter.write(layedOutMol);
+			} catch (CDKException e) {		// else use AtomContainer without 2D information
+				System.err.println("Error generating 2D coordinates for molecule [" + result.getId() + "], trying container without 2D coordinates!");
+				try {
+					container.setProperties(props);
+					container.setID((String) props.get(properties.name));
+					sdfwriter.write(container);
+				} catch (CDKException e1) {
+					System.err.println("Error writing container for molecule [" + result.getId() + "]");
+				}
 			}
 		}
 		
@@ -178,17 +206,29 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		}
 		
 		SDFWriter sdfwriter = new SDFWriter(os);
+		StructureDiagramGenerator sdg = new StructureDiagramGenerator();
 		for (ResultExt result : results) {
 			IAtomContainer container = result.getMol();
 			Map<Object, Object> props = fetchProperties(result);
-			container.setProperties(props);
-			container.setID((String) props.get(properties.name));
-			//container.setProperty("cdk:Title", (String) props.get(properties.name));
-			
-			try {
-				sdfwriter.write(container);
-			} catch (CDKException e) {
-				System.err.println("Error writing container for molecule [" + result.getId() + "]");
+			IMolecule temp = new Molecule(container);
+			sdg.setMolecule(temp);
+			IMolecule layedOutMol = null;
+			// try to generate 2D coordinates
+		    try {
+				sdg.generateCoordinates();
+				layedOutMol = sdg.getMolecule();
+				layedOutMol.setProperties(props);
+				layedOutMol.setID((String) props.get(properties.name));
+				sdfwriter.write(layedOutMol);
+			} catch (CDKException e) {		// else use AtomContainer without 2D information
+				System.err.println("Error generating 2D coordinates for molecule [" + result.getId() + "], trying container without 2D coordinates!");
+				try {
+					container.setProperties(props);
+					container.setID((String) props.get(properties.name));
+					sdfwriter.write(container);
+				} catch (CDKException e1) {
+					System.err.println("Error writing container for molecule [" + result.getId() + "]");
+				}
 			}
 		}
 		
@@ -216,15 +256,27 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		}
 		
 		SDFWriter sdfwriter = new SDFWriter(os);
-		
+		StructureDiagramGenerator sdg = new StructureDiagramGenerator();
 		// TODO write all results
 		for (ResultExt result : newlyRanked) {
 			IAtomContainer container = result.getMol();
 			Map<Object, Object> props = fetchProperties(result);
-			container.setProperties(props);
+			IMolecule temp = new Molecule(container);
+			sdg.setMolecule(temp);
+		    try {
+				sdg.generateCoordinates();
+			} catch (CDKException e1) {
+				System.err.println("Error generating 2D coordinates for molecule [" + result.getId() + "]");
+				continue;
+			}
+		    IMolecule layedOutMol = sdg.getMolecule();
+//			container.setProperties(props);
+//			container.setID((String) props.get(properties.name));
+		    layedOutMol.setProperties(props);
+		    layedOutMol.setID((String) props.get(properties.name));
 			
 			try {
-				sdfwriter.write(container);
+				sdfwriter.write(layedOutMol);
 			} catch (CDKException e) {
 				System.err.println("Error writing container for molecule [" + result.getId() + "]");
 			}
