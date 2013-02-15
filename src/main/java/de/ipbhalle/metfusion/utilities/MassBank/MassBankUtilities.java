@@ -1086,9 +1086,6 @@ public class MassBankUtilities {
 			container = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
 			// hydrogen handling
 			container = hydrogenHandling(container);
-		} catch (NumberFormatException e) {
-			System.err.println("NumberFormatException occured while parsing mol file");
-			return null;
 		} catch (CDKException e) {
 			System.err.println("CDKException occured!");
 			return null;
@@ -1133,9 +1130,6 @@ public class MassBankUtilities {
 				
 			// hydrogen handling
 			container = hydrogenHandling(container);
-		} catch (java.lang.NumberFormatException e) {
-			System.err.println("NumberFormatException occured while parsing mol file - " + f.getAbsolutePath());
-			//f.delete();	// delete erroneous file if possible
 		} catch (CDKException e) {
 			System.err.println("CDKException occured for mol file - " + f.getAbsolutePath());
 			//f.delete();	// delete erroneous file if possible
@@ -1180,17 +1174,12 @@ public class MassBankUtilities {
 		IAtomContainer container = null;
 		try {			
 			chemFile = (IChemFile) reader.read(chemFile);
-			List<IAtomContainer> containers = ChemFileManipulator
-					.getAllAtomContainers(chemFile);
+			List<IAtomContainer> containers = ChemFileManipulator.getAllAtomContainers(chemFile);
 			if (containers != null && containers.size() > 0)
 				container = ChemFileManipulator.getAllAtomContainers(chemFile).get(0);
 
 			// hydrogen handling
-			container = hydrogenHandling(container);
-		} catch (java.lang.NumberFormatException e) {
-			System.err.println("NumberFormatException occured while parsing mol file - " + f);
-			//f.delete();	// delete erroneous file if possible
-			return null;
+			//container = hydrogenHandling(container);
 		} catch (CDKException e) {
 			System.err.println("CDKException occured for mol file - " + f);
 			//f.delete();	// delete erroneous file if possible
