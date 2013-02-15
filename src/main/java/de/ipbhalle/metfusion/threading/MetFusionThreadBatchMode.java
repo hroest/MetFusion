@@ -473,7 +473,39 @@ public class MetFusionThreadBatchMode implements Runnable {
 		System.out.println("Finished clustering");
 		
 		// write output files
-        if(this.format.equals(OutputFormats.SDF)) {
+		if(this.format.equals(OutputFormats.SDF_XLS)) {
+			// write SDF
+			SDFOutputHandler sdfhandler = new SDFOutputHandler(tempPath + prefix + ".sdf", Boolean.FALSE);
+        	sdfhandler.writeClusterResults(clusters);
+        	
+        	// and XLS
+        	ColoredMatrixGeneratorThread cmT = new ColoredMatrixGeneratorThread(sim);
+        	ColoredMatrixGeneratorThread cmtAfter = new ColoredMatrixGeneratorThread(after);
+        	cmT.run();
+    		cmtAfter.run();
+        	while(!cmT.isDone() && !cmtAfter.isDone()) {
+    			try {
+    				wait();
+    			} catch (InterruptedException e) {
+    				e.printStackTrace();
+    			}
+    		}
+        	metfusion.setColorMatrix(cmT.getCcm());
+        	metfusion.setColorMatrixAfter(cmtAfter.getCcm());
+        	
+	        XLSOutputHandler xlsHandler = new XLSOutputHandler(tempPath + prefix + ".xls");
+	        xlsHandler.writeAllResults(listMetFrag, listMassBank, resultingOrder, null);
+	        xlsHandler.writeOriginalMatrix(cmT.getCcm(), "Original Matrix");
+	        xlsHandler.writeModifiedMatrix(cmtAfter.getCcm(), "Reranked Matrix");
+	        try {
+				xlsHandler.finishWorkbook();
+			} catch (WriteException e2) {
+				System.err.println("Could not write xls file [" + tempPath + prefix + ".xls]");
+			} catch (IOException e2) {
+				System.err.println("Could not write xls file [" + tempPath + prefix + ".xls]");
+			}
+		}
+		else if(this.format.equals(OutputFormats.SDF)) {
         	SDFOutputHandler sdfhandler = new SDFOutputHandler(tempPath + prefix + ".sdf", Boolean.FALSE);
     		//sdfhandler.writeRerankedResults(resultingOrder);
         	sdfhandler.writeClusterResults(clusters);

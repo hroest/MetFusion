@@ -5,5 +5,5 @@
 package de.ipbhalle.enumerations;
 
 public enum OutputFormats {
-	SDF, XLS, CSV, ODF
+	SDF, XLS, CSV, ODF, SDF_XLS
 }
