@@ -225,8 +225,8 @@ public class MetFragBatchMode implements Runnable {
 	private String sessionPath;
 	private String sessionID = "";
 	private ArrayList<SelectItem> adductList;
-	private double selectedAdduct;
-	private double parentIon;
+	private double selectedAdduct = Double.NaN;
+	private double parentIon = Double.NaN;
 	
 	private String fileSep = System.getProperty("file.separator");
 	
@@ -324,6 +324,11 @@ public class MetFragBatchMode implements Runnable {
 		}
 	}
 	
+	private void calculateExactMass() {
+		if(getParentIon() != Double.NaN && getSelectedAdduct() != Double.NaN)
+			exactMass = getSelectedAdduct() + getParentIon();
+	}
+	
 	/**
 	 * @param args
 	 */
@@ -363,6 +368,7 @@ public class MetFragBatchMode implements Runnable {
 	@Override
 	public void run() {
 		this.setDone(Boolean.FALSE);
+		calculateExactMass();
 		
 		boolean isPositive = true;
 		if(mode == -1)
