@@ -77,7 +77,8 @@ public class MetFusionBatchFileHandler {
 					}
 					else {								// create new list
 						l = new ArrayList<String>();
-						l.add((String) value);
+						if(!((String) value).isEmpty())	// only store item if not empty
+							l.add((String) value);
 					}
 					settings.put(av, l);				// store list
 				}
@@ -177,12 +178,28 @@ public class MetFusionBatchFileHandler {
 				peaksAvailable = Boolean.TRUE;
 				continue;
 			}
-			
-			try {
-				fw.write(formatSetting(param, currentSettings.get(param)));
-			} catch (IOException e) {
-				System.err.println("Error writing batch file [" + output.getAbsolutePath() + "]!");
-				return success;
+			if(param.equals(AvailableParameters.substrucAbsent) | param.equals(AvailableParameters.substrucPresent)) {	// one of the list/multiple items
+				@SuppressWarnings("unchecked")
+				List<String> list = (List<String>) currentSettings.get(param);
+				if(list == null)
+					continue;
+				
+				for (String string : list) {
+					try {
+						fw.write(formatSetting(param, string));
+					} catch (IOException e) {
+						System.err.println("Error writing batch file [" + output.getAbsolutePath() + "]!");
+						return success;
+					}
+				}
+			}
+			else {
+				try {
+					fw.write(formatSetting(param, currentSettings.get(param)));
+				} catch (IOException e) {
+					System.err.println("Error writing batch file [" + output.getAbsolutePath() + "]!");
+					return success;
+				}
 			}
 		}
 		
