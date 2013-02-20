@@ -401,6 +401,7 @@ public class SubstructureSearch implements Runnable {
 				}
 				catch(InvalidSmilesException ise) {
 					ac = null;
+					used = false;
 					System.err.println("skipping " + chemspiderInfo[i].getCSID());
 				}
 				
@@ -441,6 +442,9 @@ public class SubstructureSearch implements Runnable {
 				// else discard container
 			} catch (CDKException e) {
 				System.err.println("error while matching");
+				continue;
+			} catch (NullPointerException e) {
+				System.err.println("[" + rs.getId() + "] -> container is null?");
 				continue;
 			}
 		}
@@ -538,9 +542,9 @@ public class SubstructureSearch implements Runnable {
 		//String token = "a1004d0f-9d37-47e0-acdd-35e58e34f603";
 		//test();
 		
-		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/136m0498_MSMS.mf");
+		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/136m0498_MSMS.mf");
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/148m0859_MSMS.mf");
-		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/164m0445a_MSMS.mf");
+		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/164m0445a_MSMS.mf");
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/192m0757a_MSMS.mf");
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/naringenin.mf");
 		
