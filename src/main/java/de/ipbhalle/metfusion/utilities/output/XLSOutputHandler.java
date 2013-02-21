@@ -5,11 +5,16 @@
 package de.ipbhalle.metfusion.utilities.output;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPOutputStream;
 
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -55,7 +60,8 @@ public class XLSOutputHandler implements IOutputHandler {
 	WritableCellFormat arial10matrix = new WritableCellFormat(arial10font);
 	
 	private final String DEFAULT_ENDING = ".xls";
-
+	private final String GZIP_ENDING = ".gz";
+	
 	private static final String METFUSION = "MetFusion";
 	private String databaseName = "MassBank";	// default database name is MassBank
 	private String fragmenterName =  "MetFrag";	// default fragmener name is MetFrag
@@ -109,9 +115,26 @@ public class XLSOutputHandler implements IOutputHandler {
 		return workbook;
 	}
 	
-	public void finishWorkbook() throws IOException, WriteException {
+	public void finishWorkbook(boolean compress) throws IOException, WriteException {
 		workbook.write();
 		workbook.close();
+		
+		if(compress) {
+			InputStream is = new FileInputStream(filename);
+			OutputStream os = new GZIPOutputStream(new FileOutputStream(filename + GZIP_ENDING));
+			
+			byte[] buffer = new byte[ 8192 ]; 
+			 
+		    for ( int length; (length = is.read(buffer)) != -1; ) 
+		        os.write( buffer, 0, length ); 
+		    
+		    os.close();
+		    is.close();
+		    
+		    File toDelete = new File(filename);
+		    if(!toDelete.delete())
+		    	System.err.println("Error deleting file [" + filename + "]. It remains both compressed and uncompressed!");
+		}
 	}
 	
 	private void createLabel(WritableSheet sheet) throws WriteException {

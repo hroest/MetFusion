@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPOutputStream;
 
 import org.openscience.cdk.Molecule;
 import org.openscience.cdk.exception.CDKException;
@@ -30,7 +31,8 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 	private boolean append;
 	
 	private final String DEFAULT_ENDING = ".sdf";
-
+	private final String GZIP_ENDING = ".gz";
+	
 	/**
 	 * Default constructor, uses filename and does not append to this file.
 	 * 
@@ -95,13 +97,18 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		return props;
 	}
 	
-	public boolean writeClusterResults(List<ResultExt> results) {
+	public boolean writeClusterResults(List<ResultExt> results, boolean compress) {
 		boolean success = Boolean.FALSE;
 		OutputStream os = null;
 		try {
-			os = new FileOutputStream(new File(filename), append);
+			if(!compress)
+				os = new FileOutputStream(new File(filename), append);
+			else os = new GZIPOutputStream(new FileOutputStream(new File(filename + GZIP_ENDING), append));
 		} catch (FileNotFoundException e) {
 			System.err.println("Could not find file [" + filename + "]!");
+			return success;
+		} catch (IOException e) {
+			System.err.println("Error creating GZIP output stream for file [" + filename + "]!");
 			return success;
 		}
 		
@@ -134,6 +141,7 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		
 		try {
 			sdfwriter.close();
+			os.close();
 		} catch (IOException e) {
 			System.err.println("Could not close connection to file [" + filename + "]!");
 			return success;
@@ -143,16 +151,21 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		return success;
 	}
 	
-	public boolean writeOriginalResults(List<Result> results) {
+	public boolean writeOriginalResults(List<Result> results, boolean compress) {
 		boolean success = Boolean.FALSE;
 		if(results == null || results.isEmpty())
 			return true;
 		
 		OutputStream os = null;
 		try {
-			os = new FileOutputStream(new File(filename), append);
+			if(!compress)
+				os = new FileOutputStream(new File(filename), append);
+			else os = new GZIPOutputStream(new FileOutputStream(new File(filename + GZIP_ENDING), append));
 		} catch (FileNotFoundException e) {
 			System.err.println("Could not find file [" + filename + "]!");
+			return success;
+		} catch (IOException e) {
+			System.err.println("Error creating GZIP output stream for file [" + filename + "]!");
 			return success;
 		}
 		
@@ -185,6 +198,7 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		
 		try {
 			sdfwriter.close();
+			os.close();
 		} catch (IOException e) {
 			System.err.println("Could not close connection to file [" + filename + "]!");
 			return success;
@@ -234,6 +248,7 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		
 		try {
 			sdfwriter.close();
+			os.close();
 		} catch (IOException e) {
 			System.err.println("Could not close connection to file [" + filename + "]!");
 			return success;
@@ -284,6 +299,7 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		
 		try {
 			sdfwriter.close();
+			os.close();
 		} catch (IOException e) {
 			System.err.println("Could not close connection to file [" + filename + "]!");
 			return success;
