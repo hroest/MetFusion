@@ -30,10 +30,10 @@ public class MetFusionBatchMode {
 
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
-	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, fp, fragOffline, db, chnops};
+	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, fp, fragOffline, db, chnops, compress, verbose};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
 	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, 
-		checkUNIQUE, checkFP, checkFRAGOFFLINE, checkDB, checkCHNOPS;
+		checkUNIQUE, checkFP, checkFRAGOFFLINE, checkDB, checkCHNOPS, checkCOMPRESS, checkVERBOSE;
 	private Map<ARGUMENTS, String> settings;
 	private final static String DEFAULT_SERVER = "http://www.massbank.jp/";
 	
@@ -98,6 +98,8 @@ public class MetFusionBatchMode {
 			System.out.println("optionally: -cache /path/to/cache");
 			System.out.println("optionally: -unique\t\t(filter out duplicates)");
 			System.out.println("optionally: -fragOffline\t\t(generate fragments in files rather than in memory - recommended for large datasets)");
+			System.out.println("optionally: -compress\t\t(compress resulting SDF or XLS file)");
+			System.out.println("optionally: -verbose\t\t(create additional output files for intermediate results)");
 			System.out.print("optionally: -fp ");
 			for (Fingerprints fp : fps) {
 				System.out.print("[" + fp + "] ");
@@ -159,6 +161,14 @@ public class MetFusionBatchMode {
 					this.checkDB = Boolean.TRUE;
 				if(temp.equals(ARGUMENTS.chnops.toString())) {
 					this.checkCHNOPS = Boolean.TRUE;	// chnops does not have an additional property, mark as set/unset and continue
+					continue;
+				}
+				if(temp.equals(ARGUMENTS.compress.toString())) {
+					this.checkCOMPRESS = Boolean.TRUE;	// compress does not have an additional property, mark as set/unset and continue
+					continue;
+				}
+				if(temp.equals(ARGUMENTS.verbose.toString())) {
+					this.checkVERBOSE = Boolean.TRUE;	// verbose does not have an additional property, mark as set/unset and continue
 					continue;
 				}
 				
@@ -349,6 +359,11 @@ public class MetFusionBatchMode {
 		if(fp.equals(Fingerprints.ECFP) | fp.equals(Fingerprints.FCFP)) {	// use ChemAxon fingerprints if desired
 			metfusionBatch.setUseECFP(Boolean.TRUE);
 		}
+		if(mfbm.checkCOMPRESS)		// enable compression if specified
+			metfusionBatch.setCompress(Boolean.TRUE);
+		if(mfbm.checkVERBOSE)		// enable verbosity if specified
+			metfusionBatch.setVerbose(Boolean.TRUE);
+		
 		metfusionBatch.run();
 	}
 

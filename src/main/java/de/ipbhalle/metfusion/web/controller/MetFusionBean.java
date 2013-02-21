@@ -577,7 +577,7 @@ public class MetFusionBean implements Serializable {
 		String completeName = path + resourceName;
     	
 		SDFOutputHandler sdfHandler = new SDFOutputHandler(completeName);
-		sdfHandler.writeOriginalResults(list);
+		sdfHandler.writeOriginalResults(list, false);	// default to uncompressed file
 		
 		// create SDFResource
     	SDFResource resource = new SDFResource(ec, resourceName, folder);
@@ -666,7 +666,7 @@ public class MetFusionBean implements Serializable {
         xlsHandler.writeSettings(fetchSettings());
         
         try {
-			xlsHandler.finishWorkbook();
+			xlsHandler.finishWorkbook(false);	// default to uncompressed file
 			
 			// create XLSResource
 	    	XLSResource xls = new XLSResource(ec, resourceName, folder);

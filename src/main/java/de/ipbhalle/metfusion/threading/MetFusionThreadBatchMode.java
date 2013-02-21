@@ -54,6 +54,13 @@ public class MetFusionThreadBatchMode implements Runnable {
 	/** indicator for using ChemAxon fingerprints instead of CDK ones */
 	private boolean useECFP = Boolean.FALSE;
 	
+	/** indicator for compression */
+	private boolean compress = Boolean.FALSE;
+	
+	/** indicator for verbosity */
+	private boolean verbose = Boolean.FALSE;
+	
+	
 	/**
 	 * 
 	 * @param app the MetFusionBatchMode instance
@@ -127,7 +134,8 @@ public class MetFusionThreadBatchMode implements Runnable {
 		 */
 		
 		// both result lists are empty
-		if((massbank.getResults() == null || massbank.getResults().size() == 0) && (metfrag.getResults() == null || metfrag.getResults().size() == 0)) {
+		if((massbank.getResults() == null || massbank.getResults().size() == 0) && 
+				(metfrag.getResults() == null || metfrag.getResults().size() == 0)) {
 			System.err.println("No results at all, both MassBank and MetFrag returned no results or had errors!");
 			return;
 		}
@@ -141,24 +149,28 @@ public class MetFusionThreadBatchMode implements Runnable {
     		setActive(Boolean.FALSE);
     		
     		// write out MetFrag results
-    		File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
     		List<Result> listMetFrag = metfrag.getResults();
+    		if(isVerbose() && listMetFrag.size() > 0) {
+    			File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
+        		try {
+        			FileWriter fw = new FileWriter(incomplete);    			
+        			fw.write("## MetFrag\n");
+        			for (int i = 0; i < listMetFrag.size(); i++) {
+        				Result result = listMetFrag.get(i);
+        				fw.write(formatResultOutput(result, false));
+        			}
+        			fw.flush();
+        			fw.close();
+        		} catch (IOException e1) {
+        			System.err.println("Error writing original results in [" + incomplete.getAbsolutePath() + "]!");
+        		}
+    		}
     		
-    		File incompleteSDF = new File(tempPath, addPrefixToFile("metfrag.sdf"));
-    		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
-    		sdfHandler.writeOriginalResults(listMetFrag);
-    		
-    		try {
-    			FileWriter fw = new FileWriter(incomplete);    			
-    			fw.write("## MetFrag\n");
-    			for (int i = 0; i < listMetFrag.size(); i++) {
-    				Result result = listMetFrag.get(i);
-    				fw.write(formatResultOutput(result, false));
-    			}
-    			fw.flush();
-    			fw.close();
-    		} catch (IOException e1) {
-    			System.err.println("Error writing original results in [" + incomplete.getAbsolutePath() + "]!");
+    		// write original MetFrag result SDF only if verbose
+    		if(isVerbose() && listMetFrag.size() > 0) {
+    			File incompleteSDF = new File(tempPath, addPrefixToFile("metfrag.sdf"));
+        		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
+        		sdfHandler.writeOriginalResults(listMetFrag, isCompress());
     		}
     		
             return;
@@ -178,24 +190,28 @@ public class MetFusionThreadBatchMode implements Runnable {
     		setActive(Boolean.FALSE);
     		
     		// write out MetFrag results
-    		File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
     		List<Result> listMetFrag = metfrag.getResults();
+    		if(isVerbose() && listMetFrag.size() > 0) {
+    			File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
+        		try {
+        			FileWriter fw = new FileWriter(incomplete);    			
+        			fw.write("## MetFrag\n");
+        			for (int i = 0; i < listMetFrag.size(); i++) {
+        				Result result = listMetFrag.get(i);
+        				fw.write(formatResultOutput(result, false));
+        			}
+        			fw.flush();
+        			fw.close();
+        		} catch (IOException e1) {
+        			System.err.println("Error writing original results in [" + incomplete.getAbsolutePath() + "]!");
+        		}
+    		}
     		
-    		File incompleteSDF = new File(tempPath, addPrefixToFile("metfrag.sdf"));
-    		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
-    		sdfHandler.writeOriginalResults(listMetFrag);
-    		
-    		try {
-    			FileWriter fw = new FileWriter(incomplete);    			
-    			fw.write("## MetFrag\n");
-    			for (int i = 0; i < listMetFrag.size(); i++) {
-    				Result result = listMetFrag.get(i);
-    				fw.write(formatResultOutput(result, false));
-    			}
-    			fw.flush();
-    			fw.close();
-    		} catch (IOException e1) {
-    			System.err.println("Error writing original results in [" + incomplete.getAbsolutePath() + "]!");
+    		// write original MetFrag result SDF only if verbose
+    		if(isVerbose() && listMetFrag.size() > 0) {
+    			File incompleteSDF = new File(tempPath, addPrefixToFile("metfrag.sdf"));
+        		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
+        		sdfHandler.writeOriginalResults(listMetFrag, isCompress());
     		}
     		
             return;
@@ -212,24 +228,28 @@ public class MetFusionThreadBatchMode implements Runnable {
     		setActive(Boolean.FALSE);
     		
     		// write out MassBank results
-    		File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
     		List<Result> listMassBank = massbank.getResults();
+    		if(isVerbose() && listMassBank.size() > 0) {
+    			File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
+        		try {
+        			FileWriter fw = new FileWriter(incomplete);    			
+        			fw.write("## MassBank\n");
+        			for (int i = 0; i < listMassBank.size(); i++) {
+        				Result result = listMassBank.get(i);
+        				fw.write(formatResultOutput(result, false));
+        			}
+        			fw.flush();
+        			fw.close();
+        		} catch (IOException e1) {
+        			System.err.println("Error writing original results in [" + incomplete.getAbsolutePath() + "]!");
+        		}
+    		}
     		
-    		File incompleteSDF = new File(tempPath, addPrefixToFile("massbank.sdf"));
-    		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
-    		sdfHandler.writeOriginalResults(listMassBank);
-    		
-    		try {
-    			FileWriter fw = new FileWriter(incomplete);    			
-    			fw.write("## MassBank\n");
-    			for (int i = 0; i < listMassBank.size(); i++) {
-    				Result result = listMassBank.get(i);
-    				fw.write(formatResultOutput(result, false));
-    			}
-    			fw.flush();
-    			fw.close();
-    		} catch (IOException e1) {
-    			System.err.println("Error writing original results in [" + incomplete.getAbsolutePath() + "]!");
+    		// write original MassBank result SDF only if verbose
+    		if(isVerbose() && listMassBank.size() > 0) {
+    			File incompleteSDF = new File(tempPath, addPrefixToFile("massbank.sdf"));
+        		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
+        		sdfHandler.writeOriginalResults(listMassBank, isCompress());
     		}
     		
             return;
@@ -247,24 +267,28 @@ public class MetFusionThreadBatchMode implements Runnable {
     		setActive(Boolean.FALSE);
             
     		// write out MassBank results
-    		File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
     		List<Result> listMassBank = massbank.getResults();
+    		if(isVerbose() && listMassBank.size() > 0) {
+    			File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
+        		try {
+        			FileWriter fw = new FileWriter(incomplete);    			
+        			fw.write("## MassBank\n");
+        			for (int i = 0; i < listMassBank.size(); i++) {
+        				Result result = listMassBank.get(i);
+        				fw.write(formatResultOutput(result, false));
+        			}
+        			fw.flush();
+        			fw.close();
+        		} catch (IOException e1) {
+        			System.err.println("Error writing original results in [" + incomplete.getAbsolutePath() + "]!");
+        		}
+    		}
     		
-    		File incompleteSDF = new File(tempPath, addPrefixToFile("massbank.sdf"));
-    		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
-    		sdfHandler.writeOriginalResults(listMassBank);
-    		
-    		try {
-    			FileWriter fw = new FileWriter(incomplete);    			
-    			fw.write("## MassBank\n");
-    			for (int i = 0; i < listMassBank.size(); i++) {
-    				Result result = listMassBank.get(i);
-    				fw.write(formatResultOutput(result, false));
-    			}
-    			fw.flush();
-    			fw.close();
-    		} catch (IOException e1) {
-    			System.err.println("Error writing original results in [" + incomplete.getAbsolutePath() + "]!");
+    		// write original MassBank result SDF only if verbose
+    		if(isVerbose() && listMassBank.size() > 0) {
+    			File incompleteSDF = new File(tempPath, addPrefixToFile("massbank.sdf"));
+        		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
+        		sdfHandler.writeOriginalResults(listMassBank, isCompress());
     		}
     		
             return;
@@ -274,25 +298,28 @@ public class MetFusionThreadBatchMode implements Runnable {
 		List<Result> listMassBank = massbank.getResults();
 		List<Result> listMetFrag = metfrag.getResults();
 		
-		File unused = new File(tempPath, addPrefixToFile("unused.log"));
-		writeUnused(massbank.getUnused(), unused);
+		/** write unused spectral DB log only if verbose */
+		if(isVerbose()) {
+			File unused = new File(tempPath, addPrefixToFile("unused.log"));
+			writeUnused(massbank.getUnused(), unused);
+		}
 		
-		/** write SDFs out */
-		File massbankSDF = new File(tempPath, addPrefixToFile("massbank.sdf"));
-		SDFOutputHandler sdfHandlerMB = new SDFOutputHandler(massbankSDF.getAbsolutePath());
-		sdfHandlerMB.writeOriginalResults(listMassBank);
+		/** write SDFs out only if verbose */
+		if(isVerbose()) {
+			File massbankSDF = new File(tempPath, addPrefixToFile("massbank.sdf"));
+			SDFOutputHandler sdfHandlerMB = new SDFOutputHandler(massbankSDF.getAbsolutePath());
+			sdfHandlerMB.writeOriginalResults(listMassBank, isCompress());
+			
+			File metfragSDF = new File(tempPath, addPrefixToFile("metfrag.sdf"));
+			SDFOutputHandler sdfHandlerMF = new SDFOutputHandler(metfragSDF.getAbsolutePath());
+			sdfHandlerMF.writeOriginalResults(listMetFrag, isCompress());
+			
+			File unusedSDF = new File(tempPath, addPrefixToFile("unused.sdf"));
+			SDFOutputHandler sdfHandlerU = new SDFOutputHandler(unusedSDF.getAbsolutePath());
+			sdfHandlerU.writeOriginalResults(massbank.getUnused(), isCompress());
+		}
 		
-		File metfragSDF = new File(tempPath, addPrefixToFile("metfrag.sdf"));
-		SDFOutputHandler sdfHandlerMF = new SDFOutputHandler(metfragSDF.getAbsolutePath());
-		sdfHandlerMF.writeOriginalResults(listMetFrag);
-		
-		File unusedSDF = new File(tempPath, addPrefixToFile("unused.sdf"));
-		SDFOutputHandler sdfHandlerU = new SDFOutputHandler(unusedSDF.getAbsolutePath());
-		sdfHandlerU.writeOriginalResults(massbank.getUnused());
-		
-		/**
-		 * TODO: check output
-		 */
+		/** write out original results everytime, despite of verbose or not */
 		File origOut = new File(tempPath, addPrefixToFile("resultsOrig.log"));
 		try {
 			FileWriter fw = new FileWriter(origOut);
@@ -324,6 +351,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 		
 		//TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, listMetFrag, true);	//, 3, 0.5f);
 		TanimotoSimilarity sim = new TanimotoSimilarity(listMassBank, listMetFrag, isUseECFP());
+		/** write original similarity matrix */
 		sim.writeMatrix(sim.getMatrix(), new File(tempPath, addPrefixToFile("sim.mat")));
 
 		String sessionPath = massbank.getSessionPath();
@@ -358,9 +386,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 		}
 //        metfusion.setColorMatrix(cmT.getCcm());
         
-        /**
-		 * TODO: check output
-		 */
+        /** write newly ranked results */
 		File newOut = new File(tempPath, addPrefixToFile("resultsNew.log"));
 		FileWriter fw = null;
 		try {
@@ -391,27 +417,29 @@ public class MetFusionThreadBatchMode implements Runnable {
 		}
 		
 		/**
-		 * write SMILES file for Jan
+		 * write SMILES file if verbose
 		 */
-		File smilesOut = new File(tempPath, addPrefixToFile("smiles.txt"));
-		try {
-			fw = new FileWriter(smilesOut);
-		} catch (IOException e1) {
-			System.err.println("Error writing SMILES in [" + smilesOut.getAbsolutePath() + "]!");
-		}
-		for (int i = 0; i < resultingOrder.size(); i++) {
-			ResultExt r = resultingOrder.get(i);
+		if(isVerbose()) {
+			File smilesOut = new File(tempPath, addPrefixToFile("smiles.txt"));
 			try {
-				fw.write(r.getSmiles() + " " + r.getResultScore() + lineSeparator);
-			} catch (IOException e) {
-				System.err.println("Error writing to file [" + smilesOut.getAbsolutePath() + "]");
+				fw = new FileWriter(smilesOut);
+			} catch (IOException e1) {
+				System.err.println("Error writing SMILES in [" + smilesOut.getAbsolutePath() + "]!");
 			}
-		}
-		try {
-			fw.flush();
-			fw.close();
-		} catch (IOException e1) {
-			System.err.println("Error finalizing file [" + smilesOut.getAbsolutePath() + "]");
+			for (int i = 0; i < resultingOrder.size(); i++) {
+				ResultExt r = resultingOrder.get(i);
+				try {
+					fw.write(r.getSmiles() + " " + r.getResultScore() + lineSeparator);
+				} catch (IOException e) {
+					System.err.println("Error writing to file [" + smilesOut.getAbsolutePath() + "]");
+				}
+			}
+			try {
+				fw.flush();
+				fw.close();
+			} catch (IOException e1) {
+				System.err.println("Error finalizing file [" + smilesOut.getAbsolutePath() + "]");
+			}
 		}
 		/**
 		 * 
@@ -443,9 +471,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 //		List<ResultExt> clusterResultExt = sm.computeScores(resultingOrder);	
 		List<ResultExt> clusters = sm.computeClusterRank(resultingOrder);
 		
-		/**
-		 * TODO check
-		 */
+		/** write cluster results */
 		File clusterOut = new File(tempPath, addPrefixToFile("resultsCluster.log"));
 		try {
 			fw = new FileWriter(clusterOut);
@@ -476,7 +502,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 		if(this.format.equals(OutputFormats.SDF_XLS)) {
 			// write SDF
 			SDFOutputHandler sdfhandler = new SDFOutputHandler(tempPath + prefix + ".sdf", Boolean.FALSE);
-        	sdfhandler.writeClusterResults(clusters);
+        	sdfhandler.writeClusterResults(clusters, isCompress());
         	
         	// and XLS
         	ColoredMatrixGeneratorThread cmT = new ColoredMatrixGeneratorThread(sim);
@@ -498,7 +524,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 	        xlsHandler.writeOriginalMatrix(cmT.getCcm(), "Original Matrix");
 	        xlsHandler.writeModifiedMatrix(cmtAfter.getCcm(), "Reranked Matrix");
 	        try {
-				xlsHandler.finishWorkbook();
+				xlsHandler.finishWorkbook(isCompress());
 			} catch (WriteException e2) {
 				System.err.println("Could not write xls file [" + tempPath + prefix + ".xls]");
 			} catch (IOException e2) {
@@ -508,7 +534,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 		else if(this.format.equals(OutputFormats.SDF)) {
         	SDFOutputHandler sdfhandler = new SDFOutputHandler(tempPath + prefix + ".sdf", Boolean.FALSE);
     		//sdfhandler.writeRerankedResults(resultingOrder);
-        	sdfhandler.writeClusterResults(clusters);
+        	sdfhandler.writeClusterResults(clusters, isCompress());
         }
         else if(this.format.equals(OutputFormats.XLS)) {
         	// run color matrix threads if needed
@@ -531,7 +557,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 	        xlsHandler.writeOriginalMatrix(cmT.getCcm(), "Original Matrix");
 	        xlsHandler.writeModifiedMatrix(cmtAfter.getCcm(), "Reranked Matrix");
 	        try {
-				xlsHandler.finishWorkbook();
+				xlsHandler.finishWorkbook(isCompress());
 			} catch (WriteException e2) {
 				System.err.println("Could not write xls file [" + tempPath + prefix + ".xls]");
 			} catch (IOException e2) {
@@ -610,6 +636,22 @@ public class MetFusionThreadBatchMode implements Runnable {
 
 	public boolean isUseECFP() {
 		return useECFP;
+	}
+
+	public boolean isCompress() {
+		return compress;
+	}
+
+	public void setCompress(boolean compress) {
+		this.compress = compress;
+	}
+
+	public boolean isVerbose() {
+		return verbose;
+	}
+
+	public void setVerbose(boolean verbose) {
+		this.verbose = verbose;
 	}
 
 }
