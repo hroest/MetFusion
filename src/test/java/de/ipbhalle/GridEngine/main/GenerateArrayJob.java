@@ -26,8 +26,9 @@ public class GenerateArrayJob {
 		//File spectraDir = new File("/home/mgerlich/projects/jan_stanstrup/rungroup6/");
 		//File spectraDir = new File("/vol/data_extern/ryona@psc.riken.jp/queries20121003/secmet_QTOF/root_n_secmet_QTOF/");
 		//File spectraDir = new File("/home/mgerlich/projects/MTBLSFarag/profile/mf/");
-		File spectraDir = new File("/home/mgerlich/projects/MTBLSFarag/mf_HHT/");
-		File[] files = spectraDir.listFiles(new FileNameFilterImpl("", "mf"));	// TODO txt oder mf entsprechend switch -mf oder -record!
+		//File spectraDir = new File("/home/mgerlich/projects/MTBLSFarag/mf_HHT/");
+		File spectraDir = new File("/home/mgerlich/projects/lipide/batchfiles/");
+		File[] files = spectraDir.listFiles(new FileNameFilterImpl("", "mb"));	// TODO txt oder mf entsprechend switch -mf oder -record!
 		Arrays.sort(files);
 		
 		// the output directory of the grid engine runs
@@ -44,7 +45,8 @@ public class GenerateArrayJob {
 		//String outputDir = "/home/mgerlich/projects/metfusion_chebi/";
 		//String outputDir = "/home/mgerlich/projects/metfusion_tp/results_dbchemspider_Massbank_w_Eawag/";
 		//String outputDir = "/home/mgerlich/projects/farag_profile/results_03-01-2013/";
-		String outputDir = "/home/mgerlich/projects/MTBLSFarag/results_mf_HHT/";
+		//String outputDir = "/home/mgerlich/projects/MTBLSFarag/results_mf_HHT/";
+		String outputDir = "/vol/data_extern/michael.witting@helmholtz-muenchen.de/metfusion_results/";
 		
 		// the directory in which the jar file is located
 		String projectDir = "/home/mgerlich/projects/";
@@ -52,7 +54,7 @@ public class GenerateArrayJob {
 		// the directory where the shell scripts are stored
 		//String workDir = "/home/mgerlich/projects/eval_metfusion_ECFP/";
 		String workDir = projectDir;
-		String prefix = "HHT";
+		String prefix = "helmholtz";
 		File jobInfo = new File(workDir, prefix + "_sge_metfusion.sh");
 		jobInfo.createNewFile();
 		jobInfo.setExecutable(true);
@@ -87,7 +89,7 @@ public class GenerateArrayJob {
 //				" -mf $A -out $B -unique -format SDF -db chebi\n");
 		
 		fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + 
-		" -mf $A -out $B -unique -format XLS \n");
+		" -mf $A -out $B -unique -format SDF_XLS -compress\n");
 		
 //		fw.write("java -jar -Xmx4000m -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName 
 //				+ " -record $A -out $B -unique -format SDF -server http://msbi.ipb-halle.de/MassBank/\n");
@@ -122,8 +124,8 @@ public class GenerateArrayJob {
 //		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/farag/profile/ -o /home/mgerlich/SGE/output/farag/profile/ -q " + queue + 
 //				" -pe orte2 6 -tc 20 " + qFile + "\n");
 		
-		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/farag/ -o /home/mgerlich/SGE/output/farag/ -q " + queue + 
-				" -pe orte2 6 -tc 20 " + qFile + "\n");
+		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/helmholtz/ -o /home/mgerlich/SGE/output/helmholtz/ -q " + queue + 
+				" -pe orte2 4 " + qFile + "\n");
 		
 //		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/tp/results_dbchemspider_Massbank_wo_Eawag_but_wUFZ_formula/" +
 //				" -o /home/mgerlich/SGE/output/tp/results_dbchemspider_Massbank_wo_Eawag_but_wUFZ_formula/ -q " + queue + " -pe orte2 6 " + qFile + "\n");
