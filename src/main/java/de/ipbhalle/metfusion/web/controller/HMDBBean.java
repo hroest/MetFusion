@@ -235,6 +235,7 @@ public class HMDBBean implements GenericDatabaseBean {
 			String formula = "";		// molecular formula
 			double weight = 0.0d;		// molecular weight
 			double score = 0.0d;		// library matches
+			int matchingPeaks = 0;		// number of matching peaks derived by library matches
 			String link = "";
 			if(!data.isEmpty()) {
 				for (Element d : data) {
@@ -282,6 +283,8 @@ public class HMDBBean implements GenericDatabaseBean {
 								double d1 = Double.parseDouble(split[0]);
 								double d2 = Double.parseDouble(split[1]);
 								score = d1 / d2;
+								
+								matchingPeaks = (int) d1;
 							}
 						}
 						else score = Double.parseDouble(d.text().trim());
@@ -292,6 +295,7 @@ public class HMDBBean implements GenericDatabaseBean {
 				IAtomContainer ac = mbu.getContainer(id, structurePath);
 				
 				Result r = new Result(databaseName, id, name, score, ac, urlHMDB + link, "image", formula, weight);
+				r.setMatchingPeaks(matchingPeaks);
 				results.add(r);
 			}
 		}
