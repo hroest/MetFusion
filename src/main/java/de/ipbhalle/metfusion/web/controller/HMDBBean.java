@@ -4,6 +4,7 @@
 
 package de.ipbhalle.metfusion.web.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -16,7 +17,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
+import de.ipbhalle.io.FileNameFilterImpl;
+import de.ipbhalle.metfusion.main.MetFusionBatchFileHandler;
+import de.ipbhalle.metfusion.main.MetFusionBatchSettings;
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
+import de.ipbhalle.metfusion.utilities.output.SDFOutputHandler;
 import de.ipbhalle.metfusion.wrapper.Result;
 
 public class HMDBBean implements GenericDatabaseBean {
@@ -48,6 +53,7 @@ public class HMDBBean implements GenericDatabaseBean {
 			"utf8=" + utf8 + "&nucleus=%s" + "&peaks=%s" +
 			"&cs_tolerance=%f" + "&commit=Search";
 	private final String tableNMR1D = "nmr_one_d_search_results";
+	private String selectedLibNMR1D = "C";
 	private String libraryNMR1D = prefixH + nucleus.H.toString();
 	private String peaksNMR1D = "3.81\n3.82\n3.83\n3.85\n3.89\n3.90\n3.91\n4.25\n4.26\n4.27\n4.41\n8.19\n8.31";
 	private float toleranceNMR1D = 0.02f;
@@ -141,10 +147,10 @@ public class HMDBBean implements GenericDatabaseBean {
 			break;
 
 		case NMR1D:
-			if("C".equals(nucleus.C))
-				libraryNMR1D = prefixC + "C";
-			else if("H".equals(nucleus.H)) {
-				libraryNMR1D = prefixH + "H";
+			if(selectedLibNMR1D.equals(nucleus.C.toString()))
+				libraryNMR1D = prefixC + nucleus.C;
+			else if(selectedLibNMR1D.equals(nucleus.H.toString())) {
+				libraryNMR1D = prefixH + nucleus.H;
 			}
 			else libraryNMR1D = prefixH + "H";	// default to H
 			
@@ -351,14 +357,59 @@ public class HMDBBean implements GenericDatabaseBean {
 	}
 	
 	public static void main(String[] args) throws IOException {
+//		HMDBBean hb = new HMDBBean();
+//		hb.setSelectedLibNMR1D("C");
+//		hb.setPeaksNMR1D("180.6477\n72.8674\n66.8025\n56.7799\n45.6155\n-0.0005");
+//		List<Result> results = hb.performQuery(HMDBBean.searchType.NMR1D);
+//		System.out.println("Found [" + results.size() + "] results");
+//		System.out.println("ID\tName\tFormula\tWeight\tScore");
+//		for (Result result : results) {
+//			System.out.println(result.getId() + "\t" + result.getName() + "\t" + result.getSumFormula() + 
+//					"\t" + result.getExactMass() + "\t" + result.getScore());
+//		}
 		
-		HMDBBean hb = new HMDBBean();
-		List<Result> results = hb.performQuery(HMDBBean.searchType.MS);
-		System.out.println("Found [" + results.size() + "] results");
-		System.out.println("ID\tName\tFormula\tWeight\tScore");
-		for (Result result : results) {
-			System.out.println(result.getId() + "\t" + result.getName() + "\t" + result.getSumFormula() + 
-					"\t" + result.getExactMass() + "\t" + result.getScore());
+		
+		// TODO: iterate over settings files and run HMDB queries
+		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/";
+		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results/";
+		
+		String ending = ".nmr";
+		File[] files = new File(settingsDir).listFiles(new FileNameFilterImpl("", ending));
+		for (int i = 0; i < files.length; i++) {
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			MetFusionBatchFileHandler mfbh = new MetFusionBatchFileHandler(files[i]);
+			mfbh.readFile();
+			MetFusionBatchSettings settings = mfbh.getBatchSettings();
+			
+			HMDBBean hb = new HMDBBean();
+			hb.setSelectedLibNMR1D("C");	// TODO: check for correct library
+			hb.setPeaksNMR1D(settings.getPeaks());
+			List<Result> results = hb.performQuery(HMDBBean.searchType.NMR1D);	// TODO: ensure proper query type
+			boolean gotResults = false;
+			if(results.size() > 0)
+				gotResults = true;
+			
+			if(gotResults) {
+				System.out.println("Found [" + results.size() + "] results");
+				System.out.println("ID\tName\tFormula\tWeight\tScore");
+				for (Result result : results) {
+					System.out.println(result.getId() + "\t" + result.getName() + "\t" + result.getSumFormula() + 
+							"\t" + result.getExactMass() + "\t" + result.getScore());
+				}
+				
+				String filename = files[i].getName();
+				filename = filename.replace(ending, ".sdf");
+				// TODO: write out result SDF with score, ID, name properties
+				SDFOutputHandler oh = new SDFOutputHandler(outDir + filename);
+				oh.writeOriginalResults(results, false);
+			}
+			else System.out.println("No results for [" + files[i] + "]");
 		}
 	}
 	
@@ -636,6 +687,14 @@ public class HMDBBean implements GenericDatabaseBean {
 
 	public void setStructurePath(String structurePath) {
 		this.structurePath = structurePath;
+	}
+
+	public String getSelectedLibNMR1D() {
+		return selectedLibNMR1D;
+	}
+
+	public void setSelectedLibNMR1D(String selectedLibNMR1D) {
+		this.selectedLibNMR1D = selectedLibNMR1D;
 	}
 
 }
