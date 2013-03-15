@@ -785,7 +785,6 @@ public class MetFusionBean implements Serializable {
 			
 			int currentRow = 0;
 			int currentCol = 0;
-			int counter = 0;
 			// write MetFusion results
 			for (ResultExt result : secondOrder) {
 				//currentRow = counter*4 + 1;
@@ -833,7 +832,6 @@ public class MetFusionBean implements Serializable {
 //					return;
 				}
 				
-				counter++;
 			}
 		}
 		else {
@@ -870,7 +868,6 @@ public class MetFusionBean implements Serializable {
 			
 			int currentRow = 0;
 			int currentCol = 0;
-			int counter = 0;
 			
 			// write MassBank results
 			for (Result result : genericDatabase.getResults()) {
@@ -916,7 +913,6 @@ public class MetFusionBean implements Serializable {
 //					return;
 				}
 				
-				counter++;
 			}
 		}
 		else {
@@ -951,7 +947,6 @@ public class MetFusionBean implements Serializable {
 			
 			int currentRow = 0;
 			int currentCol = 0;
-			int counter = 0;
 			// write MetFrag results
 			for (Result result : mfb.getResults()) {
 				//currentRow = counter*4 + 1;
@@ -995,7 +990,6 @@ public class MetFusionBean implements Serializable {
 //					return;
 				}
 				
-				counter++;
 			}
 		}
 		else {
