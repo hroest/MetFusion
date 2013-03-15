@@ -41,5 +41,22 @@
 		<validator-id>feedbackValidator</validator-id>
 		<validator-class>de.ipbhalle.metfusion.web.controller.FeedbackBean</validator-class>
 	</validator>
-
+	<navigation-rule>
+		<display-name>LandingPage</display-name>
+		<from-view-id>/LandingPage.xhtml</from-view-id>
+		<navigation-case>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/metfusion_main.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<display-name>LandingPage</display-name>
+		<from-view-id>/LandingPage.xhtml</from-view-id>
+		<navigation-case>
+			<from-outcome>failed</from-outcome>
+			<to-view-id>/LandingPageError.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
 </faces-config>
