@@ -1,2 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<pageflow:Pageflow xmlns:pageflow="http://www.sybase.com/suade/pageflow" id="pf13010440265050" configfile="/MetFusion/WebContent/WEB-INF/faces-config.xml"/>
+<pageflow:Pageflow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:pageflow="http://www.sybase.com/suade/pageflow" id="pf13010440265050" configfile="/MetFusion/WebContent/WEB-INF/faces-config.xml">
+  <nodes xsi:type="pageflow:PFPage" name="LandingPage" x="375" y="60" id="pf13631689541835" referenceLink="//@navigationRule.1/@fromViewId|" outlinks="pf13631689541836 pf13631689541837" path="/LandingPage.xhtml"/>
+  <nodes xsi:type="pageflow:PFPage" name="metfusion_main.xhtml" x="240" y="252" id="pf13631689541838" referenceLink="//@navigationRule.0/@navigationCase.0/@toViewId|" inlinks="pf13631689541836" path="/metfusion_main.xhtml"/>
+  <nodes xsi:type="pageflow:PFPage" name="LandingPageError.xhtml" x="504" y="240" id="pf13631689541839" referenceLink="//@navigationRule.1/@navigationCase.0/@toViewId|" inlinks="pf13631689541837" path="/LandingPageError.xhtml"/>
+  <links id="pf13631689541836" target="pf13631689541838" source="pf13631689541835" outcome="success" redirect="true"/>
+  <links id="pf13631689541837" target="pf13631689541839" source="pf13631689541835" outcome="failed" redirect="true"/>
+</pageflow:Pageflow>
