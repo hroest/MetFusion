@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.el.ELContext;
 import javax.el.ELResolver;
@@ -75,40 +76,48 @@ public class LandingBean {
 	 * parse encoded settings
 	 */
 	private void parseSettings() {
-		AvailableParameters[] ap = AvailableParameters.values();
-		for (int i = 0; i < ap.length; i++) {
-			String param = ap[i].toString();
-			if(map.containsKey(param)) {
-				// peaks richtig parsen mit Komma und @
-				if(AvailableParameters.peaks.toString().equals(param)) {
-					String peaks = map.get(param);	// single line should contain m/z and intensity separated by comma and peak-pairs separated by @
-					peaks = peaks.replaceAll(sepPeakPair, DEFAULT_LINE_SEPARATOR);
-					peaks = peaks.replaceAll(sepPeakInfo, DEFAULT_INFO_SEPARATOR);
-					specifiedPeaks = true;
-					settings.put(AvailableParameters.peaks, peaks);
+		Set<String> keys = map.keySet();
+		for (String param : keys) {
+			// peaks richtig parsen mit Komma und @
+			if(AvailableParameters.peaks.toString().equals(param)) {
+				String peaks = map.get(param);	// single line should contain m/z and intensity separated by comma and peak-pairs separated by @
+				if(peaks.contains(";") | peaks.contains("%20") | peaks.contains(DEFAULT_INFO_SEPARATOR)) {	// MetFrag style peak string
+					// 89.0386%20594;117.0335%201561;129.0546%20146;135.0441%203286;139.0390%20134;145.0284%204530;163.0390%2059399;181.0495%20458;
+					peaks = peaks.replaceAll("%20", sepPeakInfo);
+					peaks = peaks.replaceAll(DEFAULT_INFO_SEPARATOR, sepPeakInfo);
+					peaks = peaks.replaceAll(";", sepPeakPair);
 				}
-				else if(AvailableParameters.mbInstruments.toString().equals(param)) {	// Instrumentenliste mit Komma
-					String instruments = map.get(param);
-					//String[] ins = instruments.split(",");
-					specifiedInstruments = true;
-					settings.put(AvailableParameters.mbInstruments, instruments);
-				}
-				else if(AvailableParameters.mfExactMass.toString().equals(param)) {
-					specifiedExactMass = true;
-					settings.put(AvailableParameters.mfExactMass, map.get(param));
-				}
-				else if(AvailableParameters.mfParentIon.toString().equals(param)) {
-					specifiedParentIon = true;
-					settings.put(AvailableParameters.mfParentIon, map.get(param));
-				}
-				else if(AvailableParameters.mfAdduct.toString().equals(param)) {
-					specifiedAdduct = true;
-					settings.put(AvailableParameters.mfAdduct, map.get(param));
-				}
-				else settings.put(ap[i], map.get(param));
-				
-				// boolean werte mit true/false
+				peaks = peaks.replaceAll(sepPeakPair, DEFAULT_LINE_SEPARATOR);
+				peaks = peaks.replaceAll(sepPeakInfo, DEFAULT_INFO_SEPARATOR);
+				specifiedPeaks = true;
+				settings.put(AvailableParameters.peaks, peaks);
 			}
+			else if(AvailableParameters.mbInstruments.toString().equals(param)) {	// Instrumentenliste mit Komma
+				String instruments = map.get(param);
+				//String[] ins = instruments.split(",");
+				specifiedInstruments = true;
+				settings.put(AvailableParameters.mbInstruments, instruments);
+			}
+			else if(AvailableParameters.mfExactMass.toString().equals(param)) {		
+				specifiedExactMass = true;
+				settings.put(AvailableParameters.mfExactMass, map.get(param));
+			}
+			else if(AvailableParameters.mfParentIon.toString().equals(param)) {
+				specifiedParentIon = true;
+				settings.put(AvailableParameters.mfParentIon, map.get(param));
+			}
+			else if(AvailableParameters.mfAdduct.toString().equals(param)) {
+				specifiedAdduct = true;
+				settings.put(AvailableParameters.mfAdduct, map.get(param));
+			}
+			else if(param.equals("mass")) {				// added fallback to MetFrag parameter mass
+				specifiedExactMass = true;
+				settings.put(AvailableParameters.mfExactMass, map.get(param));
+			}
+			else if(param.equals("formula")) {			// added fallback to MetFrag parameter formula
+				settings.put(AvailableParameters.mfFormula, map.get(param));
+			}
+			else settings.put(AvailableParameters.valueOf(param), map.get(param));
 		}
 	}
 
