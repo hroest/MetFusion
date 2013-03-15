@@ -392,9 +392,15 @@ public class MetFragBean implements Runnable, Serializable {
 	    }
 	}
 	
+	public void calculateExactMass() {
+		if(getParentIon() != Double.NaN && getSelectedAdduct() != Double.NaN)
+			exactMass = getSelectedAdduct() + getParentIon();
+	}
+	
 	public void submit(ActionEvent event) {
 		this.progress = 0;
 		this.done = Boolean.FALSE;
+		calculateExactMass();
 		
 		// handle wrong SDF
 		if(selectedDB.equals(dbSDF) && !validSDF) {
