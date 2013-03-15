@@ -29,8 +29,10 @@ public class MetFusionBatchSettings {
 	private int mbLimit = 100;
 	private int mbCutoff = 5;
 	private Ionizations mbIonization = Ionizations.pos;
-	private String mbInstruments = "CE-ESI-TOF,ESI-IT-MS/MS,ESI-QqIT-MS/MS,ESI-QqQ-MS/MS,ESI-QqTOF-MS/MS,LC-ESI-IT,LC-ESI-ITFT," +
-									"LC-ESI-ITTOF,LC-ESI-Q,LC-ESI-QIT,LC-ESI-QQ,LC-ESI-QTOF";
+	private String mbInstruments = "CE-ESI-TOF,ESI-ITFT,ESI-QIT,ESI-QQ,LC-ESI-IT,LC-ESI-ITFT,LC-ESI-ITTOF," +
+			"LC-ESI-Q,LC-ESI-QIT,LC-ESI-QQ,LC-ESI-QTOF,LC-ESI-TOF";
+	private String[] selectedInstruments = {"CE-ESI-TOF","ESI-ITFT","ESI-QIT","ESI-QQ","LC-ESI-IT","LC-ESI-ITFT","LC-ESI-ITTOF",
+			"LC-ESI-Q","LC-ESI-QIT","LC-ESI-QQ","LC-ESI-QTOF","LC-ESI-TOF"};
 	private Databases mfDatabase = Databases.pubchem;
 	private String mfDatabaseIDs = "";
 	private String mfFormula = "";
@@ -42,8 +44,9 @@ public class MetFusionBatchSettings {
 	private double mfMZabs = 0.01d;
 	private double mfMZppm = 10.0d;
 	private boolean clustering = Boolean.TRUE;
-	private boolean onlyCHNOPS = Boolean.FALSE;
-	private String peaks = "273.096 22\n289.086 107\n290.118 14\n291.096 999\n292.113 162\n293.054 34\n579.169 37\n580.179 15";
+	private boolean onlyCHNOPS = Boolean.TRUE;
+	private boolean unique = Boolean.TRUE;
+	private String peaks = "119.051 46\n123.044 37\n147.044 607\n153.019 999\n179.036 14\n189.058 17\n273.076 999\n274.083 31";
 	private SpectralDB spectralDB = SpectralDB.MassBank;
 	private String sdfFile = "";
 	private List<String> substrucPresent = new ArrayList<String>();
@@ -85,6 +88,7 @@ public class MetFusionBatchSettings {
 		storedSettings.put(AvailableParameters.sdfFile, sdfFile);
 		storedSettings.put(AvailableParameters.substrucPresent, substrucPresent);
 		storedSettings.put(AvailableParameters.substrucAbsent, substrucAbsent);
+		storedSettings.put(AvailableParameters.unique, unique);
 	}
 	
 	/**
@@ -112,7 +116,8 @@ public class MetFusionBatchSettings {
 				case mbLimit: this.mbLimit = (Integer) settings.get(key);	break;
 				case mbCutoff: this.mbCutoff = (Integer) settings.get(key);	break;
 				case mbIonization: this.mbIonization = (Ionizations) settings.get(key); break;
-				case mbInstruments: this.mbInstruments = (String) settings.get(key);	break;
+				case mbInstruments: this.mbInstruments = (String) settings.get(key);	
+									this.selectedInstruments = mbInstruments.split(",");	break;
 					
 				case mfDatabase: this.mfDatabase = (Databases) settings.get(key);	break;
 				case mfDatabaseIDs: this.mfDatabaseIDs = (String) settings.get(key);	break;
@@ -132,6 +137,7 @@ public class MetFusionBatchSettings {
 				case sdfFile: this.sdfFile = (String) settings.get(key);	break;
 				case substrucAbsent: this.substrucAbsent = (List<String>) settings.get(key); break;
 				case substrucPresent: this.substrucPresent = (List<String>) settings.get(key); break;
+				case unique: this.unique = (Boolean) settings.get(key); break;
 				
 				default: ;	break;
 			}
@@ -154,7 +160,8 @@ public class MetFusionBatchSettings {
 				case mbLimit: this.mbLimit = (Integer.parseInt((String) settings.get(key)));	break;
 				case mbCutoff: this.mbCutoff = (Integer.parseInt((String) settings.get(key)));	break;
 				case mbIonization: this.mbIonization = Ionizations.valueOf((String) settings.get(key)); break;
-				case mbInstruments: this.mbInstruments = (String) settings.get(key);	break;
+				case mbInstruments: this.mbInstruments = (String) settings.get(key);
+									this.selectedInstruments = mbInstruments.split(",");	break;
 					
 				case mfDatabase: this.mfDatabase = (Databases.valueOf((String) settings.get(key)));	break;
 				case mfDatabaseIDs: this.mfDatabaseIDs = (String) settings.get(key);	break;
@@ -190,6 +197,63 @@ public class MetFusionBatchSettings {
 				case sdfFile: this.sdfFile = (String) settings.get(key);	break;
 				case substrucAbsent: this.substrucAbsent = (List<String>) settings.get(key); break;
 				case substrucPresent: this.substrucPresent = (List<String>) settings.get(key); break;
+				case unique: this.unique = (Boolean.parseBoolean((String) settings.get(key)));	break;
+				
+				default: ;	break;
+			}
+		}
+	}
+	
+	/**
+	 * all values in settings are stored as Strings, thus requiring special parsing
+	 * @param settings
+	 */
+	@SuppressWarnings("unchecked")
+	public void loadSettingsForLandingPage(Map<AvailableParameters, Object> settings) {
+		this.storedSettings = settings;
+		Set<AvailableParameters> keys = settings.keySet();
+		for (AvailableParameters key : keys) {
+			switch(key) {
+				case mbLimit: this.mbLimit = Integer.valueOf((String) settings.get(key));	break;
+				case mbCutoff: this.mbCutoff = Integer.valueOf((String) settings.get(key));	break;
+				case mbIonization: this.mbIonization = Ionizations.valueOf((String) settings.get(key)); break;
+				case mbInstruments: this.mbInstruments = (String) settings.get(key);	
+									this.selectedInstruments = mbInstruments.split(",");	break;
+					
+				case mfDatabase: this.mfDatabase = Databases.valueOf((String) settings.get(key));	break;
+				case mfDatabaseIDs: this.mfDatabaseIDs = (String) settings.get(key);	break;
+				case mfFormula: this.mfFormula = (String) settings.get(key);	break;
+				case mfLimit: this.mfLimit = Integer.valueOf((String) settings.get(key));	break;
+				case mfParentIon: this.mfParentIon = Double.valueOf((String) settings.get(key));	break;
+				case mfAdduct: {
+					Adducts[] adducts = Adducts.values();
+					String label = (String) settings.get(key);
+					boolean found = false;
+					for (int i = 0; i < adducts.length; i++) {
+						if(adducts[i].getLabel().equals(label)) {
+							this.mfAdduct = adducts[i];
+							found = true;
+							break;
+						}
+					}
+					if(!found)	// if no proper adduct was found, default to neutral one
+						this.mfAdduct = Adducts.Neutral;
+					
+					break;
+				}
+				case mfExactMass: this.mfExactMass = Double.valueOf((String) settings.get(key));	break;
+				case mfSearchPPM: this.mfSearchPPM = Double.valueOf((String) settings.get(key));	break;
+				case mfMZabs: this.mfMZabs = Double.valueOf((String) settings.get(key));	break;
+				case mfMZppm: this.mfMZppm = Double.valueOf((String) settings.get(key));	break;
+				
+				case clustering: this.clustering = Boolean.parseBoolean((String) settings.get(key));	break;
+				case peaks: this.peaks = (String) settings.get(key);	break;
+				case onlyCHNOPS: this.onlyCHNOPS = Boolean.parseBoolean((String) settings.get(key)); break;
+				case spectralDB: this.spectralDB = SpectralDB.valueOf((String) settings.get(key)); break;
+				case sdfFile: this.sdfFile = (String) settings.get(key);	break;
+				case substrucAbsent: this.substrucAbsent = (List<String>) settings.get(key); break;
+				case substrucPresent: this.substrucPresent = (List<String>) settings.get(key); break;
+				case unique: this.unique = Boolean.parseBoolean((String) settings.get(key));	break;
 				
 				default: ;	break;
 			}
@@ -223,6 +287,7 @@ public class MetFusionBatchSettings {
 		System.out.println(def.onlyCHNOPS);
 		System.out.println(def.spectralDB);
 		System.out.println(def.sdfFile);
+		System.out.println(def.unique);
 		
 		MetFusionBatchFileHandler mbfh = new MetFusionBatchFileHandler(new File("/home/mgerlich/Documents/metfusion_param_default.mf"));
 		try {
@@ -401,6 +466,22 @@ public class MetFusionBatchSettings {
 
 	public void setSubstrucAbsent(List<String> substrucAbsent) {
 		this.substrucAbsent = substrucAbsent;
+	}
+
+	public String[] getSelectedInstruments() {
+		return selectedInstruments;
+	}
+
+	public void setSelectedInstruments(String[] selectedInstruments) {
+		this.selectedInstruments = selectedInstruments;
+	}
+
+	public boolean isUnique() {
+		return unique;
+	}
+
+	public void setUnique(boolean unique) {
+		this.unique = unique;
 	}
 
 }
