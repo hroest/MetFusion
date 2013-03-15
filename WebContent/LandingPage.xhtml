@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:icecore="http://www.icefaces.org/icefaces/core"
+	xmlns:ace="http://www.icefaces.org/icefaces/components"
+	xmlns:ice="http://www.icesoft.com/icefaces/component">
+<h:head>
+	<title>MetFusion LandingPage</title>
+</h:head>
+<h:body>
+	<h:form id="landingform">
+	<icecore:singleSubmit />	<!-- ICEfaces 2 option for partial submit of form/input values for storing/validation -->
+	
+		<!-- show submitted parameters -->
+		<h:dataTable value="#{landingBean.keysAsList}" var="entry">
+			<h:column>
+				<h:outputText value="#{entry}"/>
+			</h:column>
+			
+			<h:column>
+				<h:outputText value="#{landingBean.map[entry]}"/>
+			</h:column>
+			
+		</h:dataTable>
+		
+	</h:form>
+	
+</h:body>
+
+</html>
