@@ -8,7 +8,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -16,6 +18,7 @@ import javax.faces.application.FacesMessage;
 
 import jxl.write.WriteException;
 
+import de.ipbhalle.enumerations.AvailableParameters;
 import de.ipbhalle.enumerations.OutputFormats;
 import de.ipbhalle.metfusion.integration.Similarity.SimilarityMetFusion;
 import de.ipbhalle.metfusion.integration.Tanimoto.TanimotoIntegrationWeighted;
@@ -523,6 +526,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 	        xlsHandler.writeAllResults(listMetFrag, listMassBank, resultingOrder, null);
 	        xlsHandler.writeOriginalMatrix(cmT.getCcm(), "Original Matrix");
 	        xlsHandler.writeModifiedMatrix(cmtAfter.getCcm(), "Reranked Matrix");
+	        xlsHandler.writeSettings(fetchSettings());
 	        try {
 				xlsHandler.finishWorkbook(isCompress());
 			} catch (WriteException e2) {
@@ -556,6 +560,7 @@ public class MetFusionThreadBatchMode implements Runnable {
 	        xlsHandler.writeAllResults(listMetFrag, listMassBank, resultingOrder, null);
 	        xlsHandler.writeOriginalMatrix(cmT.getCcm(), "Original Matrix");
 	        xlsHandler.writeModifiedMatrix(cmtAfter.getCcm(), "Reranked Matrix");
+	        xlsHandler.writeSettings(fetchSettings());
 	        try {
 				xlsHandler.finishWorkbook(isCompress());
 			} catch (WriteException e2) {
@@ -586,6 +591,31 @@ public class MetFusionThreadBatchMode implements Runnable {
 		System.out.println("time spent -> " + time2 + " s");
 	}
 
+	private Map<AvailableParameters, Object> fetchSettings() {
+    	Map<AvailableParameters, Object> m = new HashMap<AvailableParameters, Object>();
+    	m.put(AvailableParameters.clustering, true);
+    	m.put(AvailableParameters.mbCutoff, massbank.getCutoff());
+    	m.put(AvailableParameters.mbInstruments, massbank.getSelectedInstruments());
+    	m.put(AvailableParameters.mbIonization, massbank.getSelectedIon());
+    	m.put(AvailableParameters.mbLimit, massbank.getLimit());
+    	m.put(AvailableParameters.mfAdduct, metfrag.getSelectedAdduct());
+    	m.put(AvailableParameters.mfDatabase, metfrag.getSelectedDB());
+    	m.put(AvailableParameters.mfDatabaseIDs, metfrag.getDatabaseID());
+    	m.put(AvailableParameters.mfExactMass, metfrag.getExactMass());
+    	m.put(AvailableParameters.mfFormula, metfrag.getMolecularFormula());
+    	m.put(AvailableParameters.mfLimit, metfrag.getLimit());
+    	m.put(AvailableParameters.mfMZabs, metfrag.getMzabs());
+    	m.put(AvailableParameters.mfMZppm, metfrag.getMzppm());
+    	m.put(AvailableParameters.mfParentIon, metfrag.getParentIon());
+    	m.put(AvailableParameters.mfSearchPPM, metfrag.getSearchppm());
+    	m.put(AvailableParameters.onlyCHNOPS, metfrag.isOnlyCHNOPS());
+    	m.put(AvailableParameters.peaks, metfrag.getInputSpectrum());
+    	m.put(AvailableParameters.substrucAbsent, "not yet implemented");
+    	m.put(AvailableParameters.substrucPresent, "not yet implemented");
+    	m.put(AvailableParameters.spectralDB, "MassBank");
+    	
+    	return m;
+    }
 	/**
 	 * Utitily method to format the output String according to the passed Object, which is then written into a file.
 	 * 
