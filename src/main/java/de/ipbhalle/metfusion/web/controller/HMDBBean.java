@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -184,8 +186,11 @@ public class HMDBBean implements GenericDatabaseBean {
 		// parse HTML with jsoup
 		Document doc = null;
 		try {
-			doc = Jsoup.connect(url).get();
+			Connection conn = Jsoup.connect(url);
+			doc = conn.get();
+			//doc = Jsoup.connect(url).get();
 		} catch (IOException e) {
+			e.printStackTrace();
 			System.err.println("Error connecting to HMDB!");
 			return results;
 		}
@@ -292,6 +297,9 @@ public class HMDBBean implements GenericDatabaseBean {
 					columnCounter++;
 				}
 				
+				if(id.isEmpty())
+					continue;
+				
 				IAtomContainer ac = mbu.getContainer(id, structurePath);
 				
 				Result r = new Result(databaseName, id, name, score, ac, urlHMDB + link, "image", formula, weight);
@@ -374,11 +382,15 @@ public class HMDBBean implements GenericDatabaseBean {
 		
 		
 		// TODO: iterate over settings files and run HMDB queries
-		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/";
-		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results/";
+		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_13C";
+		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_13C/";
 		
 		String ending = ".nmr";
 		File[] files = new File(settingsDir).listFiles(new FileNameFilterImpl("", ending));
+		Arrays.sort(files);
+		for (int i = 0; i < files.length; i++) {
+			System.out.println("["+i+"] " + files[i]);
+		}
 		for (int i = 0; i < files.length; i++) {
 			try {
 				Thread.sleep(10000);
@@ -390,10 +402,17 @@ public class HMDBBean implements GenericDatabaseBean {
 			MetFusionBatchFileHandler mfbh = new MetFusionBatchFileHandler(files[i]);
 			mfbh.readFile();
 			MetFusionBatchSettings settings = mfbh.getBatchSettings();
-			
+			String peaks = settings.getPeaks();
+			String[] split = peaks.split("\n");
+			StringBuilder sb = new StringBuilder();
+			for (int j = 0; j < split.length; j++) {			// TODO: check correct peaks per line
+				String[] splitPeak = split[j].trim().split(" ");
+				if(splitPeak.length == 2)
+					sb.append(splitPeak[0]).append("\n");
+			}
 			HMDBBean hb = new HMDBBean();
 			hb.setSelectedLibNMR1D("C");	// TODO: check for correct library
-			hb.setPeaksNMR1D(settings.getPeaks());
+			hb.setPeaksNMR1D(sb.toString());
 			List<Result> results = hb.performQuery(HMDBBean.searchType.NMR1D);	// TODO: ensure proper query type
 			boolean gotResults = false;
 			if(results.size() > 0)
