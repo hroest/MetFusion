@@ -499,7 +499,7 @@ public class MassBankBatchMode implements Runnable {
 	                    	limitCounter++;							// increase limit counter
 	                    }
 	                    else {			// InChI-Key already present in map -> skip entry
-	                    	System.out.println(id + " not used! InChI-Key present");
+	                    	//System.out.println(id + " not used! InChI-Key present");
 	                    	r.setImagePath(inchiMap.get(inchikey));	// use original structure image for duplicate
 	                    	unused.add(r);				// add result to unused list
 	                    }
@@ -666,6 +666,14 @@ public class MassBankBatchMode implements Runnable {
 
 	public Fingerprints getFingerprinter() {
 		return fingerprinter;
+	}
+
+	public int getCutoff() {
+		return cutoff;
+	}
+
+	public void setCutoff(int cutoff) {
+		this.cutoff = cutoff;
 	}
 
 }
