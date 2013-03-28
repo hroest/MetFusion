@@ -311,7 +311,10 @@ public class MetFusionBatchMode {
 			metfragbm.setSelectedAdduct(Adducts.Neutral.getDifference());	// default not neutral adduct
 			
 			ion = Ionizations.valueOf(result[3]);				// set correct ionization from record
+			mbbm.setSelectedIon(String.valueOf(ion.getValue()));
 			
+			// TODO: CHEBI run with increased search ppm for more results
+			//metfragbm.setSearchppm(30d);
 		}
 		
 		// set ionization for MetFrag
