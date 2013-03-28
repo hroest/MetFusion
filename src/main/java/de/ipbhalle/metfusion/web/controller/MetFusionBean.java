@@ -606,7 +606,7 @@ public class MetFusionBean implements Serializable {
     
     private Map<AvailableParameters, Object> fetchSettings() {
     	Map<AvailableParameters, Object> m = new HashMap<AvailableParameters, Object>();
-    	m.put(AvailableParameters.clustering, true);
+    	m.put(AvailableParameters.clustering, isUseClustering());
     	m.put(AvailableParameters.mbCutoff, mblb.getCutoff());
     	m.put(AvailableParameters.mbInstruments, mblb.getSelectedInstruments());
     	m.put(AvailableParameters.mbIonization, mblb.getSelectedIon());
