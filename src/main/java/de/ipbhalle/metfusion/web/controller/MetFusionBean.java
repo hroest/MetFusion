@@ -674,9 +674,9 @@ public class MetFusionBean implements Serializable {
 			setOutputResource(xls);
 			// enable download button for resource
 			setCreatedResource(Boolean.TRUE);
-		} catch (WriteException e2) {
-			System.err.println("Could not write xls file [" + completeName + "]");
-			setCreatedResource(Boolean.FALSE);
+//		} catch (WriteException e2) {
+//			System.err.println("Could not write xls file [" + completeName + "]");
+//			setCreatedResource(Boolean.FALSE);
 		} catch (IOException e2) {
 			System.err.println("Could not write xls file [" + completeName + "]");
 			setCreatedResource(Boolean.FALSE);
