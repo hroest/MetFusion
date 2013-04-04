@@ -187,6 +187,7 @@ public class HMDBBean implements GenericDatabaseBean {
 		Document doc = null;
 		try {
 			Connection conn = Jsoup.connect(url);
+			conn.timeout(20000);
 			doc = conn.get();
 			//doc = Jsoup.connect(url).get();
 		} catch (IOException e) {
