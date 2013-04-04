@@ -529,8 +529,6 @@ public class MetFusionThreadBatchMode implements Runnable {
 	        xlsHandler.writeSettings(fetchSettings());
 	        try {
 				xlsHandler.finishWorkbook(isCompress());
-//			} catch (WriteException e2) {
-//				System.err.println("Could not write xls file [" + tempPath + prefix + ".xls]");
 			} catch (IOException e2) {
 				System.err.println("Could not write xls file [" + tempPath + prefix + ".xls]");
 			}
@@ -563,8 +561,6 @@ public class MetFusionThreadBatchMode implements Runnable {
 	        xlsHandler.writeSettings(fetchSettings());
 	        try {
 				xlsHandler.finishWorkbook(isCompress());
-//			} catch (WriteException e2) {
-//				System.err.println("Could not write xls file [" + tempPath + prefix + ".xls]");
 			} catch (IOException e2) {
 				System.err.println("Could not write xls file [" + tempPath + prefix + ".xls]");
 			}
