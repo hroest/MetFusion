@@ -108,6 +108,8 @@ public class MetFusionThread implements Runnable {
 				metfusion.setSelectedTab("0");
 				metfusion.setErrorMessage(errMessage);
 				genericDatabase.setShowResult(false);
+				metfrag.setNoteSDF("");
+				metfrag.setValidSDF(false);
 				
 	            return;
 			}
