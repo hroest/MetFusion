@@ -488,17 +488,17 @@
 <!--									<ace:fileEntry id="fileEntrySDF" callback="#{fileMD5EncodingCallback}" rendered="#{appBean.mfb.renderSDF}" />-->
 									<ace:fileEntry id="fileEntryComp" label="SDF Upload" relativePath="temp" useSessionSubdir="true"
 									fileEntryListener="#{appBean.mfb.listener}" useOriginalFilename="true"  callback="#{fileMD5EncodingCallback}"
-									maxFileCount="1" maxFileCountMessage="Only one file per upload allowed!">
+									maxFileCount="1" maxFileCountMessage="Only one file per upload allowed!" required="true">
 <!-- 										<f:validator for="fileEntryComp" validatorId="uploadValidator"/> -->
 									</ace:fileEntry>
 <!-- 									<ice:commandButton value="Upload SDF" action="#{appBean.mfb.upload}"/> -->
 								</ice:panelGroup>
 								<ice:panelGroup effect="#{appBean.effectNote}" rendered="#{appBean.mfb.renderSDF}">
-									<ice:message id="errdbSDF" for="dbSDF"/>
-									<ice:outputText rendered="#{appBean.mfb.validSDF}" value="#{appBean.mfb.noteSDF}: #{appBean.mfb.selectedSDF}"
-										style="color: Orange;"/>
-									<ice:outputText rendered="#{!appBean.mfb.validSDF}" value="#{appBean.mfb.noteSDF}"
-									style="color: Orange;"/>
+									<ice:message id="errdbSDF" for="fileEntryComp" style="color: Orange;"/>
+<!-- 									<ice:outputText rendered="#{appBean.mfb.validSDF}" value="#{appBean.mfb.noteSDF}: #{appBean.mfb.selectedSDF}" -->
+<!-- 										style="color: Orange;"/> -->
+<!-- 									<ice:outputText rendered="#{!appBean.mfb.validSDF}" value="#{appBean.mfb.noteSDF}" -->
+<!-- 									style="color: Orange;"/> -->
 								</ice:panelGroup>
 								
 								<!-- provide database identifiers -->
