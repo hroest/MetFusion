@@ -403,7 +403,8 @@ public class MetFragBean implements Runnable, Serializable {
 		calculateExactMass();
 		
 		// handle wrong SDF
-		if(selectedDB.equals(dbSDF) && !validSDF) {
+		//if(selectedDB.equals(dbSDF) && !validSDF) {
+		if(selectedDB.equals(dbSDF) && selectedSDF.isEmpty()) {
 			this.done = Boolean.TRUE;
 			this.progress = 100;
 			this.showResult = false;
