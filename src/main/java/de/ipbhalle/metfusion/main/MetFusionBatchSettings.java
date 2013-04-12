@@ -49,6 +49,7 @@ public class MetFusionBatchSettings {
 	private String peaks = "119.051 46\n123.044 37\n147.044 607\n153.019 999\n179.036 14\n189.058 17\n273.076 999\n274.083 31";
 	private SpectralDB spectralDB = SpectralDB.MassBank;
 	private String sdfFile = "";
+	private String spectralSDF = "";
 	private List<String> substrucPresent = new ArrayList<String>();
 	private List<String> substrucAbsent = new ArrayList<String>();
 	
@@ -86,6 +87,7 @@ public class MetFusionBatchSettings {
 		storedSettings.put(AvailableParameters.onlyCHNOPS, onlyCHNOPS);
 		storedSettings.put(AvailableParameters.spectralDB, spectralDB);
 		storedSettings.put(AvailableParameters.sdfFile, sdfFile);
+		storedSettings.put(AvailableParameters.spectralSDF, spectralSDF);
 		storedSettings.put(AvailableParameters.substrucPresent, substrucPresent);
 		storedSettings.put(AvailableParameters.substrucAbsent, substrucAbsent);
 		storedSettings.put(AvailableParameters.unique, unique);
@@ -135,6 +137,7 @@ public class MetFusionBatchSettings {
 				case onlyCHNOPS: this.onlyCHNOPS = (Boolean) settings.get(key); break;
 				case spectralDB: this.spectralDB = (SpectralDB) settings.get(key); break;
 				case sdfFile: this.sdfFile = (String) settings.get(key);	break;
+				case spectralSDF: this.spectralSDF = (String) settings.get(key);	break;
 				case substrucAbsent: this.substrucAbsent = (List<String>) settings.get(key); break;
 				case substrucPresent: this.substrucPresent = (List<String>) settings.get(key); break;
 				case unique: this.unique = (Boolean) settings.get(key); break;
@@ -195,6 +198,7 @@ public class MetFusionBatchSettings {
 				case onlyCHNOPS: this.onlyCHNOPS = (Boolean.parseBoolean((String) settings.get(key)));	break;
 				case spectralDB: this.spectralDB = SpectralDB.valueOf((String) settings.get(key)); break;
 				case sdfFile: this.sdfFile = (String) settings.get(key);	break;
+				case spectralSDF: this.spectralSDF = (String) settings.get(key);	break;
 				case substrucAbsent: this.substrucAbsent = (List<String>) settings.get(key); break;
 				case substrucPresent: this.substrucPresent = (List<String>) settings.get(key); break;
 				case unique: this.unique = (Boolean.parseBoolean((String) settings.get(key)));	break;
@@ -251,6 +255,7 @@ public class MetFusionBatchSettings {
 				case onlyCHNOPS: this.onlyCHNOPS = Boolean.parseBoolean((String) settings.get(key)); break;
 				case spectralDB: this.spectralDB = SpectralDB.valueOf((String) settings.get(key)); break;
 				case sdfFile: this.sdfFile = (String) settings.get(key);	break;
+				case spectralSDF: this.spectralSDF = (String) settings.get(key);	break;
 				case substrucAbsent: this.substrucAbsent = (List<String>) settings.get(key); break;
 				case substrucPresent: this.substrucPresent = (List<String>) settings.get(key); break;
 				case unique: this.unique = Boolean.parseBoolean((String) settings.get(key));	break;
@@ -287,6 +292,7 @@ public class MetFusionBatchSettings {
 		System.out.println(def.onlyCHNOPS);
 		System.out.println(def.spectralDB);
 		System.out.println(def.sdfFile);
+		System.out.println(def.spectralSDF);
 		System.out.println(def.unique);
 		
 		MetFusionBatchFileHandler mbfh = new MetFusionBatchFileHandler(new File("/home/mgerlich/Documents/metfusion_param_default.mf"));
@@ -482,6 +488,14 @@ public class MetFusionBatchSettings {
 
 	public void setUnique(boolean unique) {
 		this.unique = unique;
+	}
+
+	public String getSpectralSDF() {
+		return spectralSDF;
+	}
+
+	public void setSpectralSDF(String spectralSDF) {
+		this.spectralSDF = spectralSDF;
 	}
 
 }
