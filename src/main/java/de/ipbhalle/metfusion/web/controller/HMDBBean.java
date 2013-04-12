@@ -17,7 +17,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import de.ipbhalle.io.FileNameFilterImpl;
 import de.ipbhalle.metfusion.main.MetFusionBatchFileHandler;
@@ -303,6 +306,18 @@ public class HMDBBean implements GenericDatabaseBean {
 				
 				IAtomContainer ac = mbu.getContainer(id, structurePath);
 				
+				// compute molecular formula
+				IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(ac);
+				if(iformula == null)	// fallback to MassBank sum formula
+					iformula = MolecularFormulaManipulator.getMolecularFormula(formula, DefaultChemObjectBuilder.getInstance());
+				// compute molecular mass
+				double emass = 0.0d;
+				if(!formula.contains("R"))	// compute exact mass from formula only if NO residues "R" are present
+					emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
+				
+				if(emass > 0)
+					weight = emass;
+				
 				Result r = new Result(databaseName, id, name, score, ac, urlHMDB + link, "image", formula, weight);
 				r.setMatchingPeaks(matchingPeaks);
 				results.add(r);
@@ -326,7 +341,7 @@ public class HMDBBean implements GenericDatabaseBean {
 			String id = "";				// HMDB ID
 			String name = "";			// name
 			String adduct = "";			// adduct
-			double adductWeith = 0.0d;	// adduct MW
+			double adductWeigth = 0.0d;	// adduct MW
 			String formula = "";		// molecular formula
 			double weight = 0.0d;		// molecular weight
 			double delta = 0.0d;		// Delta = abs( query mass - adduct mass )
@@ -347,7 +362,7 @@ public class HMDBBean implements GenericDatabaseBean {
 						formula = adduct;
 					}
 					else if(columnCounter == 3) {	// adduct MW
-						adductWeith = Double.parseDouble(d.text().trim());
+						adductWeigth = Double.parseDouble(d.text().trim());
 					}
 					else if(columnCounter == 4) {	// compound MW
 						weight = Double.parseDouble(d.text().trim());
