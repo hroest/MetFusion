@@ -8,7 +8,7 @@ package de.ipbhalle.enumerations;
 public enum AvailableParameters {
 	mbLimit, mbCutoff, mbIonization, mbInstruments,		// MassBank parameters
 	mfDatabase, mfDatabaseIDs, mfFormula, mfLimit, mfParentIon, mfAdduct, mfExactMass, mfSearchPPM, mfMZabs, mfMZppm,	// MetFrag parameters 
-	clustering, peaks, onlyCHNOPS, sdfFile,	unique,			// MetFusion parameters
+	clustering, peaks, onlyCHNOPS, sdfFile,	spectralSDF, unique,			// MetFusion parameters
 	substrucPresent, substrucAbsent,		// substructure search includes/excludes
 	spectralDB;								// name of spectral DB, MassBank, Metlin, GMD, SDF
 }
