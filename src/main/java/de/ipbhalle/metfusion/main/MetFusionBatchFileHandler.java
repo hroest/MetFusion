@@ -100,12 +100,14 @@ public class MetFusionBatchFileHandler {
 		String[] lines = peaks.split("\n");	// each m/z int pair one line
 		String[] mz = new String[lines.length];
 		String[] ints = new String[lines.length];
+		boolean onlyMZ = false;
 		for (int i = 0; i < lines.length; i++) {
 			lines[i] = lines[i].replaceAll("[ \t\\x0B\f\r]+", DEFAULT_SEPARATOR);	// replace each white space by default one
 			String[] split = lines[i].split(DEFAULT_SEPARATOR);
 			if(split.length == 1) {		// only m/z, set relative intensity to 500
 				mz[i] = split[0];
 				ints[i] = "500";
+				onlyMZ = true;
 			}
 			else if(split.length == 2) {		// m/z intensity pair
 				double intensity = Double.parseDouble(split[1]);
@@ -113,6 +115,7 @@ public class MetFusionBatchFileHandler {
 					maxInt = intensity;
 				mz[i] = split[0];
 				ints[i] = split[1];
+				onlyMZ = false;
 			}
 			else if(split.length == 3) {// m/z intensity rel.intensity triple
 				double intensity = Double.parseDouble(split[2]);
@@ -120,13 +123,18 @@ public class MetFusionBatchFileHandler {
 					maxInt = intensity;
 				mz[i] = split[0];
 				ints[i] = split[2];
+				onlyMZ = false;
 			}
 			else {	// unknown split - assume length 3 split
 				System.err.println("Unusual size of split!");
 				mz[i] = split[0];
 				ints[i] = split[2];
+				onlyMZ = false;
 			}
 		}
+		if(onlyMZ)
+			maxInt = 500;
+		
 		StringBuilder sb = new StringBuilder();
 		//calculate the rel. intensity
 		for (int i = 0; i < lines.length; i++) {
