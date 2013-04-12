@@ -43,11 +43,12 @@ public class GenerateArrayJob {
 		//String outputDir = "/vol/data_extern/ryona@psc.riken.jp/queries20121003/secmet_QTOF/root_n_secmet_QTOF/results_chebi/";
 		//String outputDir = "/home/mgerlich/projects/metfusion_tp/results_dbchemspider_Massbank_wo_Eawag_but_wUFZ_formula/";
 		//String outputDir = "/home/mgerlich/projects/metfusion_chebi/";
-		String outputDir = "/home/mgerlich/projects/metfusion_chebi_searchppm=20/";
+		//String outputDir = "/home/mgerlich/projects/metfusion_chebi_searchppm=20/";
 		//String outputDir = "/home/mgerlich/projects/metfusion_tp/results_dbchemspider_Massbank_w_Eawag/";
 		//String outputDir = "/home/mgerlich/projects/farag_profile/results_03-01-2013/";
 		//String outputDir = "/home/mgerlich/projects/MTBLSFarag/results_mf_HHT/";
 		//String outputDir = "/vol/data_extern/michael.witting@helmholtz-muenchen.de/metfusion_results/";
+		String outputDir = "/home/mgerlich/projects/metfusion_1099spectra_reference/";
 		
 		// the directory in which the jar file is located
 		String projectDir = "/home/mgerlich/projects/";
@@ -55,7 +56,7 @@ public class GenerateArrayJob {
 		// the directory where the shell scripts are stored
 		//String workDir = "/home/mgerlich/projects/eval_metfusion_ECFP/";
 		String workDir = projectDir;
-		String prefix = "chebi_ppm20";
+		String prefix = "benchmarkSDFout";
 		File jobInfo = new File(workDir, prefix + "_sge_metfusion.sh");
 		jobInfo.createNewFile();
 		jobInfo.setExecutable(true);
@@ -87,7 +88,7 @@ public class GenerateArrayJob {
 		//fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + " -mf $A -out $B -unique\n");
 		
 		fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + 
-				" -record $A -out $B -unique -format SDF_XLS -db chebi\n");
+				" -record $A -out $B -unique -format SDF_XLS -verbose\n");
 		
 //		fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + 
 //		" -mf $A -out $B -unique -format SDF_XLS -compress\n");
@@ -128,7 +129,10 @@ public class GenerateArrayJob {
 //		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/helmholtz/ -o /home/mgerlich/SGE/output/helmholtz/ -q " + queue + 
 //				" -pe orte2 4 " + qFile + "\n");
 		
-		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/chebi/ -o /home/mgerlich/SGE/output/chebi/ -q " + queue + 
+//		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/chebi/ -o /home/mgerlich/SGE/output/chebi/ -q " + queue + 
+//				" -pe orte2 6 " + qFile + "\n");
+		
+		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/benchmark/ -o /home/mgerlich/SGE/output/benchmark/ -q " + queue + 
 				" -pe orte2 6 " + qFile + "\n");
 		
 //		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/tp/results_dbchemspider_Massbank_wo_Eawag_but_wUFZ_formula/" +
