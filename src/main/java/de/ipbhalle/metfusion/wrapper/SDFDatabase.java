@@ -2,7 +2,7 @@
  * created by Michael Gerlich, Jan 28, 2013 - 11:14:23 AM
  */ 
 
-package de.ipbhalle.metfusion.main;
+package de.ipbhalle.metfusion.wrapper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,8 +24,6 @@ import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import de.ipbhalle.metfusion.web.controller.GenericDatabaseBean;
-import de.ipbhalle.metfusion.wrapper.Result;
-import de.ipbhalle.metfusion.wrapper.ResultComparator;
 
 public class SDFDatabase implements GenericDatabaseBean {
 
