@@ -20,6 +20,7 @@ import de.ipbhalle.enumerations.Fingerprints;
 import de.ipbhalle.enumerations.Ionizations;
 import de.ipbhalle.enumerations.OutputFormats;
 import de.ipbhalle.metfusion.threading.MetFusionThreadBatchMode;
+import de.ipbhalle.metfusion.threading.MetFusionThreadSDFOnly;
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
 import de.ipbhalle.metfusion.web.controller.ResultExtGroupBean;
 import de.ipbhalle.metfusion.wrapper.ColorcodedMatrix;
@@ -30,10 +31,11 @@ public class MetFusionBatchMode {
 
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
-	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, fp, fragOffline, db, chnops, compress, verbose};
+	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, 
+		fp, fragOffline, db, chnops, compress, verbose, SDFonly};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
 	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, 
-		checkUNIQUE, checkFP, checkFRAGOFFLINE, checkDB, checkCHNOPS, checkCOMPRESS, checkVERBOSE;
+		checkUNIQUE, checkFP, checkFRAGOFFLINE, checkDB, checkCHNOPS, checkCOMPRESS, checkVERBOSE, checkSDFONLY;
 	private Map<ARGUMENTS, String> settings;
 	private final static String DEFAULT_SERVER = "http://www.massbank.jp/";
 	
@@ -100,6 +102,7 @@ public class MetFusionBatchMode {
 			System.out.println("optionally: -fragOffline\t\t(generate fragments in files rather than in memory - recommended for large datasets)");
 			System.out.println("optionally: -compress\t\t(compress resulting SDF or XLS file)");
 			System.out.println("optionally: -verbose\t\t(create additional output files for intermediate results)");
+			System.out.println("optionally: -SDFonly\t\t(use provided SDF filenames in mf file as respective database replacements)");
 			System.out.print("optionally: -fp ");
 			for (Fingerprints fp : fps) {
 				System.out.print("[" + fp + "] ");
@@ -119,6 +122,7 @@ public class MetFusionBatchMode {
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -fp ECFP");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -fragOffline");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -chnops");
+			System.out.println("Example call: java -jar JARFILE -mf settings.mf -SDFonly \t\t(both SDF filenames are stored in settings.mf)");
 			
 			return success;
 		}
@@ -171,7 +175,10 @@ public class MetFusionBatchMode {
 					this.checkVERBOSE = Boolean.TRUE;	// verbose does not have an additional property, mark as set/unset and continue
 					continue;
 				}
-				
+				if(temp.equals(ARGUMENTS.SDFonly.toString())) {
+					this.checkSDFONLY = Boolean.TRUE;	// SDFonly does not have an additional property, mark as set/unset and continue
+					continue;
+				}
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
 				i++;	// skip value, iterate over new argument
 			}
@@ -180,6 +187,9 @@ public class MetFusionBatchMode {
 			settings.put(ARGUMENTS.out, currentDir);
 			checkOUT = Boolean.TRUE;
 		}
+		if(!checkMF & checkSDFONLY)		// SDFonly can only work with SDF files specified in mf file
+			return Boolean.FALSE;
+		
 		if(checkMF & checkSDF | checkMF & checkOUT | checkRECORD & checkOUT)
 			success = true;
 		
@@ -366,6 +376,13 @@ public class MetFusionBatchMode {
 			metfusionBatch.setCompress(Boolean.TRUE);
 		if(mfbm.checkVERBOSE)		// enable verbosity if specified
 			metfusionBatch.setVerbose(Boolean.TRUE);
+		
+		if(mfbm.checkSDFONLY) {	// start alternative threading based on two SDF files provided that act as fragmenter/database result replacement
+			MetFusionThreadSDFOnly sdfOnly = new MetFusionThreadSDFOnly(settings, outPath, prefix, of);
+			sdfOnly.run();
+			
+			return;		// exit SDF only run
+		}
 		
 		metfusionBatch.run();
 	}
