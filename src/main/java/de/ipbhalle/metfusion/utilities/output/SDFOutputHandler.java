@@ -136,7 +136,16 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 				} catch (CDKException e1) {
 					System.err.println("Error writing container for molecule [" + result.getId() + "]");
 				}
-			}
+			} catch(ArrayIndexOutOfBoundsException e) {
+		    	System.err.println("Error generating 2D coordinates for molecule [" + result.getId() + "], trying container without 2D coordinates!");
+				try {
+					container.setProperties(props);
+					container.setID((String) props.get(properties.name));
+					sdfwriter.write(container);
+				} catch (CDKException e1) {
+					System.err.println("Error writing container for molecule [" + result.getId() + "]");
+				}
+		    }
 		}
 		
 		try {
@@ -193,7 +202,16 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 				} catch (CDKException e1) {
 					System.err.println("Error writing container for molecule [" + result.getId() + "]");
 				}
-			}
+			} catch(ArrayIndexOutOfBoundsException e) {
+		    	System.err.println("Error generating 2D coordinates for molecule [" + result.getId() + "], trying container without 2D coordinates!");
+				try {
+					container.setProperties(props);
+					container.setID((String) props.get(properties.name));
+					sdfwriter.write(container);
+				} catch (CDKException e1) {
+					System.err.println("Error writing container for molecule [" + result.getId() + "]");
+				}
+		    }
 		}
 		
 		try {
@@ -243,7 +261,16 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 				} catch (CDKException e1) {
 					System.err.println("Error writing container for molecule [" + result.getId() + "]");
 				}
-			}
+			} catch(ArrayIndexOutOfBoundsException e) {
+		    	System.err.println("Error generating 2D coordinates for molecule [" + result.getId() + "], trying container without 2D coordinates!");
+				try {
+					container.setProperties(props);
+					container.setID((String) props.get(properties.name));
+					sdfwriter.write(container);
+				} catch (CDKException e1) {
+					System.err.println("Error writing container for molecule [" + result.getId() + "]");
+				}
+		    }
 		}
 		
 		try {
@@ -283,7 +310,16 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 			} catch (CDKException e1) {
 				System.err.println("Error generating 2D coordinates for molecule [" + result.getId() + "]");
 				continue;
-			}
+			} catch(ArrayIndexOutOfBoundsException e) {
+		    	System.err.println("Error generating 2D coordinates for molecule [" + result.getId() + "], trying container without 2D coordinates!");
+				try {
+					container.setProperties(props);
+					container.setID((String) props.get(properties.name));
+					sdfwriter.write(container);
+				} catch (CDKException e1) {
+					System.err.println("Error writing container for molecule [" + result.getId() + "]");
+				}
+		    }
 		    IMolecule layedOutMol = sdg.getMolecule();
 //			container.setProperties(props);
 //			container.setID((String) props.get(properties.name));
