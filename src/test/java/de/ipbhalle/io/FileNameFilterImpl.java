@@ -100,6 +100,14 @@ public class FileNameFilterImpl implements FilenameFilter {
 				return true;
 			else return false;
 		}
+		else if(!prefix.isEmpty() && !suffix.isEmpty()) {	// neither prefix nor suffix are empty
+//			if(name.startsWith(prefix) && not.isEmpty())
+//				return true;
+//			else
+			if(name.startsWith(prefix) && name.endsWith(suffix))
+				return true;
+			else return false;
+		}
 		else {							// all values set
 			if(name.startsWith(prefix) && name.endsWith(suffix) && !name.contains(not))
 				return true;
