@@ -26,15 +26,18 @@ import com.chemspider.www.ExtendedCompoundInfo;
 public class ResultSubstructure extends Result {
 
 	private ExtendedCompoundInfo info;
-	private IAtomContainer container;
 	private boolean used;
 	
 	
 	public ResultSubstructure(ExtendedCompoundInfo info, IAtomContainer container, boolean used) {
 		super("SubstructureSearch", String.valueOf(info.getCSID()), info.getCommonName(), 1.0d);
 		this.info = info;
-		this.container = container;
+		setMol(container);
 		this.used = used;
+		setSmiles(info.getSMILES());
+		setExactMass(info.getMonoisotopicMass());
+		setInchi(info.getInChI());
+		setInchikey(info.getInChIKey());
 	}
 
 	public ExtendedCompoundInfo getInfo() {
@@ -43,14 +46,6 @@ public class ResultSubstructure extends Result {
 
 	public void setInfo(ExtendedCompoundInfo info) {
 		this.info = info;
-	}
-
-	public IAtomContainer getContainer() {
-		return container;
-	}
-
-	public void setContainer(IAtomContainer container) {
-		this.container = container;
 	}
 
 	public boolean isUsed() {
