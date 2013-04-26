@@ -227,7 +227,7 @@ public class MetFusionBatchFileHandler {
 			System.err.println("Error finishing batch file [" + output.getAbsolutePath() + "]!");
 			return success;
 		}
-		
+		success = true;
 		return success;
 	}
 	
