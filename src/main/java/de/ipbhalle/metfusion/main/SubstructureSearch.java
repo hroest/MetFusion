@@ -69,6 +69,8 @@ import com.chemspider.www.SearchSoapProxy;
 import com.chemspider.www.SubstructureSearchOptions;
 
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
+import de.ipbhalle.metfusion.utilities.output.SDFOutputHandler;
+import de.ipbhalle.metfusion.wrapper.Result;
 import de.ipbhalle.metfusion.wrapper.ResultSubstructure;
 
 public class SubstructureSearch implements Runnable {
@@ -434,7 +436,7 @@ public class SubstructureSearch implements Runnable {
 			
 			// SMARTS matching
 			try {
-				matches = sqt.matches(rs.getContainer());
+				matches = sqt.matches(rs.getMol());
 				//System.out.println("matches -> " + matches);
 				if((matches && include) || (!matches && !include)) {		// keep container
 					remaining.add(rs);
@@ -460,7 +462,7 @@ public class SubstructureSearch implements Runnable {
 		IMolecularFormula filter = MolecularFormulaManipulator.getMolecularFormula(molecularFormula, DefaultChemObjectBuilder.getInstance());
 		List<ResultSubstructure> remaining = new ArrayList<ResultSubstructure>();
 		for (ResultSubstructure rs : candidates) {
-			IAtomContainer ac = rs.getContainer();
+			IAtomContainer ac = rs.getMol();
 			try {
 				AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(ac);
 //				CDKHydrogenAdder hAdder = CDKHydrogenAdder.getInstance(ac.getBuilder());
@@ -544,9 +546,13 @@ public class SubstructureSearch implements Runnable {
 		
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/136m0498_MSMS.mf");
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/148m0859_MSMS.mf");
-		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/164m0445a_MSMS.mf");
+//		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/164m0445a_MSMS.mf");
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/192m0757a_MSMS.mf");
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/MetFusion_ChemSp_mfs/naringenin.mf");
+		
+		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/Known_BT_MSMS_ChemSp/1MeBT_MSMS.mf");
+		
+		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/150m0655a_MSMS.mf");
 		
 		MetFusionBatchFileHandler mbf = new MetFusionBatchFileHandler(file);
 		try {
@@ -571,12 +577,22 @@ public class SubstructureSearch implements Runnable {
 		SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula);
 		ss.run();
 		List<ResultSubstructure> remaining = ss.getResultsRemaining();
+		List<Result> resultsForSDF = new ArrayList<Result>();
+		
 		StringBuilder sb = new StringBuilder();
 		String sep = ",";
 		for (ResultSubstructure rs : remaining) {
 			sb.append(rs.getId()).append(sep);
+			
+			Result r = new Result(rs.getPort(), rs.getId(), rs.getName(), rs.getScore());
+			r.setMol(rs.getMol());
+			r.setSmiles(rs.getSmiles());
+			r.setInchi(rs.getInchi());
+			r.setInchikey(rs.getInchikey());
+			resultsForSDF.add(r);
 		}
 		String ids = sb.toString();
+		
 		if(!ids.isEmpty()) {
 			ids = ids.substring(0, ids.length()-1);
 			System.out.println("ids -> " + ids);
@@ -586,6 +602,9 @@ public class SubstructureSearch implements Runnable {
 			filename = filename.replace(prefix, prefix + "_ids");
 			File output = new File(file.getParent(), filename);
 			mbf.writeFile(output, settings);
+			
+			SDFOutputHandler so = new SDFOutputHandler(prefix + ".sdf");
+			so.writeOriginalResults(resultsForSDF, false);
 		}
 	}
 	
