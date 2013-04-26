@@ -14,10 +14,13 @@ import java.util.Map;
 
 import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.ChemObject;
+import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.io.MDLV2000Reader;
+import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
@@ -70,60 +73,72 @@ public class SDFDatabase implements GenericDatabaseBean {
 				return;
 			}
 			ChemFile chemFile = null;
+			SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+			int count = 1;
 			try {
 				chemFile = (ChemFile) reader.read((ChemObject) new ChemFile());
-				containersList = ChemFileManipulator.getAllAtomContainers(chemFile);
-				for (IAtomContainer container : containersList) {
-					Map<Object, Object> properties =  container.getProperties();
-					String id = "", name = "", origin = "", smiles = "";
-					int peaksExplained = 0;
-					double score = 0.0d;
-					
-					if(properties.containsKey("id")) {
-						id = (String) properties.get("id");
-					}
-					if(properties.containsKey("origscore")) {
-						score = Double.valueOf((String) properties.get("origscore"));
-					}
-					if(properties.containsKey("name")) {
-						name = (String) properties.get("name");
-					}
-					if(properties.containsKey("peaksExplained")) {
-						peaksExplained = Integer.valueOf((String) properties.get("peaksExplained"));
-					}
-					if(properties.containsKey("origin")) {
-						origin = (String) properties.get("origin");
-					}
-					if(properties.containsKey("smiles")) {
-						smiles = (String) properties.get("smiles");
-					}
-					
-					IAtomContainer temp = hydrogenHandling(container);
-					ret.add(temp);
-
-					// compute molecular formula
-					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
-					String formula = MolecularFormulaManipulator.getHillString(iformula);
-					// compute molecular mass
-					double emass = 0.0d;
-					if (!formula.contains("R")) // compute exact mass from formula only if NO residues "R" are present
-							emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
-					
-					Result r = new Result(origin, id, name, score, temp, "", "", formula, emass);
-					r.setMatchingPeaks(peaksExplained);
-					if(smiles != null && !smiles.isEmpty())
-						r.setSmiles(smiles);
-					
-					results.add(r);
-				}
 			} catch (CDKException e) {
-				System.err.println("Error reading SDF file " + f.getAbsolutePath());
+				System.err.println("Error reading SDF file " + f.getAbsolutePath());	// + " for " + count + "th molecule!");
 				this.results = new ArrayList<Result>();
 				
 				return;
 			}
-		}
-		else {
+			containersList = ChemFileManipulator.getAllAtomContainers(chemFile);
+			for (IAtomContainer container : containersList) {
+				Map<Object, Object> properties =  container.getProperties();
+				String id = "", name = "", origin = "", smiles = "";
+				int peaksExplained = 0;
+				double score = 0.0d;
+				
+				if(properties.containsKey("id")) {
+					id = (String) properties.get("id");
+				}
+				if(properties.containsKey("origscore")) {
+					score = Double.valueOf((String) properties.get("origscore"));
+				}
+				if(properties.containsKey("name")) {
+					name = (String) properties.get("name");
+				}
+				if(properties.containsKey("peaksExplained")) {
+					peaksExplained = Integer.valueOf((String) properties.get("peaksExplained"));
+				}
+				if(properties.containsKey("origin")) {
+					origin = (String) properties.get("origin");
+				}
+				if(properties.containsKey("smiles")) {
+					smiles = (String) properties.get("smiles");
+				}
+				
+				//IAtomContainer temp = hydrogenHandling(container, id);
+				IAtomContainer temp = null;
+				try {
+					temp = sp.parseSmiles(smiles);
+				} catch (InvalidSmilesException e) {
+					System.err.println("Invalid SMILES created for " + count + "th molecule.");
+					//continue;			// skip entry if invalid SMILES is present
+					temp = container;	// fall back to original entry
+				}
+				temp = hydrogenHandling(temp, id);
+				ret.add(temp);
+
+				// compute molecular formula
+				IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
+				String formula = MolecularFormulaManipulator.getHillString(iformula);
+				// compute molecular mass
+				double emass = 0.0d;
+				if (!formula.contains("R")) // compute exact mass from formula only if NO residues "R" are present
+					emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
+				
+				Result r = new Result(origin, id, name, score, temp, "", "", formula, emass);
+				r.setMatchingPeaks(peaksExplained);
+				if(smiles != null && !smiles.isEmpty())
+					r.setSmiles(smiles);
+				
+				results.add(r);
+				
+				count++;
+			}
+		} else {
 			System.err.println("[" + f.getAbsolutePath() + "] is not a file! Please specify a valid SD file. Returning an empty list!");
 			this.results = new ArrayList<Result>();
 			
@@ -140,12 +155,13 @@ public class SDFDatabase implements GenericDatabaseBean {
 		 */
 	}
 
-	private IAtomContainer hydrogenHandling(IAtomContainer container) {
+	private IAtomContainer hydrogenHandling(IAtomContainer container, String id) {
 		// create deep copy
 		IAtomContainer copy = null;
 		try {
 			 copy = container.clone();
 		} catch (CloneNotSupportedException e1) {
+			System.err.println("Could not clone IAtomContainer - no hydrogen handling!");
 			return container;
 		}
 		
@@ -156,6 +172,7 @@ public class SDFDatabase implements GenericDatabaseBean {
 		    hAdder.addImplicitHydrogens(copy);
 		    AtomContainerManipulator.convertImplicitToExplicitHydrogens(copy);
 		} catch (CDKException e) {		// return original if adding H's fails
+			System.err.println("Error adding explict H's - no hydrogen handling for ID [" + id + "]!");
 			return container;
 		}
         
