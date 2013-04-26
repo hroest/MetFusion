@@ -346,10 +346,19 @@ public class MetFusionBatchMode {
 			metfragbm.setOnlyCHNOPS(true);
 		else metfragbm.setOnlyCHNOPS(false);
 		
+		String settingsSDF = settings.getSdfFile().trim();
+		
 		// sdf path
 		if(mfbm.isCheckSDF()) {	// mfbm.checkSDF
 			String sdfFile = mfbm.settings.get(ARGUMENTS.sdf);
 			File sdf = new File(sdfFile);
+			List<IAtomContainer> compounds = mfbm.batchFileHandler.consumeSDF(sdf.getAbsolutePath());
+			System.out.println("#compounds from sdf file -> " + compounds.size());
+			metfragbm.setSelectedDB(metfragbm.getDbSDF());
+			metfragbm.setSelectedSDF(sdf.getAbsolutePath());
+		}
+		else if(!settingsSDF.isEmpty() && mfbm.checkMF) {	// SDF file provided via settings file
+			File sdf = new File(settingsSDF);
 			List<IAtomContainer> compounds = mfbm.batchFileHandler.consumeSDF(sdf.getAbsolutePath());
 			System.out.println("#compounds from sdf file -> " + compounds.size());
 			metfragbm.setSelectedDB(metfragbm.getDbSDF());
