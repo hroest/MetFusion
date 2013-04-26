@@ -245,6 +245,8 @@ public class HMDBBean implements GenericDatabaseBean {
 			double weight = 0.0d;		// molecular weight
 			double score = 0.0d;		// library matches
 			int matchingPeaks = 0;		// number of matching peaks derived by library matches
+			int queryPeaks = 0;		// number of peaks in query spectrum
+			int databasePeaks = 0;	// number of peaks in database spectrum
 			String link = "";
 			if(!data.isEmpty()) {
 				for (Element d : data) {
@@ -294,6 +296,7 @@ public class HMDBBean implements GenericDatabaseBean {
 								score = d1 / d2;
 								
 								matchingPeaks = (int) d1;
+								databasePeaks = (int) d2;
 							}
 						}
 						else score = Double.parseDouble(d.text().trim());
@@ -320,6 +323,8 @@ public class HMDBBean implements GenericDatabaseBean {
 				
 				Result r = new Result(databaseName, id, name, score, ac, urlHMDB + link, "image", formula, weight);
 				r.setMatchingPeaks(matchingPeaks);
+				r.setTiedRank(databasePeaks);	// TODO: abuse tied rank for storing databasePeaks
+				
 				results.add(r);
 			}
 		}
@@ -341,7 +346,7 @@ public class HMDBBean implements GenericDatabaseBean {
 			String id = "";				// HMDB ID
 			String name = "";			// name
 			String adduct = "";			// adduct
-			double adductWeigth = 0.0d;	// adduct MW
+			double adductWeight = 0.0d;	// adduct MW
 			String formula = "";		// molecular formula
 			double weight = 0.0d;		// molecular weight
 			double delta = 0.0d;		// Delta = abs( query mass - adduct mass )
@@ -362,7 +367,7 @@ public class HMDBBean implements GenericDatabaseBean {
 						formula = adduct;
 					}
 					else if(columnCounter == 3) {	// adduct MW
-						adductWeigth = Double.parseDouble(d.text().trim());
+						adductWeight = Double.parseDouble(d.text().trim());
 					}
 					else if(columnCounter == 4) {	// compound MW
 						weight = Double.parseDouble(d.text().trim());
@@ -426,6 +431,7 @@ public class HMDBBean implements GenericDatabaseBean {
 				if(splitPeak.length == 2)
 					sb.append(splitPeak[0]).append("\n");
 			}
+			int queryPeaks = split.length;	// number of peaks in query spectrum
 			HMDBBean hb = new HMDBBean();
 			hb.setSelectedLibNMR1D("C");	// TODO: check for correct library
 			hb.setPeaksNMR1D(sb.toString());
@@ -440,6 +446,10 @@ public class HMDBBean implements GenericDatabaseBean {
 				for (Result result : results) {
 					System.out.println(result.getId() + "\t" + result.getName() + "\t" + result.getSumFormula() + 
 							"\t" + result.getExactMass() + "\t" + result.getScore());
+					
+					result.getMol().setProperty("numQueryPeaks", queryPeaks);
+					result.getMol().setProperty("numMatchingPeaks", result.getMatchingPeaks());
+					result.getMol().setProperty("numDatabasePeaks", result.getTiedRank());
 				}
 				
 				String filename = files[i].getName();
