@@ -552,12 +552,13 @@ public class SubstructureSearch implements Runnable {
 		
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/Known_BT_MSMS_ChemSp/1MeBT_MSMS.mf");
 		
-		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/150m0655a_MSMS.mf");
+		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/178m0605c_MSMS.mf");
 		
 		MetFusionBatchFileHandler mbf = new MetFusionBatchFileHandler(file);
 		try {
 			mbf.readFile();
 		} catch (IOException e) {
+			//System.out.println(e.getMessage());
 			System.err.println("Error reading from MetFusion settings file [" + file.getAbsolutePath() + "]. Aborting!");
 			System.exit(-1);
 		}
@@ -593,6 +594,7 @@ public class SubstructureSearch implements Runnable {
 		}
 		String ids = sb.toString();
 		
+		String fileSep = System.getProperty("file.separator");
 		if(!ids.isEmpty()) {
 			ids = ids.substring(0, ids.length()-1);
 			System.out.println("ids -> " + ids);
@@ -600,11 +602,17 @@ public class SubstructureSearch implements Runnable {
 			String filename = file.getName();
 			String prefix = filename.substring(0, filename.lastIndexOf("."));
 			filename = filename.replace(prefix, prefix + "_ids");
+			String dir = file.getParent();
+			System.out.println("dir -> " + dir);
+			if(!dir.endsWith(fileSep))
+				dir += fileSep;
+			
 			File output = new File(file.getParent(), filename);
 			mbf.writeFile(output, settings);
-			
-			SDFOutputHandler so = new SDFOutputHandler(prefix + ".sdf");
-			so.writeOriginalResults(resultsForSDF, false);
+			SDFOutputHandler so = new SDFOutputHandler(dir + prefix + ".sdf");
+			boolean writeOK = so.writeOriginalResults(resultsForSDF, false);
+			if(!writeOK)
+				System.err.println("Error writing SDF [" + so.getFilename());
 		}
 	}
 	
