@@ -17,7 +17,7 @@ import java.util.Map;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
-import de.ipbhalle.MetFlow.utilities.MetFrag.ESearchDownload;
+import de.ipbhalle.metfusion.utilities.MetFrag.ESearchDownload;
 import de.ipbhalle.metfusion.wrapper.Result;
 
 public class EvalLogShort implements Runnable{

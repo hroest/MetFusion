@@ -2,7 +2,7 @@
  * created by Michael Gerlich, Oct 7, 2010 - 3:53:38 PM
  */ 
 
-package de.ipbhalle.MetFlow.utilities.MetFrag;
+package de.ipbhalle.metfusion.utilities.MetFrag;
 
 import gov.nih.nlm.ncbi.pubchem.CompressType;
 import gov.nih.nlm.ncbi.pubchem.EntrezKey;
