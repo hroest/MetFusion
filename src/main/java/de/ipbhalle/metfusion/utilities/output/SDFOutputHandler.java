@@ -350,4 +350,12 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		// TODO Auto-generated method stub
 		
 	}
+
+	public String getFilename() {
+		return filename;
+	}
+
+	public void setFilename(String filename) {
+		this.filename = filename;
+	}
 }
