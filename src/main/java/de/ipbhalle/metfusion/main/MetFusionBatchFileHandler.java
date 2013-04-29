@@ -45,8 +45,9 @@ public class MetFusionBatchFileHandler {
 		if(batchFile.exists() && batchFile.isFile() && batchFile.canRead())
 			System.out.println("Found file [" + batchFile.getAbsolutePath() + "]");
 		else {
-			System.err.println("Error opening file [" + batchFile.getAbsolutePath() + "] - aborting!");
-			return;
+			String message = "Error opening file [" + batchFile.getAbsolutePath() + "] - aborting!";
+			System.err.println(message);
+			throw new IOException(message);
 		}
 		
 		batchSettings = new MetFusionBatchSettings();
