@@ -55,7 +55,7 @@ public class HMDBBean implements GenericDatabaseBean {
 	private final String prefixH = "1";
 	private final String prefixC = "13";
 	private String queryUrlNMR1D = "http://www.hmdb.ca/spectra/nmr_one_d/search?" +
-			"utf8=" + utf8 + "&nucleus=%s" + "&peaks=%s" +
+			"nucleus=%s" + "&peaks=%s" +			// "utf8=" + utf8 + "&
 			"&cs_tolerance=%f" + "&commit=Search";
 	private final String tableNMR1D = "nmr_one_d_search_results";
 	private String selectedLibNMR1D = "C";
@@ -403,8 +403,8 @@ public class HMDBBean implements GenericDatabaseBean {
 		
 		
 		// TODO: iterate over settings files and run HMDB queries
-		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_13C";
-		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_13C/";
+		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_1H";
+		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_1H/";
 		
 		String ending = ".nmr";
 		File[] files = new File(settingsDir).listFiles(new FileNameFilterImpl("", ending));
@@ -433,7 +433,8 @@ public class HMDBBean implements GenericDatabaseBean {
 			}
 			int queryPeaks = split.length;	// number of peaks in query spectrum
 			HMDBBean hb = new HMDBBean();
-			hb.setSelectedLibNMR1D("C");	// TODO: check for correct library
+			hb.setSelectedLibNMR1D("H");	// TODO: check for correct library
+			hb.setToleranceNMR1D(0.1f);
 			hb.setPeaksNMR1D(sb.toString());
 			List<Result> results = hb.performQuery(HMDBBean.searchType.NMR1D);	// TODO: ensure proper query type
 			boolean gotResults = false;
