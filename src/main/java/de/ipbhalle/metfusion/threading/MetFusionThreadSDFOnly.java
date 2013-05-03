@@ -142,6 +142,18 @@ public class MetFusionThreadSDFOnly implements Runnable {
 		
 		List<Result> resultDatabase = database.getResults();
 		List<Result> resultFragmenter = fragmenter.getResults();
+		if(resultDatabase.isEmpty()) {
+			System.err.println("EMPTY Database results! Aborting.");
+			System.exit(-1);
+		}
+		else if(resultFragmenter.isEmpty()) {
+			System.err.println("EMPTY Fragmenter results! Aborting.");
+			System.exit(-1);
+		}
+		else {
+			System.out.println("Got [" + resultDatabase.size() + "] Database results.");
+			System.out.println("Got [" + resultFragmenter.size() + "] Fragmenter results.");
+		}
 		
 		/** write out original results everytime, despite of verbose or not */
 		File origOut = new File(tempPath, addPrefixToFile("resultsOrig.log"));
