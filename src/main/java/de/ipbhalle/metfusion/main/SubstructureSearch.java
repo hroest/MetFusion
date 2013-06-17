@@ -20,6 +20,8 @@ package de.ipbhalle.metfusion.main;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -29,6 +31,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.xml.rpc.ServiceException;
@@ -56,6 +59,7 @@ import org.openscience.cdk.smiles.smarts.SMARTSQueryTool;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import org.xml.sax.SAXException;
 
 import com.chemspider.www.CommonSearchOptions;
 import com.chemspider.www.EComplexity;
@@ -79,6 +83,8 @@ public class SubstructureSearch implements Runnable {
 	private List<String> excludes;
 	private String token;
 	private String molecularFormula;
+	private MetFusionBatchFileHandler batchFileHandler;
+	
 	public final boolean substrucPresent = Boolean.TRUE;
 	public final boolean substrucAbsent = Boolean.FALSE;
 	private ExtendedCompoundInfo[] chemspiderInfo;
@@ -86,11 +92,12 @@ public class SubstructureSearch implements Runnable {
 	private List<ResultSubstructure> resultsRemaining;
 	
 	
-	public SubstructureSearch(List<String> includes, List<String> excludes, String token, String formula) {
+	public SubstructureSearch(List<String> includes, List<String> excludes, String token, String formula, MetFusionBatchFileHandler batchFileHandler) {
 		this.includes = includes;
 		this.excludes = excludes;
 		this.setToken(token);
 		this.setMolecularFormula(formula);
+		this.batchFileHandler = batchFileHandler;
 	}
 	
 	private void queryIncludes() {
@@ -237,17 +244,17 @@ public class SubstructureSearch implements Runnable {
 //		}
 		OpenBabelLocator obl = new OpenBabelLocator();
 		String obmol = "";
-		try {
-			OpenBabelSoap obsoap = obl.getOpenBabelSoap();
-			obmol = obsoap.convert(substrucPresent, "smi", "mol");
-			System.out.println("obmol\n" + obmol);
-		} catch (ServiceException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			OpenBabelSoap obsoap = obl.getOpenBabelSoap();
+//			obmol = obsoap.convert(substrucPresent, "smi", "mol");
+//			System.out.println("obmol\n" + obmol);
+//		} catch (ServiceException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		} catch (RemoteException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 		MassSpecAPISoapProxy chemSpiderProxy = new MassSpecAPISoapProxy();
 		SearchSoapProxy ssp = new SearchSoapProxy();
@@ -392,6 +399,23 @@ public class SubstructureSearch implements Runnable {
 //			for (int i = 0; i < chemspiderInfo.length; i++) {
 //				chemspiderInfo[i] = chemSpiderProxy.getExtendedCompoundInfo(CSIDs[i], token);
 //			}
+			boolean writeSDF = true;
+			String filename = batchFileHandler.getBatchFile().getName();
+			int idx = filename.lastIndexOf(".");
+			String ending = ".sdf";
+			filename = filename.substring(0, idx) + "_original" + ending;
+			File originalSDF = new File(batchFileHandler.getBatchFile().getParent(), filename);
+			MDLV2000Writer writer = null;
+			try {
+				writer = new MDLV2000Writer(new FileOutputStream(originalSDF));
+			} catch (FileNotFoundException e1) {
+				System.err.println("File [" + originalSDF.getAbsolutePath() + "] not found for original SDF writer!");
+				writeSDF = false;
+			}
+			if(writeSDF) {
+				
+			}
+				
 			System.out.println("# matches -> " + chemspiderInfo.length);
 			for (int i = 0; i < chemspiderInfo.length; i++) {
 				System.out.println(chemspiderInfo[i].getCSID() + "\t" + chemspiderInfo[i].getSMILES());
@@ -408,8 +432,31 @@ public class SubstructureSearch implements Runnable {
 				}
 				
 				candidates.add(new ResultSubstructure(chemspiderInfo[i], ac, used));
+				if(used && writeSDF) {
+					try {
+						Map<Object, Object> props = ac.getProperties();
+						props.put("CSID", chemspiderInfo[i].getCSID());
+						props.put("SMILES", chemspiderInfo[i].getSMILES());
+						props.put("name", chemspiderInfo[i].getCommonName());
+						props.put("ALogP", chemspiderInfo[i].getALogP());
+						props.put("XLogP", chemspiderInfo[i].getXLogP());
+						props.put("InChI", chemspiderInfo[i].getInChI());
+						props.put("InChIKey", chemspiderInfo[i].getInChIKey());
+						props.put("MF", chemspiderInfo[i].getMF());
+						
+						ac.setProperties(props);
+						writer.write(ac);
+					} catch (CDKException e) {
+						System.err.println("Error writing " + chemspiderInfo[i].getCSID() + " to file [" +originalSDF.getAbsolutePath() + "]!" );
+					}
+				}
 			}
 			
+			try {
+				writer.close();
+			} catch (IOException e) {
+				System.err.println("Error finalizing original SDF output file!");
+			}
 		}
 		
 		return candidates;
@@ -552,7 +599,7 @@ public class SubstructureSearch implements Runnable {
 		
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/Known_BT_MSMS_ChemSp/1MeBT_MSMS.mf");
 		
-		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/178m0605c_MSMS.mf");
+		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/156m0396b_MSMS.mf");
 		
 		MetFusionBatchFileHandler mbf = new MetFusionBatchFileHandler(file);
 		try {
@@ -575,7 +622,7 @@ public class SubstructureSearch implements Runnable {
 		String formula = settings.getMfFormula();
 		System.out.println("formula -> " + formula);
 		
-		SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula);
+		SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula, mbf);
 		ss.run();
 		List<ResultSubstructure> remaining = ss.getResultsRemaining();
 		List<Result> resultsForSDF = new ArrayList<Result>();
@@ -804,6 +851,14 @@ public class SubstructureSearch implements Runnable {
 
 	public void setMolecularFormula(String molecularFormula) {
 		this.molecularFormula = molecularFormula;
+	}
+
+	public MetFusionBatchFileHandler getBatchFileHandler() {
+		return batchFileHandler;
+	}
+
+	public void setBatchFileHandler(MetFusionBatchFileHandler batchFileHandler) {
+		this.batchFileHandler = batchFileHandler;
 	}
 
 }
