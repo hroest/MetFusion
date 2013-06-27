@@ -71,6 +71,7 @@ public class MetFusionBatchMode {
 	 * <p><b>false</b> if the current directory or path is not useable. Fallback to tmp dir.
 	 */
 	private boolean setup() {
+		this.batchFileHandler = new MetFusionBatchFileHandler(null);	// create new dummy instance for proper SDF handling, even witout mf file
 		boolean success = false;
 		File dir = new File(currentDir);
 		if(dir.isDirectory() && dir.canRead() && dir.canWrite())
