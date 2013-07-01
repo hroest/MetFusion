@@ -59,6 +59,7 @@ public class LandingBean {
 	private boolean specifiedParentIon = false;
 	private boolean specifiedAdduct = false;
 	private boolean specifiedPeaks = false;
+	private boolean specifiedFormula = false;
 	
 	
 	public LandingBean() {
@@ -114,7 +115,8 @@ public class LandingBean {
 				specifiedExactMass = true;
 				settings.put(AvailableParameters.mfExactMass, map.get(param));
 			}
-			else if(param.equals("formula")) {			// added fallback to MetFrag parameter formula
+			else if(param.equals("formula") || param.equals(AvailableParameters.mfFormula.toString())) {			// added fallback to MetFrag parameter formula
+				specifiedFormula = true;
 				settings.put(AvailableParameters.mfFormula, map.get(param));
 			}
 			else settings.put(AvailableParameters.valueOf(param), map.get(param));
@@ -171,9 +173,10 @@ public class LandingBean {
 		else {
 			appBean.getMfb().setExactMass(mfbs.getMfExactMass());
 		}
-		if((!specifiedExactMass && !specifiedAdduct && !specifiedParentIon)) {
+		if(!specifiedExactMass && !specifiedAdduct && !specifiedParentIon && !specifiedFormula) {
 			message = "<b>Missing value for exact mass or adduct and parent ion.</b> Please set appropriate parameters <b>" + AvailableParameters.mfExactMass +
-					", " + AvailableParameters.mfAdduct + " and/or " + AvailableParameters.mfParentIon + "</b>.";
+					", " + AvailableParameters.mfAdduct + " and/or " + AvailableParameters.mfParentIon + "</b>. " +
+							"Alternatively provide molecular formula via " + AvailableParameters.mfFormula;
 			
 			fc.getApplication().getNavigationHandler().handleNavigation(fc, null, "failed");
 			return;
@@ -192,9 +195,11 @@ public class LandingBean {
 					mfbs.getMfDatabase().toString(), mfbs.getMfDatabase().toString());
 		appBean.getMfb().changeDatabase(db);		// update selected compound database
 		appBean.getMfb().setDatabaseID(mfbs.getMfDatabaseIDs());
-		appBean.getMfb().setMolecularFormula(mfbs.getMfFormula());
-		ValueChangeEvent formula = new ValueChangeEvent(new HtmlInputText(), mfbs.getMfFormula(), mfbs.getMfFormula());
-		appBean.getMfb().changeFormula(formula);		// update molecular formula and mass 
+		if(specifiedFormula) {
+			appBean.getMfb().setMolecularFormula(mfbs.getMfFormula());
+			ValueChangeEvent formula = new ValueChangeEvent(new HtmlInputText(), mfbs.getMfFormula(), mfbs.getMfFormula());
+			appBean.getMfb().changeFormula(formula);		// update molecular formula and mass
+		}
 		appBean.getMfb().setLimit(mfbs.getMfLimit());
 		appBean.getMfb().setMzabs(mfbs.getMfMZabs());
 		appBean.getMfb().setMzppm(mfbs.getMfMZppm());
@@ -292,5 +297,13 @@ public class LandingBean {
 
 	public void setSpecifiedPeaks(boolean specifiedPeaks) {
 		this.specifiedPeaks = specifiedPeaks;
+	}
+
+	public boolean isSpecifiedFormula() {
+		return specifiedFormula;
+	}
+
+	public void setSpecifiedFormula(boolean specifiedFormula) {
+		this.specifiedFormula = specifiedFormula;
 	}
 }
