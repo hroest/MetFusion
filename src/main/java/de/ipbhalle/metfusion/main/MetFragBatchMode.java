@@ -142,7 +142,7 @@ public class MetFragBatchMode implements Runnable {
 	/**
 	 * variable holding the limit of result entries for database lookup
 	 */
-	private int limit = 5000;		// result limit for upstream DB lookup
+	private int limit = 20000;		// result limit for upstream DB lookup
 	
 	/**
 	 * variable describing the mode of ionization
@@ -431,7 +431,7 @@ public class MetFragBatchMode implements Runnable {
 				result = MetFrag.startConvenienceLocal(database, databaseID, molecularFormula, exactMass, spectrum,
 						useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck, breakAromaticRings, treeDepth, 
 						hydrogenTest, neutralLossInEveryLayer, bondEnergyScoring, breakOnlySelectedBonds, limit, 
-						jdbc, username, password, 2, onlyCHNOPS, token);
+						jdbc, username, password, 2, onlyCHNOPS, token, uniqueInchi);
 			}
 			else  result = MetFrag.startConvenienceMetFusion(database, databaseID, 
 					molecularFormula, exactMass, spectrum, useProxy, mzabs, mzppm, searchPPM, 
