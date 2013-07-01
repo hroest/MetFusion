@@ -36,7 +36,7 @@ public class MetFusionBatchSettings {
 	private Databases mfDatabase = Databases.pubchem;
 	private String mfDatabaseIDs = "";
 	private String mfFormula = "";
-	private int mfLimit = 10000;
+	private int mfLimit = 20000;
 	private double mfParentIon = 272.06847d;
 	private Adducts mfAdduct = Adducts.Neutral;
 	private double mfExactMass = mfAdduct.getDifference() + mfParentIon;
