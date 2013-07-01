@@ -32,10 +32,11 @@ public class MetFusionBatchMode {
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
 	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, 
-		fp, fragOffline, db, chnops, compress, verbose, SDFonly};
+		fp, fragOffline, db, chnops, compress, verbose, SDFonly, searchppm, mzabs, mzppm};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
 	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, 
-		checkUNIQUE, checkFP, checkFRAGOFFLINE, checkDB, checkCHNOPS, checkCOMPRESS, checkVERBOSE, checkSDFONLY;
+		checkUNIQUE, checkFP, checkFRAGOFFLINE, checkDB, checkCHNOPS, checkCOMPRESS, checkVERBOSE, checkSDFONLY, 
+		checkSEARCHPPM, checkMZABS, checkMZPPM;
 	private Map<ARGUMENTS, String> settings;
 	private final static String DEFAULT_SERVER = "http://www.massbank.jp/";
 	
@@ -90,6 +91,9 @@ public class MetFusionBatchMode {
 			System.out.println("-mf /path/to/mf-file");
 			System.out.println("Alternatively: -record /path/to/MassBank-record");
 			System.out.println("\noptionally: -sdf /path/to/sdf-file");
+			System.out.println("-searchppm allowed ppm deviation for mass search");
+			System.out.println("-mzabs absolute deviation for fragment matching (Da)");
+			System.out.println("-mzppm relative deviation for fragment matching (ppm)");
 			System.out.println("-out /output/path");
 			System.out.print("-format ");
 			for (OutputFormats format : of) {
@@ -180,6 +184,13 @@ public class MetFusionBatchMode {
 					this.checkSDFONLY = Boolean.TRUE;	// SDFonly does not have an additional property, mark as set/unset and continue
 					continue;
 				}
+				if(temp.equals(ARGUMENTS.searchppm.toString()))
+					this.checkSEARCHPPM = Boolean.TRUE;
+				if(temp.equals(ARGUMENTS.mzabs.toString()))
+					this.checkMZABS = Boolean.TRUE;
+				if(temp.equals(ARGUMENTS.mzppm.toString()))
+					this.checkMZPPM = Boolean.TRUE;
+				
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
 				i++;	// skip value, iterate over new argument
 			}
@@ -338,6 +349,11 @@ public class MetFusionBatchMode {
 			metfragbm.setUniqueInchi(Boolean.TRUE);
 			mbbm.setUniqueInchi(Boolean.TRUE);
 		}
+		else if(mfbm.checkRECORD && !mfbm.checkUNIQUE) {	// record provided but unique flag not set, fall back to all results
+			metfragbm.setUniqueInchi(Boolean.FALSE);
+			mbbm.setUniqueInchi(Boolean.FALSE);
+		}
+			
 		
 		if(mfbm.checkFRAGOFFLINE) {
 			metfragbm.setGenerateFragmentsInMemory(Boolean.FALSE);
@@ -348,6 +364,14 @@ public class MetFusionBatchMode {
 		else metfragbm.setOnlyCHNOPS(false);
 		
 		String settingsSDF = settings.getSdfFile().trim();
+		
+		// set provided ppm settings
+		if(mfbm.checkSEARCHPPM)
+			metfragbm.setSearchppm(Double.valueOf(mfbm.settings.get(ARGUMENTS.searchppm)));
+		if(mfbm.checkMZABS)
+			metfragbm.setMzabs(Double.valueOf(mfbm.settings.get(ARGUMENTS.mzabs)));
+		if(mfbm.checkMZPPM)
+			metfragbm.setMzppm(Double.valueOf(mfbm.settings.get(ARGUMENTS.mzppm)));
 		
 		// sdf path
 		if(mfbm.isCheckSDF()) {	// mfbm.checkSDF
