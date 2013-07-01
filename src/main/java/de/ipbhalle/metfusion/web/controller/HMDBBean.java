@@ -390,16 +390,21 @@ public class HMDBBean implements GenericDatabaseBean {
 	}
 	
 	public static void main(String[] args) throws IOException {
-//		HMDBBean hb = new HMDBBean();
-//		hb.setSelectedLibNMR1D("C");
-//		hb.setPeaksNMR1D("180.6477\n72.8674\n66.8025\n56.7799\n45.6155\n-0.0005");
-//		List<Result> results = hb.performQuery(HMDBBean.searchType.NMR1D);
-//		System.out.println("Found [" + results.size() + "] results");
+//		HMDBBean hb2 = new HMDBBean();
+//		hb2.setSelectedLibNMR1D("H");
+//		//hb2.setPeaksNMR1D("180.6477\n72.8674\n66.8025\n56.7799\n45.6155\n-0.0005");
+//		hb2.setPeaksNMR1D("0.913\n0.926\n0.938\n0.991\n1.003\n1.21\n1.223\n1.235\n1.238\n1.245\n1.25\n1.257\n1.26\n1.273\n" +
+//				"1.285\n1.423\n1.432\n1.436\n1.444\n1.448\n1.457\n1.466\n1.471\n1.479\n1.483\n1.491\n1.936\n1.943\n1.947\n" +
+//				"1.955\n1.959\n1.963\n1.966\n1.97\n1.974\n1.977\n1.982\n1.989\n1.993\n2.001\n3.657\n3.664");
+//		List<Result> rs2 = hb2.performQuery(HMDBBean.searchType.NMR1D);
+//		System.out.println("Found [" + rs2.size() + "] results");
 //		System.out.println("ID\tName\tFormula\tWeight\tScore");
-//		for (Result result : results) {
+//		for (Result result : rs2) {
 //			System.out.println(result.getId() + "\t" + result.getName() + "\t" + result.getSumFormula() + 
 //					"\t" + result.getExactMass() + "\t" + result.getScore());
 //		}
+//		
+//		System.exit(0);
 		
 		
 		// TODO: iterate over settings files and run HMDB queries
