@@ -190,7 +190,7 @@ public class HMDBBean implements GenericDatabaseBean {
 		Document doc = null;
 		try {
 			Connection conn = Jsoup.connect(url);
-			conn.timeout(20000);
+			conn.timeout(40000);
 			doc = conn.get();
 			//doc = Jsoup.connect(url).get();
 		} catch (IOException e) {
@@ -409,7 +409,7 @@ public class HMDBBean implements GenericDatabaseBean {
 		
 		// TODO: iterate over settings files and run HMDB queries
 		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_1H";
-		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_1H/";
+		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_1H_afterHMDBFix/";
 		
 		String ending = ".nmr";
 		File[] files = new File(settingsDir).listFiles(new FileNameFilterImpl("", ending));
