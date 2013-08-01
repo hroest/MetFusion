@@ -1,0 +1,50 @@
+In order to use ChemAxon fingerprints, the following libraries are required and are distributed with the appropriate JChem/Marvin distribution:
+
+jchem.jar
+jchem-descriptors.jar
+jchem-jep.jar
+jchem-reaction.jar
+jchem-sss.jar
+MarvinBeans.jar
+MarvinBeans-checkers.jar
+MarvinBeans-concurrent.jar
+MarvinBeans-diverse-modules.jar
+MarvinBeans-formats.abbrevgroup.jar
+MarvinBeans-formats.cdx.jar
+MarvinBeans-formats.cml.jar
+MarvinBeans-formats.d2s.jar
+MarvinBeans-formats.gaussian.jar
+MarvinBeans-formats.image.jar
+MarvinBeans-formats.jar
+MarvinBeans-formats.mdl.jar
+MarvinBeans-formats.name.jar
+MarvinBeans-formats.pdb.jar
+MarvinBeans-formats-inchi.jar
+MarvinBeans-formats-jtf.jar
+MarvinBeans-formats-pdf.jar
+MarvinBeans-formats-peptide.jar
+MarvinBeans-formats-skc.jar
+MarvinBeans-formats-smiles.jar
+MarvinBeans-formats-tripos.jar
+MarvinBeans-formats-vmn.jar
+MarvinBeans-formats-xyz.jar
+MarvinBeans-gui.jar
+MarvinBeans-jep.jar
+MarvinBeans-license.jar
+MarvinBeans-plugin.jar
+MarvinBeans-services.jar
+MarvinBeans-smarts.jar
+
+The jchem-descriptors.jar and MarvinBeans-license.jar are already provided to provide compatibility.
+Furthermore, disabled code needs to be reenabled in order to provide the desired functionality:
+
+de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities.java has to be put back onto the build path!
+A valid license.cxl file needs to be present in package de.ipbhalle.metfusion.utilities.chemaxon. This package also contains the 
+appropriate utility class and default discriptor settings for use with ECFP and FCFP finferprints.
+
+Additionally, corresponding code has to be enabled in:
+de.ipbhalle.MassBank.MassBankLookupBean.java
+de.ipbhalle.metfusion.main.MassBankBatchMode.java
+de.ipbhalle.metfusion.main.MetFragBatchMode.java
+de.ipbhalle.metfusion.web.controller.MetFragBean.java
+de.ipbhalle.metfusion.web.controller.MetlinBean.java

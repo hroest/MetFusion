@@ -40,7 +40,12 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import chemaxon.descriptors.ECFP;
 
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
+/**
+ * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access
+ * ChemAxon provided functionality. [1/3]
+ 
 import de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities;
+*/
 import de.ipbhalle.metfusion.web.controller.GenericDatabaseBean;
 import de.ipbhalle.metfusion.web.controller.MetFragBean;
 import de.ipbhalle.metfusion.web.controller.PropertiesBean;
@@ -904,6 +909,10 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
         List<String> duplicates = new ArrayList<String>();
 
         MassBankUtilities mbu = new MassBankUtilities(serverUrl, cacheMassBank);
+        /**
+         * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access
+         * ChemAxon provided functionality. [2/3]
+         
         ChemAxonUtilities cau = null;	// instantiate ChemAxon utilities only when appropriate Fingerprinter is used
         boolean useChemAxon = Boolean.FALSE;
 //        String test = "ECFP";
@@ -917,6 +926,7 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 //        	cau = new ChemAxonUtilities(Boolean.TRUE);
 //        	useChemAxon = Boolean.TRUE;
 //        }
+        */
         
         InChIGeneratorFactory igf = null;
         try {
@@ -1097,6 +1107,9 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
                     //results.add(r);
                     //limitCounter++;
                     
+                    /**
+                     * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access
+                     * ChemAxon provided functionality. [3/3]
                     // generate ECFP
                     if(useChemAxon) {
 	                    File f1 = new File(basePath, id + ".mol");	// path to mol file
@@ -1104,6 +1117,7 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 	                    r.setBitset(ecfp.toBitSet());				// set BitSet from ECFP
 	                    r.setEcfp(ecfp);							// store ECFP in result
                     }
+                    */
                     
                     if(isUniqueInchi()) {		// if filter for unique InChI is on
 	                    String inchikey = r.getInchikey().split("-")[0];

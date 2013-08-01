@@ -33,7 +33,13 @@ import chemaxon.descriptors.ECFP;
 import de.ipbhalle.enumerations.Fingerprints;
 import de.ipbhalle.enumerations.Ionizations;
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
+/**
+ * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access
+ * ChemAxon provided functionality. [1/3]
+ * 
+
 import de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities;
+*/
 import de.ipbhalle.metfusion.wrapper.Result;
 
 import massbank.GetConfig;
@@ -278,6 +284,9 @@ public class MassBankBatchMode implements Runnable {
     			dir = new File(DEFAULT_CACHE_LINUX);
         }
         MassBankUtilities mbu = new MassBankUtilities(serverUrl, dir.getAbsolutePath());
+        /**
+         * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access
+         * ChemAxon provided functionality. [2/3]
         ChemAxonUtilities cau = null;	// instantiate ChemAxon utilities only when appropriate Fingerprinter is used
         boolean useChemAxon = Boolean.FALSE;
         if(getFingerprinter().equals(Fingerprints.ECFP)) {
@@ -288,7 +297,8 @@ public class MassBankBatchMode implements Runnable {
         	cau = new ChemAxonUtilities(Boolean.TRUE);
         	useChemAxon = Boolean.TRUE;
         }
-	
+		*/
+        
         InChIGeneratorFactory igf = null;
         try {
 			igf = InChIGeneratorFactory.getInstance();
@@ -460,6 +470,9 @@ public class MassBankBatchMode implements Runnable {
                     Result r = new Result("MassBank", id, name, score, container, "", imgPath, formula, emass);
                     r.setMatchingPeaks(numHits);		// set number of matched peaks
                     
+                    /**
+                     * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access
+                     * ChemAxon provided functionality. [3/3]
                     // generate ECFP
                     if(useChemAxon) {
 	                    File f = new File(basePath, id + ".mol");	// path to mol file
@@ -467,6 +480,7 @@ public class MassBankBatchMode implements Runnable {
 	                    r.setBitset(ecfp.toBitSet());				// set BitSet from ECFP
 	                    r.setEcfp(ecfp);							// store ECFP in result
                     }
+                    */
                     //results.add(r);
                     //limitCounter++;
                     

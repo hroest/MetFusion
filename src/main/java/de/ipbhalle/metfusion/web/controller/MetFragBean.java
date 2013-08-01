@@ -51,7 +51,12 @@ import de.ipbhalle.metfrag.main.MetFrag;
 import de.ipbhalle.metfrag.main.MetFragResult;
 import de.ipbhalle.metfrag.molDatabase.PubChemLocal;
 import de.ipbhalle.metfrag.spectrum.WrapperSpectrum;
+/**
+ * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access
+ * ChemAxon provided functionality. [1/3]
+ * 
 import de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities;
+*/
 import de.ipbhalle.metfusion.wrapper.Result;
 
 
@@ -489,6 +494,11 @@ public class MetFragBean implements Runnable, Serializable {
 			
 			int current = 0;
 			//SmilesGenerator sg = new SmilesGenerator();
+			
+			/**
+			 * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access
+			 * ChemAxon provided functionality. [2/3]
+			 * 
 			ChemAxonUtilities cau = null;	// instantiate ChemAxon utilities only when appropriate Fingerprinter is used
 	        boolean useChemAxon = Boolean.FALSE;
 //	        String test = "ECFP";
@@ -502,6 +512,7 @@ public class MetFragBean implements Runnable, Serializable {
 //	        	cau = new ChemAxonUtilities(Boolean.TRUE);
 //	        	useChemAxon = Boolean.TRUE;
 //	        }
+			*/
 			
 			for (MetFragResult mfr : result) {
 				if(mfr.getStructure() != null) {
@@ -587,12 +598,16 @@ public class MetFragBean implements Runnable, Serializable {
 							landingURL, formula, emass, mfr.getPeaksExplained());
 					//r.setSmiles(smiles);
 					
+					/**
+					 * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access
+					 * ChemAxon provided functionality. [3/3]
 					// create ECFP from SMILES
 					if(useChemAxon) {
 						ECFP ecfp = cau.generateECFPFromName(r.getSmiles());
 						r.setEcfp(ecfp);
 						r.setBitset(ecfp.toBitSet());
 					}
+					*/
 					
 					results.add(r);
 					

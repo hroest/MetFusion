@@ -35,8 +35,12 @@ import Metlin.MetlinPortType;
 import Metlin.MetlinServiceLocator;
 import Metlin.SpectrumLineInfo;
 import Metlin.SpectrumMatchRequest;
+/**
+ * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access
+ * ChemAxon provided functionality. [1/2]
 import chemaxon.formats.MolImporter;
 import chemaxon.struc.Molecule;
+*/
 import de.ipbhalle.metfusion.wrapper.Result;
 
 @ManagedBean(name="metlinBean")
@@ -367,9 +371,13 @@ public class MetlinBean implements Runnable, Serializable, GenericDatabaseBean {
             	String temp = IOUtils.toString(is);
             	if(!temp.endsWith("M END"))
             		temp += "\nM END\n";
+            	/**
+            	 * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access
+            	 * ChemAxon provided functionality. [2/2]
             	MolImporter mi = new MolImporter(IOUtils.toInputStream(temp));
             	Molecule mol = mi.createMol();
             	System.out.println(mol.getAtomCount());
+            	*/
 			}
             
             long time2 = System.currentTimeMillis();
