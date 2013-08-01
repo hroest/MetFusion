@@ -405,6 +405,7 @@ public class MetFusionThread implements Runnable {
 		metfusion.setSelectedResult("cluster");
 		metfusion.setShowResultTable(true);
 		metfusion.setShowClusterResults(true);
+		metfusion.setShowResultsFragmenter(true);
 		
 		steps++;
 		stepsDonePercent(steps);
