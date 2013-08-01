@@ -5,6 +5,7 @@
 package de.ipbhalle.metfusion.web.controller;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -39,6 +40,7 @@ public class HMDBBean implements GenericDatabaseBean {
 	private String serverUrl;
 	private List<Result> results;
 	private List<Result> unused;
+	private List<String> missing;		// contains list of entries not found, usually because of non matching InChIKey (block 2) at HMDB
 	private boolean done;
 	private boolean showResult;
 	private boolean showNote;
@@ -186,6 +188,8 @@ public class HMDBBean implements GenericDatabaseBean {
 	
 	private List<Result> parseGCandNMRResults(String url, searchType type) {
 		List<Result> results = new ArrayList<Result>();
+		List<String> missing = new ArrayList<String>();
+		
 		// parse HTML with jsoup
 		Document doc = null;
 		try {
@@ -250,7 +254,17 @@ public class HMDBBean implements GenericDatabaseBean {
 			String link = "";
 			if(!data.isEmpty()) {
 				for (Element d : data) {
-					String s = d.toString();
+					String s = d.toString().trim();
+					
+					if(s.contains("Not found") | s.startsWith("Not found")) {
+						s = d.text();
+						s = s.substring(s.indexOf(":") + 1).trim();
+						//s = s.replace("</td>", "");
+						missing.add(s);
+						
+						continue;
+					}
+					
 					// link + ID
 					if(columnCounter == 0 && s.contains("<a")) {
 						id = d.text();
@@ -328,6 +342,8 @@ public class HMDBBean implements GenericDatabaseBean {
 				results.add(r);
 			}
 		}
+		
+		setMissing(missing);		// store missing entries, if any
 		
 		return results;
 	}
@@ -408,8 +424,8 @@ public class HMDBBean implements GenericDatabaseBean {
 		
 		
 		// TODO: iterate over settings files and run HMDB queries
-		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_1H";
-		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_1H_afterHMDBFix/";
+		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_1H_allMatchingRecords";
+		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_1H_afterHMDBFix_allMatchingRecords/";
 		
 		String ending = ".nmr";
 		File[] files = new File(settingsDir).listFiles(new FileNameFilterImpl("", ending));
@@ -421,8 +437,7 @@ public class HMDBBean implements GenericDatabaseBean {
 			try {
 				Thread.sleep(10000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.err.println("Error pausing thread for 10 seconds.");
 			}
 			
 			MetFusionBatchFileHandler mfbh = new MetFusionBatchFileHandler(files[i]);
@@ -439,7 +454,7 @@ public class HMDBBean implements GenericDatabaseBean {
 			int queryPeaks = split.length;	// number of peaks in query spectrum
 			HMDBBean hb = new HMDBBean();
 			hb.setSelectedLibNMR1D("H");	// TODO: check for correct library
-			hb.setToleranceNMR1D(0.1f);
+			hb.setToleranceNMR1D(0.02f);		// TODO: check proper tolerance, e.g. 0.1f or 0.02f
 			hb.setPeaksNMR1D(sb.toString());
 			List<Result> results = hb.performQuery(HMDBBean.searchType.NMR1D);	// TODO: ensure proper query type
 			boolean gotResults = false;
@@ -463,6 +478,19 @@ public class HMDBBean implements GenericDatabaseBean {
 				// TODO: write out result SDF with score, ID, name properties
 				SDFOutputHandler oh = new SDFOutputHandler(outDir + filename);
 				oh.writeOriginalResults(results, false);
+				
+				// store missing entries due to wrongly matched InChIKeys at HMDB
+				List<String> missing = hb.getMissing();
+				if(!missing.isEmpty()) {
+					filename = files[i].getName();
+					filename = filename.replace(ending, ".missing");
+					
+					FileWriter fw = new FileWriter(new File(outDir, filename));
+					for (String miss : missing) {
+						fw.write(miss + "\n");
+					}
+					fw.close();
+				}
 			}
 			else System.out.println("No results for [" + files[i] + "]");
 		}
@@ -750,6 +778,14 @@ public class HMDBBean implements GenericDatabaseBean {
 
 	public void setSelectedLibNMR1D(String selectedLibNMR1D) {
 		this.selectedLibNMR1D = selectedLibNMR1D;
+	}
+
+	public List<String> getMissing() {
+		return missing;
+	}
+
+	public void setMissing(List<String> missing) {
+		this.missing = missing;
 	}
 
 }
