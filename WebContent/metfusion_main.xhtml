@@ -910,7 +910,7 @@
 			    <ice:panelTab label="Query Results" rendered="#{appBean.showTable}">
 			    	<ice:selectOneRadio value="#{appBean.selectedResult}" partialSubmit="true" rendered="#{appBean.showTable}">
 						<f:selectItem itemLabel="MetFusion Cluster" itemValue="cluster" itemDisabled="#{!appBean.showClusterResults}"/>
-						<f:selectItem itemLabel="Fragmenter List" itemValue="fragmenter" itemDisable="#{!appBean.showResultsFragmenter}"/>
+						<f:selectItem itemLabel="Fragmenter List" itemValue="fragmenter" itemDisabled="#{!appBean.showResultsFragmenter}"/>
 						<f:selectItem itemLabel="Database List" itemValue="database" itemDisabled="#{!appBean.showResultsDatabase}"/>
 						<f:selectItem itemLabel="Unused Database Entries" itemValue="unused" itemDisabled="#{!appBean.genericDatabase.showNote}"/>
 					</ice:selectOneRadio>
