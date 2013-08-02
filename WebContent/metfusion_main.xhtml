@@ -236,31 +236,31 @@
 										</ice:panelGroup>
 										
 										<!-- Select instruments of group EI -->
-										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[appBean.mblb.indexEI]}"
+										<h:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[appBean.mblb.indexEI]}"
 											valueChangeListener="#{appBean.mblb.changeInstruments}" immediate="true"
-											rendered="#{appBean.mblb.presentEI}">
+											rendered="#{appBean.mblb.presentEI}" style="padding-bottom: 0.625em; padding-right: 0.75em;">
 <!--											validator="de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator">-->
 											<f:selectItems value="#{appBean.mblb.instTest[appBean.mblb.indexEI]}"/>
 											<f:attribute name="attrGroup" value="#{appBean.mblb.getEi()}"/>
-										</ice:selectManyCheckbox>
+										</h:selectManyCheckbox>
 										
 										<!-- Select instruments of group ESI -->
-										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[appBean.mblb.indexESI]}"
+										<h:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[appBean.mblb.indexESI]}"
 											valueChangeListener="#{appBean.mblb.changeInstruments}" immediate="true"
-											rendered="#{appBean.mblb.presentESI}">
+											rendered="#{appBean.mblb.presentESI}" style="padding-bottom: 0.625em; padding-right: 0.75em;">
 <!--											validator="de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator">-->
 											<f:selectItems value="#{appBean.mblb.instTest[appBean.mblb.indexESI]}"/>
 											<f:attribute name="attrGroup" value="#{appBean.mblb.getEsi()}"/>
-										</ice:selectManyCheckbox>
+										</h:selectManyCheckbox>
 										
 										<!-- Select instruments of group Other -->
-										<ice:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[appBean.mblb.indexOther]}"
+										<h:selectManyCheckbox layout="pageDirection" value="#{appBean.mblb.selectedGroupInstruments[appBean.mblb.indexOther]}"
 											valueChangeListener="#{appBean.mblb.changeInstruments}" immediate="true"
-											rendered="#{appBean.mblb.presentOther}">
+											rendered="#{appBean.mblb.presentOther}" style="padding-bottom: 0.625em; padding-right: 0.75em;">
 <!--											validator="de.ipbhalle.metfusion.web.controller.validation.InstrumentValidator">-->
 											<f:selectItems value="#{appBean.mblb.instTest[appBean.mblb.indexOther]}"/>
 											<f:attribute name="attrGroup" value="#{appBean.mblb.getOther()}"/>
-										</ice:selectManyCheckbox>
+										</h:selectManyCheckbox>
 									</ice:panelGrid>
 								</ice:panelGrid>
 							</ice:panelGroup>
