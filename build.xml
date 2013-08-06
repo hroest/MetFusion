@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     Aug 5, 2013 1:32:35 PM                                                        
+
+     MetFusion    
+     an approach to combine in silico fragmentation with MS and NMR reference spectra
+                   
+     mgerlich                                                                
+     ====================================================================== -->
+<project name="MetFusion" default="default" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<property name="application.title" value="MetFusion"/>
+	<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" />
+
+	<description>
+           an approach to combine in silico fragmentation with MS and NMR reference spectra
+    </description>
+
+	<!-- set global properties for this build -->
+	<property name="src" location="src/main/java"/>
+	<property name="build" location="build/classes"/>
+	<property name="dist"  location="dist"/>
+
+	<!-- Apache Tomcat directory and libs -->
+	<property name="catalina.home" value="/home/mgerlich/apache-tomcat-7.0.5" />
+	<path id="tomcat.classpath">
+		<fileset dir="${catalina.home}" includes="lib/*.jar" />
+	</path>
+
+	<!-- commonly used project classpath -->
+	<path id="compile.classpath">
+		<fileset dir="WebContent/WEB-INF/lib">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+
+	<target name="init">
+		<!-- Create the time stamp -->
+		<tstamp />
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build}" />
+		<!-- Create the dist directory structure used for distribution of build targets -->
+		<mkdir dir="${dist}" />
+	</target>
+
+	<target name="compile" depends="init" description="compile the source ">
+		<echo message="[exlude] /de/ipbhalle/metfusion/utilities/chemaxon/ChemAxonUtilities.java"/>
+		<!-- Compile the java code from ${src} into ${build} -->
+		<javac destdir="${build}" includeantruntime="true">
+			<src path="${src}"/>
+			<exclude name="**/ChemAxonUtilities.java"/>
+			<classpath refid="compile.classpath"/>
+			<classpath refid="tomcat.classpath"/>
+		</javac>
+	</target>
+
+	<!-- ================================= 
+          target: default              
+         ================================= -->
+	<target name="default" depends="depends" description="approach to combine in silico fragmentation with MS and NMR reference spectra">
+		<ivy:settings />
+		<ivy:info organisation="de.ipbhalle" module="ivy" revision="2.0.0" property="ivyinfo"/>
+		<echoproperties prefix="ivyinfo"/>
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: depends                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="depends">
+		<echo message="Target [depends] called."/>
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+		  target: create_run_jar                      
+	     - - - - - - - - - - - - - - - - - -->
+	<target name ="create_run_jar" description="Create a Runnable jar for the MetFusion project with Jar-in-Jar Loader">
+
+		<property name="store.jar.name" value="metfusion"/>
+		<property name="store.dir" value="dist"/>
+		<property name="store.jar" value="${store.dir}/${store.jar.name}.jar"/>
+
+		<echo message="Packaging ${application.title} into a single JAR at ${store.jar}"/>
+
+		<!-- automatically create jar-in-jar loader for runnable jar with all needed libraries -->
+		<pathconvert property="manifest.classpath" pathsep=" ">
+			<path refid="compile.classpath"/>
+			<mapper>
+				<chainedmapper>
+					 <flattenmapper />
+				 	 <globmapper from="*.jar" to="*.jar" />
+				</chainedmapper>
+			</mapper>
+		</pathconvert>
+		
+		<jar destfile="${store.jar}" includes="*.class" basedir="build/classes/">
+			<manifest>
+				<attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
+				<attribute name="Rsrc-Main-Class" value="de.ipbhalle.metfusion.main.MetFusionBatchMode"/>
+				<attribute name="Class-Path" value="."/>
+				<attribute name="Rsrc-Class-Path" value="./ ${manifest.classpath}" />
+			</manifest>
+
+			<zipfileset src="jar-in-jar-loader.zip"/>
+			<fileset dir="build/classes"/>
+			<zipfileset dir="WebContent/WEB-INF/lib" includes="*.jar" excludes=""/>
+		</jar>
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+		  target: war                      
+	     - - - - - - - - - - - - - - - - - -->
+	<target name="war" depends="compile"
+		description="Create a war archive for the MetFusion project to be deployed on an application server">
+
+		<property name="store.war.name" value="MetFusion"/>
+		<property name="store.dir" value="dist"/>
+		<property name="store.war" value="${store.dir}/${store.war.name}.war"/>
+
+		<echo message="Packaging ${application.title} into a WAR archive at ${store.war}"/>
+
+		<war destfile="${store.war}" webxml="WebContent/WEB-INF/web.xml">
+			<fileset dir="WebContent"/>
+			<classes dir="${build}"/>
+		</war>
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+		  target: clean                      
+	     - - - - - - - - - - - - - - - - - -->
+	<target name="clean" description="clean up" >
+		<!-- Delete the ${build} and ${dist} directory trees -->
+		<delete dir="${build}"/>
+		<delete dir="${dist}"/>
+	</target>
+</project>
