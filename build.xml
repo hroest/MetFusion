@@ -7,10 +7,8 @@
                    
      mgerlich                                                                
      ====================================================================== -->
-<project name="MetFusion" default="default" xmlns:ivy="antlib:org.apache.ivy.ant">
-
+<project name="MetFusion" default="default">
 	<property name="application.title" value="MetFusion"/>
-	<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" />
 
 	<description>
            an approach to combine in silico fragmentation with MS and NMR reference spectra
@@ -58,9 +56,6 @@
           target: default              
          ================================= -->
 	<target name="default" depends="depends" description="approach to combine in silico fragmentation with MS and NMR reference spectra">
-		<ivy:settings />
-		<ivy:info organisation="de.ipbhalle" module="ivy" revision="2.0.0" property="ivyinfo"/>
-		<echoproperties prefix="ivyinfo"/>
 	</target>
 
 	<!-- - - - - - - - - - - - - - - - - - 
