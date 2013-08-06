@@ -68,7 +68,8 @@
 	<!-- - - - - - - - - - - - - - - - - - 
 		  target: create_run_jar                      
 	     - - - - - - - - - - - - - - - - - -->
-	<target name ="create_run_jar" description="Create a Runnable jar for the MetFusion project with Jar-in-Jar Loader">
+	<target name ="create_run_jar" depends="compile" 
+		description="Create a Runnable jar for the MetFusion project with Jar-in-Jar Loader">
 
 		<property name="store.jar.name" value="metfusion"/>
 		<property name="store.dir" value="dist"/>
@@ -95,7 +96,7 @@
 				<attribute name="Rsrc-Class-Path" value="./ ${manifest.classpath}" />
 			</manifest>
 
-			<zipfileset src="jar-in-jar-loader.zip"/>
+			<zipfileset src="src/main/resources/jar-in-jar-loader.zip"/>
 			<fileset dir="build/classes"/>
 			<zipfileset dir="WebContent/WEB-INF/lib" includes="*.jar" excludes=""/>
 		</jar>
