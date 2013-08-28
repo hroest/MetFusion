@@ -194,7 +194,7 @@ public class HMDBBean implements GenericDatabaseBean {
 		Document doc = null;
 		try {
 			Connection conn = Jsoup.connect(url);
-			conn.timeout(40000);
+			conn.timeout(120000);
 			doc = conn.get();
 			//doc = Jsoup.connect(url).get();
 		} catch (IOException e) {
@@ -335,9 +335,15 @@ public class HMDBBean implements GenericDatabaseBean {
 				if(emass > 0)
 					weight = emass;
 				
-				Result r = new Result(databaseName, id, name, score, ac, urlHMDB + link, "image", formula, weight);
-				r.setMatchingPeaks(matchingPeaks);
-				r.setTiedRank(databasePeaks);	// TODO: abuse tied rank for storing databasePeaks
+				Result r = null;
+				try{
+					r = new Result(databaseName, id, name, score, ac, urlHMDB + link, "image", formula, weight);
+					r.setMatchingPeaks(matchingPeaks);
+					r.setTiedRank(databasePeaks);	// TODO: abuse tied rank for storing databasePeaks
+				} catch (IllegalArgumentException e) {
+					System.err.println("Error creating proper Result for ID [" + id + "]! Skipping it.");
+					continue;
+				}
 				
 				results.add(r);
 			}
@@ -424,8 +430,10 @@ public class HMDBBean implements GenericDatabaseBean {
 		
 		
 		// TODO: iterate over settings files and run HMDB queries
-		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_1H_allMatchingRecords";
-		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_1H_afterHMDBFix_allMatchingRecords/";
+//		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_1H_allMatchingRecords";
+//		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_1H_afterHMDBFix_allMatchingRecords/";
+		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_13C";
+		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_13C_afterHMDBFix/";
 		
 		String ending = ".nmr";
 		File[] files = new File(settingsDir).listFiles(new FileNameFilterImpl("", ending));
@@ -453,7 +461,7 @@ public class HMDBBean implements GenericDatabaseBean {
 			}
 			int queryPeaks = split.length;	// number of peaks in query spectrum
 			HMDBBean hb = new HMDBBean();
-			hb.setSelectedLibNMR1D("H");	// TODO: check for correct library
+			hb.setSelectedLibNMR1D("C");	// TODO: check for correct library
 			hb.setToleranceNMR1D(0.02f);		// TODO: check proper tolerance, e.g. 0.1f or 0.02f
 			hb.setPeaksNMR1D(sb.toString());
 			List<Result> results = hb.performQuery(HMDBBean.searchType.NMR1D);	// TODO: ensure proper query type
