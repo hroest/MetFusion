@@ -323,6 +323,9 @@ public class MetFragBatchMode implements Runnable {
 			else if(db.equals(Databases.chebi.toString())) {
 				linkMap.put(Databases.chebi.toString(), "http://www.ebi.ac.uk/chebi/advancedSearchFT.do?searchString=");
 			}
+			else if(db.equals(Databases.knapsack.toString())) {
+				linkMap.put(Databases.knapsack.toString(), "http://kanaya.naist.jp/knapsack_jsp/info.jsp?sname=C_ID&word=");
+			}
 			else {
 				System.err.println("No link currently available for [" + db + "].");
 			}
@@ -429,7 +432,7 @@ public class MetFragBatchMode implements Runnable {
 				result = MetFrag.startConvenienceSDF(spectrum, useProxy, mzabs, mzppm, searchPPM, molecularFormulaRedundancyCheck,
 						breakAromaticRings, treeDepth, hydrogenTest, neutralLossInEveryLayer, bondEnergyScoring, 
 						breakOnlySelectedBonds, limit, Boolean.FALSE, selectedSDF);
-			else if(database.equals(Databases.chebi.toString())) {
+			else if(database.equals(Databases.chebi.toString()) | database.equals(Databases.knapsack.toString())) {
 				jdbc = pgjdbc;
 				username = pguser;
 				password = pgpass;
