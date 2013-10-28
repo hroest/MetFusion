@@ -125,19 +125,22 @@ public class MassBankUtilities {
 	 * peaklist, exact mass and compound name/id for further use.
 	 * 
 	 * @param f - the file containing the MassBank record
-	 * @return an array of Strings, [0] contains the peaklist, [1] stores the exact mass,
+	 * @return an array of Strings, 
+	 * [0] contains the peaklist, [1] stores the exact mass,
 	 * [2] contains the identifier, [3] contains the ionization (pos/neg),
-	 * [4] contains the sum formula and [5] the compound name.
+	 * [4] contains the sum formula, [5] the compound name and
+	 * [6] contains the collision energy in eV.
 	 */
 	public String[] getPeaklistFromFile(File f) {
 		StringBuilder sb = new StringBuilder();
-		String[] data = new String[6];
+		String[] data = new String[7];
 		String mass = "";
 		String compound = "";
 		String ion = "";
 		String sumFormula = "";
 		String name = "";
-		boolean gotName = false;
+		String ev = "";
+		boolean gotName = false, gotEV = false;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(f));
 			String line = "";
@@ -167,6 +170,19 @@ public class MassBankUtilities {
 						name = temp[0].trim();
 					}
 					else name = compound;
+					
+					if(line.contains("CE") && line.contains("eV")) {
+						ev = line.substring(line.indexOf("CE:") + 3, line.indexOf("eV;")).trim();
+						gotEV = true;
+					}
+					else if(line.contains("CE") && line.contains("V")) {
+						ev = line.substring(line.indexOf("CE:") + 3, line.indexOf("V;")).trim();
+						gotEV = true;
+					}
+					else if(line.contains("MERGED")) {
+						ev = "MERGED";
+						gotEV = true;
+					}
 				}
 				
 				if(line.startsWith("CH$FORMULA:")) {
@@ -175,6 +191,12 @@ public class MassBankUtilities {
 				
 				if(line.startsWith("CH$EXACT_MASS:")) {
 					mass = line.substring(line.indexOf(":") + 1).trim();
+				}
+				
+				if(!gotEV && line.startsWith("AC$ANALYTICAL_CONDITION:") 
+						&& line.contains("COLLISION_ENERGY") && line.contains("eV")) {
+					ev = line.substring(line.indexOf("COLLISION_ENERGY"), line.indexOf("eV")).trim();
+					gotEV = true;
 				}
 				
 				if(line.startsWith("PK$NUM_PEAK:") | line.contains("PK$NUM_PEAK:")) {
@@ -211,6 +233,7 @@ public class MassBankUtilities {
 		data[3] = ion;
 		data[4] = sumFormula;
 		data[5] = name;
+		data[6] = ev;
 		
 		return data;
 	}
