@@ -24,6 +24,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.tools.manipulator.ChemFileManipulator;
 
+import de.ipbhalle.enumerations.Adducts;
 import de.ipbhalle.enumerations.AvailableParameters;
 
 
@@ -236,6 +237,10 @@ public class MetFusionBatchFileHandler {
 		String formatted = prefix + DEFAULT_SEPARATOR + parameter + ":" + DEFAULT_SEPARATOR;
 		if(parameter.equals(AvailableParameters.peaks))
 			formatted += "\n" + setting + "\n";
+		else if(parameter.equals(AvailableParameters.mfAdduct)) {
+			Adducts a = Adducts.valueOf(setting.toString());
+			formatted += a.getLabel() + "\n";
+		}
 		else formatted += setting + "\n";
 		return formatted;
 	}
