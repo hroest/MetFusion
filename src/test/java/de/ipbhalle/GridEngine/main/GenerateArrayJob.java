@@ -31,8 +31,9 @@ public class GenerateArrayJob {
 		//File spectraDir = new File("/home/mgerlich/projects/metfusion_tp/BTs/Known_BT_MSMS_ChemSp/");
 		//File spectraDir = new File("/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_SDF/");
 		//File spectraDir = new File("/home/mgerlich/Downloads/HMDB/proof-of-concept/dualSDF_1H/");
-		File spectraDir = new File("/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/");
-		File[] files = spectraDir.listFiles(new FileNameFilterImpl("", "_ids.mf"));	// TODO txt oder mf entsprechend switch -mf oder -record!
+		//File spectraDir = new File("/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/");
+		File spectraDir = new File("/home/mgerlich/Downloads/HMDB/proof-of-concept/dualSDF_1H_afterHMDBFix_allMatchingRecords/");
+		File[] files = spectraDir.listFiles(new FileNameFilterImpl("", ".mf"));	// TODO txt oder mf entsprechend switch -mf oder -record!
 		//File[] files = spectraDir.listFiles(new FileNameFilterImpl("_ids"));	// TODO txt oder mf entsprechend switch -mf oder -record!
 		Arrays.sort(files);
 		
@@ -57,7 +58,8 @@ public class GenerateArrayJob {
 		//String outputDir = "/home/mgerlich/projects/metfusion_tp/BTs/Known_BT_MSMS_ChemSp/exact_mass/";
 		//String outputDir = "/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_SDF/exact_mass/";
 		//String outputDir = "/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_1H/";
-		String outputDir = "/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/results/";
+		//String outputDir = "/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/results/";
+		String outputDir = "/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_1H_afterHMDBfix_allMatchingSpectra/";
 		
 		// the directory in which the jar file is located
 		String projectDir = "/home/mgerlich/projects/";
@@ -65,7 +67,7 @@ public class GenerateArrayJob {
 		// the directory where the shell scripts are stored
 		//String workDir = "/home/mgerlich/projects/eval_metfusion_ECFP/";
 		String workDir = projectDir;
-		String prefix = "BT_unknown_ChemSp_substruct";
+		String prefix = "HMDB_1H_allMatching";
 		File jobInfo = new File(workDir, prefix + "_sge_metfusion.sh");
 		jobInfo.createNewFile();
 		jobInfo.setExecutable(true);
@@ -97,7 +99,7 @@ public class GenerateArrayJob {
 		//fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + " -mf $A -out $B -unique\n");
 		
 		fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + 
-				" -mf $A -out $B -unique -format SDF_XLS -verbose\n");
+				" -mf $A -out $B -unique -format SDF_XLS -SDFonly -verbose\n");
 		
 //		fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + 
 //		" -mf $A -out $B -unique -format SDF_XLS -compress\n");
@@ -141,7 +143,7 @@ public class GenerateArrayJob {
 //		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/chebi/ -o /home/mgerlich/SGE/output/chebi/ -q " + queue + 
 //				" -pe orte2 6 " + qFile + "\n");
 		
-		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/BT/ -o /home/mgerlich/SGE/output/BT/ -q " + queue + 
+		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/HMDB/ -o /home/mgerlich/SGE/output/HMDB/ -q " + queue + 
 				" -pe orte2 6 " + qFile + "\n");
 		
 //		fw.write("qsub -t " + start + "-" + end + " -e /home/mgerlich/SGE/error/tp/results_dbchemspider_Massbank_wo_Eawag_but_wUFZ_formula/" +
