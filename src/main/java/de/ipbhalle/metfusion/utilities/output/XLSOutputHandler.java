@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
@@ -23,6 +22,7 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -55,7 +55,7 @@ public class XLSOutputHandler implements IOutputHandler {
 	 */
 	public XLSOutputHandler(String filename) {
 		this.filename = filename.endsWith(DEFAULT_ENDING) ? filename : filename + DEFAULT_ENDING;
-		this.workbook = new HSSFWorkbook();
+		this.workbook = new XSSFWorkbook();
 	}
 	
 	/**
@@ -68,7 +68,7 @@ public class XLSOutputHandler implements IOutputHandler {
 		this.databaseName = databaseName;
 		this.fragmenterName = fragmenterName;
 		
-		this.workbook = new HSSFWorkbook();
+		this.workbook = new XSSFWorkbook();
 	}
 	
 	public void finishWorkbook(boolean compress) throws IOException {
