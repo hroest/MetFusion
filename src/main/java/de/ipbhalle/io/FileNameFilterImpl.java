@@ -14,6 +14,16 @@ import java.io.FilenameFilter;
 public class FileNameFilterImpl implements FilenameFilter {
 
 	/**
+	 * the infix that should be looked for
+	 */
+	private String infix = "";
+	
+	/**
+	 * boolean indicate how suffix should be treated
+	 */
+	private boolean useAsPrefix = false;
+	
+	/**
 	 * the prefix that should be looked for
 	 */
 	private String prefix = "";
@@ -63,6 +73,22 @@ public class FileNameFilterImpl implements FilenameFilter {
 	}
 	
 	/**
+	 * not is set to be empty
+	 * @param infix - the String that should occur anywhere in the filename
+	 * @param suffix - the String that should occur at the end of the filename
+	 * @param useAsPrefix - indicate if suffix should be treated as prefix
+	 */
+	public FileNameFilterImpl(String infix, String suffix, boolean useAsPrefix) {
+		this.infix = (infix.isEmpty() ? "" : infix);	// file must contain this infix
+		if(useAsPrefix)
+			this.prefix = (suffix.isEmpty() ? "" : suffix);	// file must start with this prefix
+		else
+			this.suffix = (suffix.isEmpty() ? "" : suffix);	// file must have this ending or type
+		this.not = "";
+		this.useAsPrefix = useAsPrefix;
+	}
+	
+	/**
 	 * 
 	 * @param prefix - the String that should occur at the beginning of the filename
 	 * @param suffix - the String that should occur at the end of the filename
@@ -77,6 +103,19 @@ public class FileNameFilterImpl implements FilenameFilter {
 	public boolean accept(File dir, String name) {
 		if(prefix.isEmpty() && suffix.isEmpty() && not.isEmpty()) {	// all empty - use all files
 			return true;
+		}
+		else if((!infix.isEmpty() & !suffix.isEmpty() & !useAsPrefix) // use infix and prefix or suffix
+				|| (!infix.isEmpty() & !prefix.isEmpty() & useAsPrefix)) {
+			if(useAsPrefix) {
+				if(name.startsWith(prefix) && name.contains(infix))
+					return true;
+				else return false;
+			}
+			else {
+				if(name.endsWith(suffix) && name.contains(infix))
+					return true;
+				else return false;
+			}
 		}
 		else if(prefix.equals(suffix)) {				// prefix equals suffix - use them as infix
 			if(name.contains(prefix) && not.isEmpty())
@@ -113,5 +152,21 @@ public class FileNameFilterImpl implements FilenameFilter {
 				return true;
 			else return false;
 		}
+	}
+
+	public String getInfix() {
+		return infix;
+	}
+
+	public void setInfix(String infix) {
+		this.infix = infix;
+	}
+
+	public boolean isUseAsPrefix() {
+		return useAsPrefix;
+	}
+
+	public void setUseAsPrefix(boolean useAsPrefix) {
+		this.useAsPrefix = useAsPrefix;
 	}
 }
