@@ -550,7 +550,7 @@ public class MetFragBean implements Runnable, Serializable {
 					String url = linkMap.get(selectedDB);
 					if(selectedDB.equals(dbCHEMSPIDER))
 						url = url.replace(replaceID, mfr.getCandidateID());
-					url += mfr.getCandidateID();
+					else url += mfr.getCandidateID();
 					
 					List<String> names = new ArrayList<String>();
 					String name = "";
