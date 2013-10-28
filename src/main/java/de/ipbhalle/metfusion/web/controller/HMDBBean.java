@@ -434,6 +434,8 @@ public class HMDBBean implements GenericDatabaseBean {
 //		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_1H_afterHMDBFix_allMatchingRecords/";
 		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_13C";
 		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_13C_afterHMDBFix/";
+//		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_1H_allMatchingRecords";
+//		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_1H_afterHMDBFix_allMatchingRecords_2ndrun/";
 		
 		String ending = ".nmr";
 		File[] files = new File(settingsDir).listFiles(new FileNameFilterImpl("", ending));
