@@ -286,7 +286,11 @@ public class Result {
 		String smiles = "";
 		if(this.smiles.isEmpty() && getMol() != null) {
 			SmilesGenerator sg = new SmilesGenerator(true);
-			smiles = sg.createSMILES(getMol());
+			try {
+				smiles = sg.createSMILES(getMol());
+			} catch(Exception e) {
+				smiles = "";
+			}
 			setSmiles(smiles);
 		}
 	}

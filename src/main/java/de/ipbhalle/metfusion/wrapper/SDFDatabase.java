@@ -129,12 +129,16 @@ public class SDFDatabase implements GenericDatabaseBean {
 				if (!formula.contains("R")) // compute exact mass from formula only if NO residues "R" are present
 					emass = MolecularFormulaManipulator.getTotalExactMass(iformula);
 				
-				Result r = new Result(origin, id, name, score, temp, "", "", formula, emass);
-				r.setMatchingPeaks(peaksExplained);
-				if(smiles != null && !smiles.isEmpty())
-					r.setSmiles(smiles);
-				
-				results.add(r);
+				try {
+					Result r = new Result(origin, id, name, score, temp, "", "", formula, emass);
+					r.setMatchingPeaks(peaksExplained);
+					if(smiles != null && !smiles.isEmpty())
+						r.setSmiles(smiles);
+					
+					results.add(r);
+				}catch(Exception e) {
+					System.err.println("Error creating valid Result, possible due to incorrect SMILES for " + count + "th molecule.");
+				}
 				
 				count++;
 			}
