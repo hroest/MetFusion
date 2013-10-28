@@ -82,12 +82,12 @@
 			<path refid="compile.classpath"/>
 			<mapper>
 				<chainedmapper>
-					 <flattenmapper />
-				 	 <globmapper from="*.jar" to="*.jar" />
+					<flattenmapper />
+					<globmapper from="*.jar" to="*.jar" />
 				</chainedmapper>
 			</mapper>
 		</pathconvert>
-		
+
 		<jar destfile="${store.jar}" includes="*.class" basedir="build/classes/">
 			<manifest>
 				<attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
@@ -128,4 +128,5 @@
 		<delete dir="${build}"/>
 		<delete dir="${dist}"/>
 	</target>
+
 </project>
