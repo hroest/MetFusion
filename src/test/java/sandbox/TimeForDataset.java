@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 
 import de.ipbhalle.io.FileNameFilterImpl;
 
@@ -26,11 +27,22 @@ public class TimeForDataset {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		String logDir = "/home/mgerlich/SGE/output";
+		//String logDir = "/home/mgerlich/SGE/output";
+		//String logDir = "/home/mgerlich/projects/metfusion_allspectra_withoutInChIKeyFilter/logs/";
+//		String logDir = "/home/mgerlich/projects/metfusion_allspectra_withInChIKeyFilter/logs/";
+		//String logDir = "/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_1H_afterHMDBfix_allMatchingSpectra/2ndrun/logs/";
+		String logDir = "/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_afterHMDBfix/check/logs/";
 		File dir = new File(logDir);
-		File[] list = dir.listFiles(new FileNameFilterImpl("KEGG", ""));
+		//File[] list = dir.listFiles(new FileNameFilterImpl("KEGG", ""));
+		File[] list = dir.listFiles(new FileNameFilterImpl("", "log"));
+		Arrays.sort(list);
 		
-		FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_paper/runtime_kegg.txt"));
+		//FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_paper/runtime_kegg.txt"));
+		//FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_allspectra_withoutInChIKeyFilter/logs/runtime_nonunique.txt"));
+//		FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_allspectra_withInChIKeyFilter/logs/runtime_unique.txt"));
+		//FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_1H_afterHMDBfix_allMatchingSpectra/2ndrun/logs/runtime_1H_allmatching.txt"));
+		FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_afterHMDBfix/check/logs/runtime_13C.txt"));
+		
 		// write header
 		resultFile.write("Accession\tMassBank\tMetFrag\tRuntime (sec)\n");
 		
@@ -79,10 +91,18 @@ public class TimeForDataset {
 				dbResults = line.substring(line.indexOf(":") + 1).trim();
 				gotDBResults = true;
 			}
+			else if(!gotDBResults & line.contains("Database results.")) {
+				dbResults = line.substring(line.indexOf("[") + 1, line.indexOf("]"));
+				gotDBResults = true;
+			}
 			
 			// get fragmenter results
 			if(!gotFragmenterResults & line.startsWith("#") & line.contains("results") & line.contains("MetFrag")) {
 				fragmenterResults = line.substring(line.indexOf(":") + 1).trim();
+				gotFragmenterResults = true;
+			}
+			else if(!gotFragmenterResults & line.contains("Fragmenter results.")) {
+				fragmenterResults = line.substring(line.indexOf("[") + 1, line.indexOf("]"));
 				gotFragmenterResults = true;
 			}
 			
@@ -94,6 +114,11 @@ public class TimeForDataset {
 		}
 		br.close();
 		
+		if(!gotAcc) {
+			acc = f.getName();
+			acc = acc.substring(0, acc.indexOf("."));
+			gotAcc = true;
+		}
 		String[] info = {acc, dbResults, fragmenterResults, runtime};
 		return info;
 	}
