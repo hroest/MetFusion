@@ -39,7 +39,12 @@ public class RunSubstructureSearch {
 	 */
 	public static void main(String[] args) {
 		String token = "eeca1d0f-4c03-4d81-aa96-328cdccf171a";
-		String mfDir = "/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/";
+		//String mfDir = "/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/";
+		if(args == null || args.length == 0) {
+			System.err.println("Provide path to mf files for ChemSpider Substructure Search! Aborting.");
+			System.exit(-1);
+		}
+		String mfDir = args[0];
 		
 		File[] mfFiles = new File(mfDir).listFiles(new FileNameFilterImpl("", "mf"));
 		Arrays.sort(mfFiles);
@@ -51,8 +56,9 @@ public class RunSubstructureSearch {
 			try {
 				mbf.readFile();
 			} catch (IOException e) {
-				System.err.println("Error reading from MetFusion settings file [" + file.getAbsolutePath() + "]. Aborting!");
-				System.exit(-1);
+				System.err.println("Error reading from MetFusion settings file [" + file.getAbsolutePath() + "]. Skipping!");
+				//System.exit(-1);
+				continue;
 			}
 			
 			MetFusionBatchSettings settings = mbf.getBatchSettings();
@@ -66,6 +72,11 @@ public class RunSubstructureSearch {
 			}
 			String formula = settings.getMfFormula();
 			System.out.println("formula -> " + formula);
+			
+			if(absent.isEmpty() && present.isEmpty()) {
+				System.err.println("Neither includes nor excludes specified for [" + mbf.getBatchFile().getAbsolutePath() + "], skipping it.");
+				continue;
+			}
 			
 			SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula, mbf);
 			ss.run();
