@@ -68,7 +68,10 @@
 	</servlet-mapping>
 
 	<listener>
-		<listener-class>
-			de.ipbhalle.metfusion.web.listener.TempFileSessionCleaner</listener-class>
+		<listener-class>de.ipbhalle.metfusion.web.listener.TempFileSessionCleaner</listener-class>
+	</listener>
+	
+	<listener>
+		<listener-class>de.ipbhalle.metfusion.web.listener.DestroyDrivers</listener-class>
 	</listener>
 </web-app>
