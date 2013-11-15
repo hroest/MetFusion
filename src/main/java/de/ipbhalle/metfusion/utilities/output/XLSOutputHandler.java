@@ -160,6 +160,9 @@ public class XLSOutputHandler implements IOutputHandler {
 		int currentRow = 1;	// start in second row because first row is reserver for header
 		int currentCol = 0;
 		
+		if(data == null)
+			return false;
+		
 		for (Object object : data) {
 			currentCol = 0;
 			
@@ -179,6 +182,7 @@ public class XLSOutputHandler implements IOutputHandler {
 				headerRow.createCell(5).setCellValue("Structure");
 				headerRow.createCell(6).setCellValue("Molecular Formula");
 				headerRow.createCell(7).setCellValue("InChIKey");
+				headerRow.createCell(8).setCellValue("Peaks Explained");
 				
 				// output is text
 				Row row = sheet.createRow(currentRow);
@@ -200,7 +204,8 @@ public class XLSOutputHandler implements IOutputHandler {
 				currentCol++;
 				row.createCell(currentCol).setCellValue(result.getInchikey());
 				currentCol++;
-				
+				row.createCell(currentCol).setCellValue(result.getMatchingPeaks());
+				currentCol++;
 			}
 			else if(object instanceof Result) {
 				Result result = (Result) object;
@@ -213,6 +218,7 @@ public class XLSOutputHandler implements IOutputHandler {
 				headerRow.createCell(4).setCellValue("Structure");
 				headerRow.createCell(5).setCellValue("Molecular Formula");
 				headerRow.createCell(6).setCellValue("InChIKey");
+				headerRow.createCell(7).setCellValue("Peaks Explained");
 				
 				// output is text
 				Row row = sheet.createRow(currentRow);
@@ -232,7 +238,8 @@ public class XLSOutputHandler implements IOutputHandler {
 				currentCol++;
 				row.createCell(currentCol).setCellValue(result.getInchikey());
 				currentCol++;
-				
+				row.createCell(currentCol).setCellValue(result.getMatchingPeaks());
+				currentCol++;
 			}
 			else {
 				
