@@ -321,7 +321,8 @@ public class MetFusionBatchMode {
 				metfragbm.setOnlyCHNOPS(false);
 				metfragbm.setMolecularFormula(result[4]);
 				
-				mbbm.setSelectedInstruments(settings.getMbInstruments() + ",APCI-ITFT");	// add orbitrap instrument
+				mbbm.setSelectedInstruments(settings.getMbInstruments() + 
+						",APCI-ITFT,LC-APCI-QTOF,LC-APCI-ITFT,LC-APCI-Q,LC-APPI-QQ,LC-APCI-QTOF,ESI-FTICR,HPLC-ESI-TOF,UPLC-ESI-QTOF");	// add orbitrap instrument
 			}
 						
 			// TODO: use formula for query/exact mass

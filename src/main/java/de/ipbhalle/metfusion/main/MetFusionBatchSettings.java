@@ -30,9 +30,11 @@ public class MetFusionBatchSettings {
 	private int mbCutoff = 5;
 	private Ionizations mbIonization = Ionizations.pos;
 	private String mbInstruments = "CE-ESI-TOF,ESI-ITFT,ESI-QIT,ESI-QQ,LC-ESI-IT,LC-ESI-ITFT,LC-ESI-ITTOF," +
-			"LC-ESI-Q,LC-ESI-QIT,LC-ESI-QQ,LC-ESI-QTOF,LC-ESI-TOF";
-	private String[] selectedInstruments = {"CE-ESI-TOF","ESI-ITFT","ESI-QIT","ESI-QQ","LC-ESI-IT","LC-ESI-ITFT","LC-ESI-ITTOF",
-			"LC-ESI-Q","LC-ESI-QIT","LC-ESI-QQ","LC-ESI-QTOF","LC-ESI-TOF"};
+			"LC-ESI-Q,LC-ESI-QIT,LC-ESI-QQ,LC-ESI-QTOF,LC-ESI-TOF,APCI-ITFT,LC-APCI-QTOF,LC-APCI-ITFT,LC-APCI-Q," +
+			"LC-APPI-QQ,LC-APCI-QTOF,ESI-FTICR,HPLC-ESI-TOF,UPLC-ESI-QTOF";
+	private String[] selectedInstruments = {"CE-ESI-TOF","ESI-ITFT","ESI-QIT","ESI-QQ","LC-ESI-IT","LC-ESI-ITFT",
+			"LC-ESI-ITTOF","LC-ESI-Q","LC-ESI-QIT","LC-ESI-QQ","LC-ESI-QTOF","LC-ESI-TOF","APCI-ITFT","LC-APCI-QTOF",
+			"LC-APCI-ITFT","LC-APCI-Q","LC-APPI-QQ","LC-APCI-QTOF","ESI-FTICR","HPLC-ESI-TOF","UPLC-ESI-QTOF"};
 	private Databases mfDatabase = Databases.pubchem;
 	private String mfDatabaseIDs = "";
 	private String mfFormula = "";
