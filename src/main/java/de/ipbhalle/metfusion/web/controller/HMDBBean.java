@@ -266,20 +266,26 @@ public class HMDBBean implements GenericDatabaseBean {
 						continue;
 					}
 					
-					// link + ID
-					if(columnCounter == 0 && s.contains("<a")) {
-						id = d.text();
+					// view spectrum link 
+					if(columnCounter == 0 && s.contains("<a") && s.contains("View Spectrum")) {
 						link = d.getElementsByTag("a").get(0).attr("href");
 					}
 					
-					// name + CAS
+					// name + CAS + ID
 					if(columnCounter == 1 && s.contains("<strong>")) {
 						String[] split = d.text().trim().split(" ");
-						if(split.length > 2) {	// name has two or more entries
-							for (int i = 0; i < split.length - 1; i++) {
+						if(split.length == 3) {
+							name = split[0];
+							id = split[1].substring(1, split[1].length()-1);	// extract ID from brackets, (HMDB00001)
+							cas = split[2];
+						}
+						else if(split.length > 3) {	// name has two or more entries
+							cas = split[split.length-1];
+							id = split[split.length-2].substring(1, split[split.length-2].length()-1);	// extract ID from brackets, (HMDB00001)
+							
+							for (int i = 0; i < split.length - 2; i++) {
 								name += split[i] + " ";
 							}
-							cas = split[split.length-1];
 						}
 						else if(split.length == 2) {
 							name = split[0];
