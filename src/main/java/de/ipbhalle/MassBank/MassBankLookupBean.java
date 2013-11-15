@@ -31,6 +31,7 @@ import net.sf.jniinchi.INCHI_RET;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -116,11 +117,11 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 	public static final String varOTHER = "other";
 	public static final String massbankJP = "http://www.massbank.jp/";
 	public static final String massbankMSBI = "http://msbi.ipb-halle.de/MassBank/";
-	public static final String massBankNORMAN = "http://massbank.normandata.eu/MassBank/";
+	public static final String massBankEU = "http://www.massbank.eu/MassBank/";
 	
 	private SelectItem[] availableServers = {new SelectItem(massbankJP, "MassBank JP"), 
-			new SelectItem(massbankMSBI, "MassBank DE"), 
-			new SelectItem(massBankNORMAN, "NORMAN-MassBank"),
+			new SelectItem(massBankEU, "MassBank EU"),
+			new SelectItem(massbankMSBI, "MassBank IPB"), 
 //			new SelectItem("http://pfos.jp/MassBank/", "Pfos"),
 			new SelectItem(varOTHER, varOTHER)};
 	private String selectedServer = "";
@@ -1083,10 +1084,13 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 					}
                 }
                 
+                boolean isConnected = false;
+                if(container != null)
+                	isConnected = ConnectivityChecker.isConnected(container);
                 /**
                  *  if entry is not present yet, add it - else don't
                  */
-                if(container != null) {	// removed duplicate check -> !duplicates.contains(name) &&
+                if(container != null && isConnected) {	// removed duplicate check -> !duplicates.contains(name) &&
                 	
                 	// compute molecular formula
 					IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(container);
@@ -1159,8 +1163,11 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
                 }
 
                 // add unused results (duplicate or no mol container) to list
-                if(!fetch && container == null) {
+                if((!fetch && container == null) | !isConnected) {
                 	Result r = new Result(databaseName, id, name, score, container, url, tempPath + id + ".png");
+                	double emass = Double.parseDouble(links.get("emass"));
+                	r.setExactMass(emass);
+                	r.setSumFormula(links.get("formula"));
                 	r.setMatchingPeaks(numHits);		// set number of matched peaks
                 	unused.add(r);
                 	System.out.println("unused -> " + id);
