@@ -182,6 +182,8 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		StructureDiagramGenerator sdg = new StructureDiagramGenerator();
 		for (Result result : results) {
 			IAtomContainer container = result.getMol();
+			if(container == null)		// if unused list entries contains no mol information, skip it completely
+				continue;
 			Map<Object, Object> props = fetchProperties(result);
 			IMolecule temp = new Molecule(container);
 			sdg.setMolecule(temp);
