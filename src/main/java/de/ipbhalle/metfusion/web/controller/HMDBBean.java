@@ -200,6 +200,7 @@ public class HMDBBean implements GenericDatabaseBean {
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.err.println("Error connecting to HMDB!");
+			System.err.println(url);
 			return results;
 		}
 		
@@ -322,6 +323,10 @@ public class HMDBBean implements GenericDatabaseBean {
 					continue;
 				
 				IAtomContainer ac = mbu.getContainer(id, structurePath);
+				if(ac == null)	{	// skip non existing entry
+					System.err.println("No mol found for entry [" + id + "]. Skipping it!");
+					continue;
+				}
 				
 				// compute molecular formula
 				IMolecularFormula iformula = MolecularFormulaManipulator.getMolecularFormula(ac);
@@ -432,10 +437,16 @@ public class HMDBBean implements GenericDatabaseBean {
 		// TODO: iterate over settings files and run HMDB queries
 //		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_1H_allMatchingRecords";
 //		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_1H_afterHMDBFix_allMatchingRecords/";
-		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_13C";
-		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_13C_afterHMDBFix/";
+//		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_13C";
+//		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_13C_afterHMDBFix/";
 //		String settingsDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/NMR_1H_allMatchingRecords";
 //		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_1H_afterHMDBFix_allMatchingRecords_2ndrun/";
+		
+		// gesamter HMDB Datensatz
+		String settingsDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/NMR_1H/";
+		String outDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/results_1H/";
+//		String settingsDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/NMR_13C/";
+//		String outDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/results_13C/";
 		
 		String ending = ".nmr";
 		File[] files = new File(settingsDir).listFiles(new FileNameFilterImpl("", ending));
@@ -444,6 +455,12 @@ public class HMDBBean implements GenericDatabaseBean {
 			System.out.println("["+i+"] " + files[i]);
 		}
 		for (int i = 0; i < files.length; i++) {
+			String check = files[i].getName();
+			check = check.replace(ending, ".sdf");
+			File c = new File(outDir, check);
+			if(c.exists())
+				continue;
+			
 			try {
 				Thread.sleep(10000);
 			} catch (InterruptedException e) {
@@ -463,7 +480,7 @@ public class HMDBBean implements GenericDatabaseBean {
 			}
 			int queryPeaks = split.length;	// number of peaks in query spectrum
 			HMDBBean hb = new HMDBBean();
-			hb.setSelectedLibNMR1D("C");	// TODO: check for correct library
+			hb.setSelectedLibNMR1D("H");	// TODO: check for correct library
 			hb.setToleranceNMR1D(0.02f);		// TODO: check proper tolerance, e.g. 0.1f or 0.02f
 			hb.setPeaksNMR1D(sb.toString());
 			List<Result> results = hb.performQuery(HMDBBean.searchType.NMR1D);	// TODO: ensure proper query type
