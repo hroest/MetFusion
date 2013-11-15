@@ -905,6 +905,14 @@ public class MassBankUtilities {
 								val = line.substring(line.indexOf(":") + 1).trim();
 								dbs.put("inchi", val);
 							}
+							else if (line.startsWith("CH$FORMULA")) {	// retrieve molecular formula
+								val = line.substring(line.indexOf(":") + 1).trim();
+								dbs.put("formula", val);
+							}
+							else if (line.startsWith("CH$EXACT_MASS")) {	// retrieve exact mass
+								val = line.substring(line.indexOf(":") + 1).trim();
+								dbs.put("emass", val);
+							}
 						}
 					} finally {
 						is.close();
@@ -971,6 +979,14 @@ public class MassBankUtilities {
 					else if (line.startsWith("CH$IUPAC")) {		// retrieve InChI if present
 						val = line.substring(line.indexOf(":") + 1).trim();
 						dbs.put("inchi", val);
+					}
+					else if (line.startsWith("CH$FORMULA")) {	// retrieve molecular formula
+						val = line.substring(line.indexOf(":") + 1).trim();
+						dbs.put("formula", val);
+					}
+					else if (line.startsWith("CH$EXACT_MASS")) {	// retrieve exact mass
+						val = line.substring(line.indexOf(":") + 1).trim();
+						dbs.put("emass", val);
 					}
 				}
 				reader.close();
