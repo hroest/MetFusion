@@ -21,10 +21,12 @@ import de.ipbhalle.enumerations.Ionizations;
 import de.ipbhalle.enumerations.OutputFormats;
 import de.ipbhalle.metfusion.threading.MetFusionThreadBatchMode;
 import de.ipbhalle.metfusion.threading.MetFusionThreadSDFOnly;
+import de.ipbhalle.metfusion.threading.MetFusionThreadSpectralSDFBatchMode;
 import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
 import de.ipbhalle.metfusion.web.controller.ResultExtGroupBean;
 import de.ipbhalle.metfusion.wrapper.ColorcodedMatrix;
 import de.ipbhalle.metfusion.wrapper.ResultExt;
+import de.ipbhalle.metfusion.wrapper.SDFDatabase;
 
 
 public class MetFusionBatchMode {
@@ -32,11 +34,11 @@ public class MetFusionBatchMode {
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
 	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, 
-		fp, fragOffline, db, chnops, compress, verbose, SDFonly, searchppm, mzabs, mzppm};
+		fp, fragOffline, db, chnops, compress, verbose, SDFonly, searchppm, mzabs, mzppm, spectralSDF, spectralSDFName};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
 	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, 
 		checkUNIQUE, checkFP, checkFRAGOFFLINE, checkDB, checkCHNOPS, checkCOMPRESS, checkVERBOSE, checkSDFONLY, 
-		checkSEARCHPPM, checkMZABS, checkMZPPM;
+		checkSEARCHPPM, checkMZABS, checkMZPPM, checkSPECTRALSDF;
 	private Map<ARGUMENTS, String> settings;
 	private final static String DEFAULT_SERVER = "http://www.massbank.jp/";
 	
@@ -108,6 +110,7 @@ public class MetFusionBatchMode {
 			System.out.println("optionally: -compress\t\t(compress resulting SDF or XLS file)");
 			System.out.println("optionally: -verbose\t\t(create additional output files for intermediate results)");
 			System.out.println("optionally: -SDFonly\t\t(use provided SDF filenames in mf file as respective database replacements)");
+			System.out.println("optionally: -spectralSDF\t\t(use specified SDF for spectral database part and perform online query of compound database)");
 			System.out.print("optionally: -fp ");
 			for (Fingerprints fp : fps) {
 				System.out.print("[" + fp + "] ");
@@ -190,6 +193,10 @@ public class MetFusionBatchMode {
 					this.checkMZABS = Boolean.TRUE;
 				if(temp.equals(ARGUMENTS.mzppm.toString()))
 					this.checkMZPPM = Boolean.TRUE;
+				if(temp.equals(ARGUMENTS.spectralSDF.toString())) {
+					this.checkSPECTRALSDF = Boolean.TRUE;	// spectralSDF does not have an additional property, mark as set/unset and continue
+					continue;
+				}
 				
 				settings.put(ARGUMENTS.valueOf(temp), args[i+1]);	// put value into map
 				i++;	// skip value, iterate over new argument
@@ -282,8 +289,11 @@ public class MetFusionBatchMode {
 		
 		// set compound database for MetFrag
 		String selectedDB = settings.getMfDatabase().toString();
-		if(mfbm.checkDB)	// take db argument from command line first
-			metfragbm.setSelectedDB(mfbm.settings.get(ARGUMENTS.db));
+		if(mfbm.checkDB) {	// take db argument from command line first
+			String switchDB = mfbm.settings.get(ARGUMENTS.db);
+			System.out.println("Selected compound DB overwritten by switch -> [" + switchDB + "] is used!");
+			metfragbm.setSelectedDB(switchDB);
+		}
 		else if(selectedDB != null && !selectedDB.isEmpty())	// take db argument from settings second
 			metfragbm.setSelectedDB(settings.getMfDatabase().toString());
 		else if(!mfbm.checkDB)
@@ -362,7 +372,6 @@ public class MetFusionBatchMode {
 		
 		if(mfbm.checkCHNOPS)	// only biological compounds containing C,H,N,O,P,S ?
 			metfragbm.setOnlyCHNOPS(true);
-		else metfragbm.setOnlyCHNOPS(false);
 		
 		String settingsSDF = settings.getSdfFile().trim();
 		
@@ -417,6 +426,15 @@ public class MetFusionBatchMode {
 			sdfOnly.run();
 			
 			return;		// exit SDF only run
+		}
+		
+		if(mfbm.checkSPECTRALSDF) {	// start alternative threading based on a single SDF file that acts as spectral database result replacement
+			SDFDatabase spectralSDF = new SDFDatabase("spectralSDF", settings.getSpectralSDF());
+			MetFusionThreadSpectralSDFBatchMode spectralSDFOnly = 
+					new MetFusionThreadSpectralSDFBatchMode(mfbm, spectralSDF, metfragbm, outPath, prefix, of);
+			spectralSDFOnly.run();
+			
+			return;		// exit spectral SDF run
 		}
 		
 		metfusionBatch.run();
