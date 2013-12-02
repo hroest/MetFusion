@@ -25,7 +25,6 @@ import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import chemaxon.descriptors.ECFP;
@@ -303,9 +302,9 @@ public class MassBankBatchMode implements Runnable {
         try {
 			igf = InChIGeneratorFactory.getInstance();
 		} catch (CDKException e) {
-			// TODO Auto-generated catch block
 			// no inchi generation possible
 			// rely on information stored in MassBank records
+			uniqueInchi = false;
 		}
 		Map<String, String> inchiMap = new HashMap<String, String>();	// maps InChI-Key 1 onto image path
 		
