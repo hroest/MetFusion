@@ -153,7 +153,7 @@ public class MetFusionThreadBatchMode implements Runnable {
     		
     		// write out MetFrag results
     		List<Result> listMetFrag = metfrag.getResults();
-    		if(isVerbose() && listMetFrag.size() > 0) {
+    		if(listMetFrag.size() > 0) {
     			File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
         		try {
         			FileWriter fw = new FileWriter(incomplete);    			
@@ -171,9 +171,23 @@ public class MetFusionThreadBatchMode implements Runnable {
     		
     		// write original MetFrag result SDF only if verbose
     		if(isVerbose() && listMetFrag.size() > 0) {
-    			File incompleteSDF = new File(tempPath, addPrefixToFile("metfrag.sdf"));
+    			File incompleteSDF = new File(tempPath, addPrefixToFile("incomplete_metfrag.sdf"));
         		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
         		sdfHandler.writeOriginalResults(listMetFrag, isCompress());
+        		
+        		if(this.format.equals(OutputFormats.SDF_XLS) || 
+        				this.format.equals(OutputFormats.XLS)) {
+        			File incompleteXLS = new File(tempPath, addPrefixToFile("incomplete_metfrag.xls"));
+        			de.ipbhalle.metfusion.utilities.output.XLSOutputHandler xlsHandler = 
+        					new de.ipbhalle.metfusion.utilities.output.XLSOutputHandler(incompleteXLS.getAbsolutePath());
+        			xlsHandler.writeAllResults(listMetFrag, null, null, null);
+        	        xlsHandler.writeSettings(fetchSettings());
+        	        try {
+						xlsHandler.finishWorkbook(false);
+					} catch (IOException e) {
+						System.err.println("Could not write xls file [" + incompleteXLS.getAbsolutePath() + "]");
+					}
+        		}
     		}
     		
             return;
@@ -194,7 +208,7 @@ public class MetFusionThreadBatchMode implements Runnable {
     		
     		// write out MetFrag results
     		List<Result> listMetFrag = metfrag.getResults();
-    		if(isVerbose() && listMetFrag.size() > 0) {
+    		if(listMetFrag.size() > 0) {
     			File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
         		try {
         			FileWriter fw = new FileWriter(incomplete);    			
@@ -212,9 +226,23 @@ public class MetFusionThreadBatchMode implements Runnable {
     		
     		// write original MetFrag result SDF only if verbose
     		if(isVerbose() && listMetFrag.size() > 0) {
-    			File incompleteSDF = new File(tempPath, addPrefixToFile("metfrag.sdf"));
+    			File incompleteSDF = new File(tempPath, addPrefixToFile("incomplete_metfrag.sdf"));
         		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
         		sdfHandler.writeOriginalResults(listMetFrag, isCompress());
+        		
+        		if(this.format.equals(OutputFormats.SDF_XLS) || 
+        				this.format.equals(OutputFormats.XLS)) {
+        			File incompleteXLS = new File(tempPath, addPrefixToFile("incomplete_metfrag.xls"));
+        			de.ipbhalle.metfusion.utilities.output.XLSOutputHandler xlsHandler = 
+        					new de.ipbhalle.metfusion.utilities.output.XLSOutputHandler(incompleteXLS.getAbsolutePath());
+        			xlsHandler.writeAllResults(listMetFrag, null, null, null);
+        	        xlsHandler.writeSettings(fetchSettings());
+        	        try {
+						xlsHandler.finishWorkbook(false);
+					} catch (IOException e) {
+						System.err.println("Could not write xls file [" + incompleteXLS.getAbsolutePath() + "]");
+					}
+        		}
     		}
     		
             return;
@@ -232,7 +260,7 @@ public class MetFusionThreadBatchMode implements Runnable {
     		
     		// write out MassBank results
     		List<Result> listMassBank = massbank.getResults();
-    		if(isVerbose() && listMassBank.size() > 0) {
+    		if(listMassBank.size() > 0) {
     			File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
         		try {
         			FileWriter fw = new FileWriter(incomplete);    			
@@ -250,9 +278,23 @@ public class MetFusionThreadBatchMode implements Runnable {
     		
     		// write original MassBank result SDF only if verbose
     		if(isVerbose() && listMassBank.size() > 0) {
-    			File incompleteSDF = new File(tempPath, addPrefixToFile("massbank.sdf"));
+    			File incompleteSDF = new File(tempPath, addPrefixToFile("incomplete_massbank.sdf"));
         		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
         		sdfHandler.writeOriginalResults(listMassBank, isCompress());
+        		
+        		if(this.format.equals(OutputFormats.SDF_XLS) || 
+        				this.format.equals(OutputFormats.XLS)) {
+        			File incompleteXLS = new File(tempPath, addPrefixToFile("incomplete_massbank.xls"));
+        			de.ipbhalle.metfusion.utilities.output.XLSOutputHandler xlsHandler = 
+        					new de.ipbhalle.metfusion.utilities.output.XLSOutputHandler(incompleteXLS.getAbsolutePath());
+        			xlsHandler.writeAllResults(listMassBank, null, null, null);
+        	        xlsHandler.writeSettings(fetchSettings());
+        	        try {
+						xlsHandler.finishWorkbook(false);
+					} catch (IOException e) {
+						System.err.println("Could not write xls file [" + incompleteXLS.getAbsolutePath() + "]");
+					}
+        		}
     		}
     		
             return;
@@ -271,7 +313,7 @@ public class MetFusionThreadBatchMode implements Runnable {
             
     		// write out MassBank results
     		List<Result> listMassBank = massbank.getResults();
-    		if(isVerbose() && listMassBank.size() > 0) {
+    		if(listMassBank.size() > 0) {
     			File incomplete = new File(tempPath, addPrefixToFile("incomplete.log"));
         		try {
         			FileWriter fw = new FileWriter(incomplete);    			
@@ -289,9 +331,23 @@ public class MetFusionThreadBatchMode implements Runnable {
     		
     		// write original MassBank result SDF only if verbose
     		if(isVerbose() && listMassBank.size() > 0) {
-    			File incompleteSDF = new File(tempPath, addPrefixToFile("massbank.sdf"));
+    			File incompleteSDF = new File(tempPath, addPrefixToFile("incomplete_massbank.sdf"));
         		SDFOutputHandler sdfHandler = new SDFOutputHandler(incompleteSDF.getAbsolutePath());
         		sdfHandler.writeOriginalResults(listMassBank, isCompress());
+        		
+        		if(this.format.equals(OutputFormats.SDF_XLS) || 
+        				this.format.equals(OutputFormats.XLS)) {
+        			File incompleteXLS = new File(tempPath, addPrefixToFile("incomplete_massbank.xls"));
+        			de.ipbhalle.metfusion.utilities.output.XLSOutputHandler xlsHandler = 
+        					new de.ipbhalle.metfusion.utilities.output.XLSOutputHandler(incompleteXLS.getAbsolutePath());
+        			xlsHandler.writeAllResults(listMassBank, null, null, null);
+        	        xlsHandler.writeSettings(fetchSettings());
+        	        try {
+						xlsHandler.finishWorkbook(false);
+					} catch (IOException e) {
+						System.err.println("Could not write xls file [" + incompleteXLS.getAbsolutePath() + "]");
+					}
+        		}
     		}
     		
             return;
