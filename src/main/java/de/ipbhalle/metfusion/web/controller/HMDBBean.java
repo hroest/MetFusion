@@ -71,7 +71,7 @@ public class HMDBBean implements GenericDatabaseBean {
 			"utf8=" + utf8 + "&library=%s" + "&peaks=%s" +
 			"&x_tolerance=%f" + "&y_tolerance=%f" +	"&commit=Search";
 	private final String tableNMR2D = "nmr_two_d_search_results";
-	private String libraryNMR2D = library.tocsy.toString();
+	private String libraryNMR2D = library.hsqc.toString();
 	private String peaksNMR2D = "3.76 2.126\n3.76 2.446\n3.76 3.76\n2.446 2.126\n2.446 2.446\n2.446 3.76\n2.126 2.126\n2.126 2.446\n2.126 3.76";
 	private float toleranceNMR2Dx = 0.02f;
 	private float toleranceNMR2Dy = 0.02f;
@@ -307,7 +307,7 @@ public class HMDBBean implements GenericDatabaseBean {
 					// image - > columnCounter == 3
 					
 					// score in the form of x/y
-					if(columnCounter == 4) {
+					if(columnCounter == 4 && !type.equals(searchType.MSMS)) {	// not MSMS
 						String s2 = d.text().trim();
 						if(s2.contains("/")) {
 							String[] split = s2.split("/");
@@ -322,6 +322,22 @@ public class HMDBBean implements GenericDatabaseBean {
 						}
 						else score = Double.parseDouble(d.text().trim());
 					}
+					
+					// fit
+					if(columnCounter == 4 && type.equals(searchType.MSMS)) {		// MSMS 
+						score = Double.parseDouble(d.text().trim());
+					}
+					
+					// rfit
+					if(columnCounter == 5 && type.equals(searchType.MSMS)) {		// MSMS 
+						
+					}
+
+					// purity
+					if(columnCounter == 6 && type.equals(searchType.MSMS)) {		// MSMS 
+						
+					}
+
 					columnCounter++;
 				}
 				
@@ -449,10 +465,12 @@ public class HMDBBean implements GenericDatabaseBean {
 //		String outDir = "/home/mgerlich/Downloads/HMDB/proof-of-concept/results_1H_afterHMDBFix_allMatchingRecords_2ndrun/";
 		
 		// gesamter HMDB Datensatz
-		String settingsDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/NMR_1H/";
-		String outDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/results_1H/";
-//		String settingsDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/NMR_13C/";
-//		String outDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/results_13C/";
+//		String settingsDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/NMR_1H/";
+//		String outDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/results_1H/";
+		String settingsDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/NMR_13C/";
+		String outDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/results_13C_2nd/";
+//		String settingsDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/NMR2D_HSQC/";
+//		String outDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/results_HSQC/";
 		
 		String ending = ".nmr";
 		File[] files = new File(settingsDir).listFiles(new FileNameFilterImpl("", ending));
@@ -461,11 +479,17 @@ public class HMDBBean implements GenericDatabaseBean {
 			System.out.println("["+i+"] " + files[i]);
 		}
 		for (int i = 0; i < files.length; i++) {
+			/* check for existing result files and skip them
+			 * 
+			 */
 			String check = files[i].getName();
 			check = check.replace(ending, ".sdf");
 			File c = new File(outDir, check);
 			if(c.exists())
 				continue;
+			/*
+			 * 
+			 */
 			
 			try {
 				Thread.sleep(10000);
@@ -486,9 +510,20 @@ public class HMDBBean implements GenericDatabaseBean {
 			}
 			int queryPeaks = split.length;	// number of peaks in query spectrum
 			HMDBBean hb = new HMDBBean();
-			hb.setSelectedLibNMR1D("H");	// TODO: check for correct library
-			hb.setToleranceNMR1D(0.02f);		// TODO: check proper tolerance, e.g. 0.1f or 0.02f
+			/**
+			 * 1D NMR
+			 */
+			hb.setSelectedLibNMR1D("C");	// TODO: check for correct library
+			hb.setToleranceNMR1D(0.5f);		// TODO: check proper tolerance, e.g. 0.1f or 0.02f for 1H, 0.5 or 1 for 13C
 			hb.setPeaksNMR1D(sb.toString());
+			/**
+			 * 2D NMR
+			 */
+			hb.setToleranceNMR2Dx(0.02f);
+			hb.setToleranceNMR2Dy(0.02f);
+			hb.setPeaksNMR2D(peaks);
+			hb.setLibraryNMR2D(library.hsqc.toString());
+			
 			List<Result> results = hb.performQuery(HMDBBean.searchType.NMR1D);	// TODO: ensure proper query type
 			boolean gotResults = false;
 			if(results.size() > 0)
