@@ -45,8 +45,8 @@ public class RunSubstructureSearch {
 			System.exit(-1);
 		}
 		String mfDir = args[0];
-		
-		File[] mfFiles = new File(mfDir).listFiles(new FileNameFilterImpl("", "mf"));
+		boolean useFormulaAsQuery = true;
+		File[] mfFiles = new File(mfDir).listFiles(new FileNameFilterImpl("", "MSMS.mf"));
 		Arrays.sort(mfFiles);
 		for (int i = 0; i < mfFiles.length; i++) {
 			File file = mfFiles[i];
@@ -78,7 +78,7 @@ public class RunSubstructureSearch {
 				continue;
 			}
 			
-			SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula, mbf);
+			SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula, mbf, useFormulaAsQuery);
 			ss.run();
 			List<ResultSubstructure> remaining = ss.getResultsRemaining();
 			List<Result> resultsForSDF = new ArrayList<Result>();
