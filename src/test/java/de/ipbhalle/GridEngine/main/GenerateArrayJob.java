@@ -32,7 +32,12 @@ public class GenerateArrayJob {
 		//File spectraDir = new File("/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_SDF/");
 		//File spectraDir = new File("/home/mgerlich/Downloads/HMDB/proof-of-concept/dualSDF_1H/");
 		//File spectraDir = new File("/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/");
-		File spectraDir = new File("/home/mgerlich/Downloads/HMDB/proof-of-concept/dualSDF_1H_afterHMDBFix_allMatchingRecords/");
+		//File spectraDir = new File("/home/mgerlich/Downloads/HMDB/proof-of-concept/dualSDF_1H_afterHMDBFix_allMatchingRecords/");
+		//File spectraDir = new File("/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/MSMS/");
+		//File spectraDir = new File("/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/queryFiles_1H_MSMS/");
+		//File spectraDir = new File("/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/queryFiles_13C_MSMS/");
+		//File spectraDir = new File("/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/queryFiles_HSQC_MSMS/");
+		File spectraDir = new File("/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/queryFiles_13C_MSMS_2nd/");
 		File[] files = spectraDir.listFiles(new FileNameFilterImpl("", ".mf"));	// TODO txt oder mf entsprechend switch -mf oder -record!
 		//File[] files = spectraDir.listFiles(new FileNameFilterImpl("_ids"));	// TODO txt oder mf entsprechend switch -mf oder -record!
 		Arrays.sort(files);
@@ -59,7 +64,12 @@ public class GenerateArrayJob {
 		//String outputDir = "/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_SDF/exact_mass/";
 		//String outputDir = "/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_1H/";
 		//String outputDir = "/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/results/";
-		String outputDir = "/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_1H_afterHMDBfix_allMatchingSpectra/";
+		//String outputDir = "/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_1H_afterHMDBfix_allMatchingSpectra/";
+		//String outputDir = "/home/mgerlich/Downloads/HMDB/HMDB_filtered_run/results_MSMS/";
+		//String outputDir = "/home/mgerlich/projects/metfusion_HMDB/results_1H_MSMS_pubchem/";
+		//String outputDir = "/home/mgerlich/projects/metfusion_HMDB/results_13C_MSMS_pubchem/";
+		//String outputDir = "/home/mgerlich/projects/metfusion_HMDB/results_HSQC_MSMS_pubchem/";
+		String outputDir = "/home/mgerlich/projects/metfusion_HMDB/results_13C_MSMS_pubchem_2nd/";
 		
 		// the directory in which the jar file is located
 		String projectDir = "/home/mgerlich/projects/";
@@ -67,7 +77,7 @@ public class GenerateArrayJob {
 		// the directory where the shell scripts are stored
 		//String workDir = "/home/mgerlich/projects/eval_metfusion_ECFP/";
 		String workDir = projectDir;
-		String prefix = "HMDB_1H_allMatching";
+		String prefix = "HMDB_13C_MSMS_2nd";
 		File jobInfo = new File(workDir, prefix + "_sge_metfusion.sh");
 		jobInfo.createNewFile();
 		jobInfo.setExecutable(true);
@@ -98,8 +108,9 @@ public class GenerateArrayJob {
 		fw.write("awk \"NR==$SGE_TASK_ID\" " + paramFile + " | while read A B; do echo $A/$B\n");
 		//fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + " -mf $A -out $B -unique\n");
 		
-		fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + 
-				" -mf $A -out $B -unique -format SDF_XLS -SDFonly -verbose\n");
+		fw.write("java -jar -Dhttp.proxyHost=www-cache.ipb-halle.de -Dhttp.proxyPort=3128" +
+				" -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + 
+				" -mf $A -out $B -unique -format SDF -spectralSDF\n");
 		
 //		fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + 
 //		" -mf $A -out $B -unique -format SDF_XLS -compress\n");
