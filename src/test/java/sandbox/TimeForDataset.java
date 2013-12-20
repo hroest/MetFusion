@@ -31,17 +31,20 @@ public class TimeForDataset {
 		//String logDir = "/home/mgerlich/projects/metfusion_allspectra_withoutInChIKeyFilter/logs/";
 //		String logDir = "/home/mgerlich/projects/metfusion_allspectra_withInChIKeyFilter/logs/";
 		//String logDir = "/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_1H_afterHMDBfix_allMatchingSpectra/2ndrun/logs/";
-		String logDir = "/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_afterHMDBfix/check/logs/";
+		//String logDir = "/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_afterHMDBfix/check/logs/";
+		String logDir = "/home/mgerlich/SGE/output/HMDB/";
 		File dir = new File(logDir);
 		//File[] list = dir.listFiles(new FileNameFilterImpl("KEGG", ""));
-		File[] list = dir.listFiles(new FileNameFilterImpl("", "log"));
+		//File[] list = dir.listFiles(new FileNameFilterImpl("", "log"));
+		File[] list = dir.listFiles(new FileNameFilterImpl("HMDB_13C_MSMS_sge_metfusion.q.o5421", ""));
 		Arrays.sort(list);
 		
 		//FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_paper/runtime_kegg.txt"));
 		//FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_allspectra_withoutInChIKeyFilter/logs/runtime_nonunique.txt"));
 //		FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_allspectra_withInChIKeyFilter/logs/runtime_unique.txt"));
 		//FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_1H_afterHMDBfix_allMatchingSpectra/2ndrun/logs/runtime_1H_allmatching.txt"));
-		FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_afterHMDBfix/check/logs/runtime_13C.txt"));
+		//FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_HMDB/results_dualSDFs_afterHMDBfix/check/logs/runtime_13C.txt"));
+		FileWriter resultFile = new FileWriter(new File("/home/mgerlich/projects/metfusion_HMDB/runtime_all13C.txt"));
 		
 		// write header
 		resultFile.write("Accession\tMassBank\tMetFrag\tRuntime (sec)\n");
