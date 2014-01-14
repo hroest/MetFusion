@@ -121,7 +121,7 @@ public class XLSOutputHandler implements IOutputHandler {
 			Cell value = row.createCell(currentCol);
 			if(o instanceof String) {
 				String s = (String) o;
-				value.setCellValue(s);
+				value.setCellValue(s.trim());
 			}
 			else if (o instanceof String[]) {
 				String[] s = (String[]) o;
@@ -139,10 +139,10 @@ public class XLSOutputHandler implements IOutputHandler {
 				value.setCellValue((Integer) o);
 			}
 			else if (o instanceof Boolean) {
-				value.setCellValue(((Boolean) o).toString());
+				value.setCellValue(((Boolean) o).toString().trim());
 			}
 			else {	// default to String
-				value.setCellValue(o.toString());
+				value.setCellValue(o.toString().trim());
 			}
 			
 			currentCol++;
