@@ -191,8 +191,15 @@ public class MetFusionBatchFileHandler {
 			if(param.equals(AvailableParameters.substrucAbsent) | param.equals(AvailableParameters.substrucPresent)) {	// one of the list/multiple items
 				@SuppressWarnings("unchecked")
 				List<String> list = (List<String>) currentSettings.get(param);
-				if(list == null)
+				if(list == null || list.isEmpty()) {
+					try {
+						fw.write(formatSetting(param, ""));		// write empty setting rather than totally skipping it
+					} catch (IOException e) {
+						System.err.println("Error writing batch file [" + output.getAbsolutePath() + "]!");
+						return success;
+					}
 					continue;
+				}
 				
 				for (String string : list) {
 					try {

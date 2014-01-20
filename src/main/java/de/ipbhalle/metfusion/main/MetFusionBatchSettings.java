@@ -275,29 +275,47 @@ public class MetFusionBatchSettings {
 		Map<AvailableParameters, Object> test = def.storedSettings;
 		def.loadSettings(test);
 		
-		System.out.println(def.mbLimit);
-		System.out.println(def.mbCutoff);
-		System.out.println(def.mbIonization + "\t" + Ionizations.pos.getValue());
-		System.out.println(def.mbInstruments);
-		System.out.println(def.mfDatabase);
-		System.out.println(def.mfDatabaseIDs);
-		System.out.println(def.mfFormula);
-		System.out.println(def.mfLimit);
-		System.out.println(def.mfParentIon);
-		System.out.println(def.mfAdduct);
-		System.out.println(def.mfExactMass);
-		System.out.println(def.mfSearchPPM);
-		System.out.println(def.mfMZabs);
-		System.out.println(def.mfMZppm);
-		System.out.println(def.clustering);
-		System.out.println(def.peaks);
-		System.out.println(def.onlyCHNOPS);
-		System.out.println(def.spectralDB);
-		System.out.println(def.sdfFile);
-		System.out.println(def.spectralSDF);
-		System.out.println(def.unique);
+		System.out.println(AvailableParameters.mbLimit + " -> " + def.mbLimit);
+		System.out.println(AvailableParameters.mbCutoff + " -> " + def.mbCutoff);
+		System.out.println(AvailableParameters.mbIonization + " -> " + def.mbIonization + "\t" + Ionizations.pos.getValue());
+		System.out.println(AvailableParameters.mbInstruments + " -> " + def.mbInstruments);
 		
-		MetFusionBatchFileHandler mbfh = new MetFusionBatchFileHandler(new File("/home/mgerlich/Documents/metfusion_param_default.mf"));
+		System.out.println(AvailableParameters.mfDatabase + " -> " + def.mfDatabase);
+		System.out.println(AvailableParameters.mfDatabaseIDs + " -> " + def.mfDatabaseIDs);
+		System.out.println(AvailableParameters.mfFormula + " -> " + def.mfFormula);
+		System.out.println(AvailableParameters.mfLimit + " -> " + def.mfLimit);
+		System.out.println(AvailableParameters.mfParentIon + " -> " + def.mfParentIon);
+		System.out.println(AvailableParameters.mfAdduct + " -> " + def.mfAdduct);
+		System.out.println(AvailableParameters.mfExactMass + " -> " + def.mfExactMass);
+		System.out.println(AvailableParameters.mfSearchPPM + " -> " + def.mfSearchPPM);
+		System.out.println(AvailableParameters.mfMZabs + " -> " + def.mfMZabs);
+		System.out.println(AvailableParameters.mfMZppm + " -> " + def.mfMZppm);
+		System.out.println(AvailableParameters.clustering + " -> " + def.clustering);
+		System.out.println(AvailableParameters.peaks + " -> " + def.peaks);
+		System.out.println(AvailableParameters.onlyCHNOPS + " -> " + def.onlyCHNOPS);
+		System.out.println(AvailableParameters.spectralDB + " -> " + def.spectralDB);
+		System.out.println(AvailableParameters.sdfFile + " -> " + def.sdfFile);
+		System.out.println(AvailableParameters.spectralSDF + " -> " + def.spectralSDF);
+		System.out.println(AvailableParameters.unique + " -> " + def.unique);
+		if(def.substrucPresent == null || def.substrucPresent.size() == 0)
+			System.out.println(AvailableParameters.substrucPresent + " -> ");
+		else {
+			System.out.print(AvailableParameters.substrucPresent + " -> ");
+			for (String s : def.substrucPresent) {
+				System.out.println(s);
+			}
+		}
+		if(def.substrucAbsent == null || def.substrucAbsent.size() == 0)
+			System.out.println(AvailableParameters.substrucAbsent + " -> ");
+		else {
+			System.out.print(AvailableParameters.substrucAbsent + " -> ");
+			for (String s : def.substrucAbsent) {
+				System.out.println(s);
+			}
+		}
+		
+		String file = "C:\\Users\\Michael\\projects\\metfusion_param_default.mf";	// "C:\\Users\\Michael\\projects\\metfusion_param_default.mf"
+		MetFusionBatchFileHandler mbfh = new MetFusionBatchFileHandler(new File(file));
 		try {
 			mbfh.readFile();
 			mbfh.printSettings();
@@ -305,7 +323,7 @@ public class MetFusionBatchSettings {
 			e.printStackTrace();
 		}
 		
-		mbfh.writeFile(new File("/home/mgerlich/Documents/metfusion_param_default.mf"), def);
+		mbfh.writeFile(new File(file), def);
 	}
 
 	public int getMbLimit() {
