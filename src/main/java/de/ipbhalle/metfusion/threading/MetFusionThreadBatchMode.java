@@ -83,7 +83,9 @@ public class MetFusionThreadBatchMode implements Runnable {
 	}
 	
 	private String addPrefixToFile(String filename) {
-		return prefix + prefixSeparator + filename;
+		if(filename.startsWith("."))
+			return prefix + filename;
+		else return prefix + prefixSeparator + filename;
 	}
 	
 	private void writeUnused(List<Result> unused, File out) {
@@ -560,7 +562,9 @@ public class MetFusionThreadBatchMode implements Runnable {
 		// write output files
 		if(this.format.equals(OutputFormats.SDF_XLS)) {
 			// write SDF
-			SDFOutputHandler sdfhandler = new SDFOutputHandler(tempPath + prefix + ".sdf", Boolean.FALSE);
+			File sdfOut = new File(tempPath, addPrefixToFile(".sdf"));
+			//SDFOutputHandler sdfhandler = new SDFOutputHandler(tempPath + prefix + ".sdf", Boolean.FALSE);
+			SDFOutputHandler sdfhandler = new SDFOutputHandler(sdfOut.getAbsolutePath(), Boolean.FALSE);
         	sdfhandler.writeClusterResults(clusters, isCompress());
         	
         	// and XLS
@@ -578,7 +582,9 @@ public class MetFusionThreadBatchMode implements Runnable {
         	metfusion.setColorMatrix(cmT.getCcm());
         	metfusion.setColorMatrixAfter(cmtAfter.getCcm());
         	
-	        XLSOutputHandler xlsHandler = new XLSOutputHandler(tempPath + prefix + ".xls");
+        	File xlsOut = new File(tempPath, addPrefixToFile(".xls"));
+	        //XLSOutputHandler xlsHandler = new XLSOutputHandler(tempPath + prefix + ".xls");
+        	XLSOutputHandler xlsHandler = new XLSOutputHandler(xlsOut.getAbsolutePath());
 	        xlsHandler.writeAllResults(listMetFrag, listMassBank, resultingOrder, null);
 	        xlsHandler.writeOriginalMatrix(cmT.getCcm(), "Original Matrix");
 	        xlsHandler.writeModifiedMatrix(cmtAfter.getCcm(), "Reranked Matrix");
@@ -590,7 +596,9 @@ public class MetFusionThreadBatchMode implements Runnable {
 			}
 		}
 		else if(this.format.equals(OutputFormats.SDF)) {
-        	SDFOutputHandler sdfhandler = new SDFOutputHandler(tempPath + prefix + ".sdf", Boolean.FALSE);
+			File sdfOut = new File(tempPath, addPrefixToFile(".sdf"));
+			//SDFOutputHandler sdfhandler = new SDFOutputHandler(tempPath + prefix + ".sdf", Boolean.FALSE);
+			SDFOutputHandler sdfhandler = new SDFOutputHandler(sdfOut.getAbsolutePath(), Boolean.FALSE);
     		//sdfhandler.writeRerankedResults(resultingOrder);
         	sdfhandler.writeClusterResults(clusters, isCompress());
         }
@@ -610,7 +618,9 @@ public class MetFusionThreadBatchMode implements Runnable {
         	metfusion.setColorMatrix(cmT.getCcm());
         	metfusion.setColorMatrixAfter(cmtAfter.getCcm());
         	
-	        XLSOutputHandler xlsHandler = new XLSOutputHandler(tempPath + prefix + ".xls");
+        	File xlsOut = new File(tempPath, addPrefixToFile(".xls"));
+	        //XLSOutputHandler xlsHandler = new XLSOutputHandler(tempPath + prefix + ".xls");
+        	XLSOutputHandler xlsHandler = new XLSOutputHandler(xlsOut.getAbsolutePath());
 	        xlsHandler.writeAllResults(listMetFrag, listMassBank, resultingOrder, null);
 	        xlsHandler.writeOriginalMatrix(cmT.getCcm(), "Original Matrix");
 	        xlsHandler.writeModifiedMatrix(cmtAfter.getCcm(), "Reranked Matrix");
@@ -622,7 +632,9 @@ public class MetFusionThreadBatchMode implements Runnable {
 			}
         }
         else if(format.equals(OutputFormats.CSV)) {
-        	CSVOutputHandler xscHandler = new CSVOutputHandler(tempPath + prefix + ".csv");
+        	File csvOut = new File(tempPath, addPrefixToFile(".csv"));
+        	//CSVOutputHandler xscHandler = new CSVOutputHandler(tempPath + prefix + ".csv");
+        	CSVOutputHandler xscHandler = new CSVOutputHandler(csvOut.getAbsolutePath());
         }
         else if(format.equals(OutputFormats.ODF)) {
         	ODFOutputHandler odfHandler = new ODFOutputHandler();
