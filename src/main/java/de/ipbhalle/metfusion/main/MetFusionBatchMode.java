@@ -34,11 +34,11 @@ public class MetFusionBatchMode {
 	private final static String ARGUMENT_INDICATOR = "-";
 	// batchfile, sdf-file
 	public static enum ARGUMENTS {mf, sdf, out, format, proxy, record, server, cache, unique, 
-		fp, fragOffline, db, chnops, compress, verbose, SDFonly, searchppm, mzabs, mzppm, spectralSDF, spectralSDFName};
+		fp, fragOffline, db, chnops, compress, verbose, SDFonly, searchppm, mzabs, mzppm, spectralSDF, spectralSDFName, skip};
 	private final static int NUM_ARGS = ARGUMENTS.values().length;
 	private boolean checkMF, checkSDF, checkOUT, checkFORMAT, checkPROXY, checkRECORD, checkSERVER, checkCACHE, 
 		checkUNIQUE, checkFP, checkFRAGOFFLINE, checkDB, checkCHNOPS, checkCOMPRESS, checkVERBOSE, checkSDFONLY, 
-		checkSEARCHPPM, checkMZABS, checkMZPPM, checkSPECTRALSDF;
+		checkSEARCHPPM, checkMZABS, checkMZPPM, checkSPECTRALSDF, checkSKIP;
 	private Map<ARGUMENTS, String> settings;
 	private final static String DEFAULT_SERVER = "http://www.massbank.jp/";
 	
@@ -59,6 +59,8 @@ public class MetFusionBatchMode {
 	private List<ResultExt> secondOrder;
 	private List<ResultExt> clusterResults;
 	private List<ResultExtGroupBean> tanimotoClusters;
+	
+	private final static String prefixSeparator = "_";
 	
 	
 	public MetFusionBatchMode(String[] args) {
@@ -111,6 +113,7 @@ public class MetFusionBatchMode {
 			System.out.println("optionally: -verbose\t\t(create additional output files for intermediate results)");
 			System.out.println("optionally: -SDFonly\t\t(use provided SDF filenames in mf file as respective database replacements)");
 			System.out.println("optionally: -spectralSDF\t\t(use specified SDF for spectral database part and perform online query of compound database)");
+			System.out.println("optionally: -skip\t\t(skip computation if output files already exists)");
 			System.out.print("optionally: -fp ");
 			for (Fingerprints fp : fps) {
 				System.out.print("[" + fp + "] ");
@@ -131,6 +134,7 @@ public class MetFusionBatchMode {
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -fragOffline");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -sdf compounds.sdf -out /tmp -format SDF -chnops");
 			System.out.println("Example call: java -jar JARFILE -mf settings.mf -SDFonly \t\t(both SDF filenames are stored in settings.mf)");
+			System.out.println("Example call: java -jar JARFILE -mf settings.mf  -out /tmp -format SDF_XLS -skip");
 			
 			return success;
 		}
@@ -195,6 +199,10 @@ public class MetFusionBatchMode {
 					this.checkMZPPM = Boolean.TRUE;
 				if(temp.equals(ARGUMENTS.spectralSDF.toString())) {
 					this.checkSPECTRALSDF = Boolean.TRUE;	// spectralSDF does not have an additional property, mark as set/unset and continue
+					continue;
+				}
+				if(temp.equals(ARGUMENTS.skip.toString())) {
+					this.checkSKIP = Boolean.TRUE;			// skip does not have an additional property, mark as set/unset and continue
 					continue;
 				}
 				
@@ -412,6 +420,39 @@ public class MetFusionBatchMode {
 			metfragbm.setFingerprinter(fp);
 		}
 		
+		// skip run if output files are already present
+		if(mfbm.checkSKIP) {
+			String filePresent = "";
+			boolean checkdone = false;
+			if(of.equals(OutputFormats.SDF_XLS)) {
+				String check1 = addPrefixToFile(prefix, ".sdf");
+				String check2 = addPrefixToFile(prefix, ".xls");
+				
+				File f1 = new File(outPath, check1);
+				File f2 = new File(outPath, check2);
+				
+				if(f1.exists() && f2.exists()) {
+					System.out.println("Result files [" + f1.getAbsolutePath() + ", " +  f2.getAbsolutePath() + "] already exists for [" + prefix + "]. Skipping run!");
+					return;
+				}
+				checkdone = true;
+			}
+			else if(of.equals(OutputFormats.SDF))
+				filePresent = addPrefixToFile(prefix, ".sdf");
+			else if(of.equals(OutputFormats.XLS))
+				filePresent = addPrefixToFile(prefix, ".xls");
+			else if(of.equals(OutputFormats.CSV))
+				filePresent = addPrefixToFile(prefix, ".csv");
+			else if(of.equals(OutputFormats.ODF))
+				filePresent = addPrefixToFile(prefix, ".odf");
+			
+			File check = new File(outPath, filePresent);
+			if(!checkdone && check.exists() && !check.isDirectory()) {
+				System.out.println("Result file [" + check.getAbsolutePath() + "] already exists for [" + prefix + "]. Skipping run!");
+				return;
+			}
+		}
+		
 		MetFusionThreadBatchMode metfusionBatch = new MetFusionThreadBatchMode(mfbm, mbbm, metfragbm, outPath, prefix, of);
 		if(fp.equals(Fingerprints.ECFP) | fp.equals(Fingerprints.FCFP)) {	// use ChemAxon fingerprints if desired
 			metfusionBatch.setUseECFP(Boolean.TRUE);
@@ -440,6 +481,12 @@ public class MetFusionBatchMode {
 		metfusionBatch.run();
 	}
 
+	public static String addPrefixToFile(String prefix, String filename) {
+		if(filename.startsWith("."))
+			return prefix + filename;
+		else return prefix + prefixSeparator + filename;
+	}
+	
 	public void setColorMatrix(ColorcodedMatrix colorMatrix) {
 		this.colorMatrix = colorMatrix;
 	}
