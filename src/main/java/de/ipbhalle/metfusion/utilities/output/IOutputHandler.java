@@ -13,7 +13,7 @@ import de.ipbhalle.metfusion.wrapper.ResultExt;
 public interface IOutputHandler {
 
 	/** enumeration of allowed properties for output annotation */
-	enum properties {origin, name, id, origscore, newscore, rank, smiles, peaksExplained, tiedRank, clusterRank, URL};
+	enum properties {origin, name, id, origscore, newscore, rank, smiles, peaksExplained, tiedRank, clusterRank, URL, explainedQueryPeaks};
 	String filename = "";
 	
 	/** output only the newly ranked list of fragmenter candidates */

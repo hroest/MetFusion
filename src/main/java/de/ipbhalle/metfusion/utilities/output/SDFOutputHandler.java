@@ -68,6 +68,7 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		props.put(properties.name, r.getName());			// Name
 		props.put(properties.origscore, r.getScore());		// original Score
 		props.put(properties.peaksExplained, r.getMatchingPeaks());	// number of peaks explained
+		props.put(properties.explainedQueryPeaks, r.getExplainedPeaks());	// peak list of query spectrum that were matched
 		if(r.getSmiles() != null && !r.getSmiles().isEmpty())
 			props.put(properties.smiles, r.getSmiles());		// SMILES
 		
@@ -90,6 +91,7 @@ public class SDFOutputHandler implements IOutputHandler, Runnable{
 		props.put(properties.newscore, r.getResultScore());	// resulting Score
 		props.put(properties.smiles, r.getSmiles());		// SMILES
 		props.put(properties.peaksExplained, r.getMatchingPeaks());	// number of peaks explained
+		props.put(properties.explainedQueryPeaks, r.getExplainedPeaks());	// peak list of query spectrum that were matched
 		props.put(properties.URL, r.getUrl());				// URL of the compound
 		props.put(properties.tiedRank, r.getTiedRank());	// add tied rank
 		props.put(properties.clusterRank, r.getClusterRank());	// add cluster rank

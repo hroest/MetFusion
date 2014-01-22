@@ -35,6 +35,7 @@ public class ResultExt extends Result {
 		setSumFormula(r.getSumFormula());
 		setExactMass(r.getExactMass());
 		setSmiles(r.getSmiles());
+		setExplainedPeaks(r.getExplainedPeaks());
 	}
 	
 	public ResultExt(String port, String id, String name, double score,
@@ -66,6 +67,7 @@ public class ResultExt extends Result {
 		this.setExactMass(r.getExactMass());
 		setSmiles(r.getSmiles());
 		flagValue();
+		setExplainedPeaks(r.getExplainedPeaks());
 	}
 	
 	public ResultExt(Result r, int tiedRank) {

@@ -83,6 +83,10 @@ public class Result {
 	/** The number of peaks matching this candidate/spectrum. */
 	protected int matchingPeaks;
 	
+	/** A String containing pairwise m/z and intensity of query peaks that were matched. */
+	protected String explainedPeaks = "";
+	
+	
 	public Result() {
 		
 	}
@@ -243,6 +247,8 @@ public class Result {
 		
 		this.imagePath = r.getImagePath();
 		this.url = r.getUrl();
+		
+		this.explainedPeaks = r.getExplainedPeaks();
 	}
 	
 	/**
@@ -550,5 +556,13 @@ public class Result {
 
 	public void setEcfp(ECFP ecfp) {
 		this.ecfp = ecfp;
+	}
+
+	public String getExplainedPeaks() {
+		return explainedPeaks;
+	}
+
+	public void setExplainedPeaks(String explainedPeaks) {
+		this.explainedPeaks = explainedPeaks;
 	}
 }

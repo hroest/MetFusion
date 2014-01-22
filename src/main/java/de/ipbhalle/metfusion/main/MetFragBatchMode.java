@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Vector;
 
 import javax.faces.model.SelectItem;
 
@@ -41,6 +42,7 @@ import de.ipbhalle.metfrag.keggWebservice.KeggRestService;
 import de.ipbhalle.metfrag.main.MetFrag;
 import de.ipbhalle.metfrag.main.MetFragResult;
 import de.ipbhalle.metfrag.molDatabase.PubChemLocal;
+import de.ipbhalle.metfrag.spectrum.PeakMolPair;
 import de.ipbhalle.metfrag.spectrum.WrapperSpectrum;
 /**
  * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access
@@ -338,6 +340,24 @@ public class MetFragBatchMode implements Runnable {
 	}
 	
 	/**
+	 * Utility function to create a single String containing the m/z and intensity 
+	 * of all matched peaks from the query spectrum.
+	 * 
+	 * @param matchedFragments - the vector containing the PeakMolPair of the matched fragments
+	 * @return the String representation of matched peaks, separated by a single white-space
+	 */
+	private String retrievePeaksExplained(Vector<PeakMolPair> matchedFragments) {
+		String explained = "";
+		if(matchedFragments.size() > 0) {
+			for (PeakMolPair pair : matchedFragments) {
+				explained += pair.getPeak().getMass() + " " + pair.getPeak().getIntensity() + " ";
+			}
+		}
+		
+		return explained.trim();
+	}
+	
+	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
@@ -569,6 +589,8 @@ public class MetFragBatchMode implements Runnable {
 					Result r = new Result("MetFrag", mfr.getCandidateID(), name, mfr.getScore(), container, url, tempPath + filename,
 							"", formula, emass, mfr.getPeaksExplained());
 					//r.setSmiles(smiles);
+					String explainedPeaks = retrievePeaksExplained(mfr.getFragments());
+					r.setExplainedPeaks(explainedPeaks);
 					
 					/**
 					 * enable code and include de.ipbhalle.metfusion.utilities.chemaxon.ChemAxonUtilities in build path to access

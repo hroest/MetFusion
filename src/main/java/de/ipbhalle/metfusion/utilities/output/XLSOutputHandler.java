@@ -183,6 +183,7 @@ public class XLSOutputHandler implements IOutputHandler {
 				headerRow.createCell(6).setCellValue("Molecular Formula");
 				headerRow.createCell(7).setCellValue("InChIKey");
 				headerRow.createCell(8).setCellValue("Peaks Explained");
+				headerRow.createCell(9).setCellValue("Explained Query Peaks");
 				
 				// output is text
 				Row row = sheet.createRow(currentRow);
@@ -206,6 +207,8 @@ public class XLSOutputHandler implements IOutputHandler {
 				currentCol++;
 				row.createCell(currentCol).setCellValue(result.getMatchingPeaks());
 				currentCol++;
+				row.createCell(currentCol).setCellValue(result.getExplainedPeaks());
+				currentCol++;
 			}
 			else if(object instanceof Result) {
 				Result result = (Result) object;
@@ -219,6 +222,7 @@ public class XLSOutputHandler implements IOutputHandler {
 				headerRow.createCell(5).setCellValue("Molecular Formula");
 				headerRow.createCell(6).setCellValue("InChIKey");
 				headerRow.createCell(7).setCellValue("Peaks Explained");
+				headerRow.createCell(8).setCellValue("Explained Query Peaks");
 				
 				// output is text
 				Row row = sheet.createRow(currentRow);
@@ -239,6 +243,8 @@ public class XLSOutputHandler implements IOutputHandler {
 				row.createCell(currentCol).setCellValue(result.getInchikey());
 				currentCol++;
 				row.createCell(currentCol).setCellValue(result.getMatchingPeaks());
+				currentCol++;
+				row.createCell(currentCol).setCellValue(result.getExplainedPeaks());
 				currentCol++;
 			}
 			else {
