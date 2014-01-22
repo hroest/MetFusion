@@ -1088,6 +1088,9 @@ public class MassBankUtilities {
 	}
 	
 	private IAtomContainer hydrogenHandling(IAtomContainer container) {
+		if(container == null)
+			return container;
+		
 		/**
 		 *  hydrogen handling
 		 */
