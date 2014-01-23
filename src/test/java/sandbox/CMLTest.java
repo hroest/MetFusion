@@ -27,6 +27,7 @@ import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.CMLWriter;
+import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.smiles.SmilesParser;
 
 import de.ipbhalle.metfrag.tools.PPMTool;
@@ -52,6 +53,13 @@ public class CMLTest {
 		System.out.println(sw.toString());
 		
 		System.out.println(PPMTool.getPPMDeviation(273.014, 30));
+		
+		smiles = "OC(=O)Cc1cc2nnnc2cc1";
+		ac = sp.parseSmiles(smiles);
+		SmilesGenerator sg = new SmilesGenerator();
+		System.out.println(sg.createSMILES(ac));
+		sg.setUseAromaticityFlag(true);
+		System.out.println(sg.createSMILES(ac));
 	}
 
 }
