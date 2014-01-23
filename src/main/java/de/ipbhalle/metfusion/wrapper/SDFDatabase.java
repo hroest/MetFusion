@@ -160,6 +160,9 @@ public class SDFDatabase implements GenericDatabaseBean {
 	}
 
 	private IAtomContainer hydrogenHandling(IAtomContainer container, String id) {
+		if(container == null)
+			return null;
+		
 		// create deep copy
 		IAtomContainer copy = null;
 		try {
