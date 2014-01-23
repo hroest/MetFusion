@@ -674,8 +674,8 @@ public class MetFusionThreadBatchMode implements Runnable {
     	m.put(AvailableParameters.mfSearchPPM, metfrag.getSearchppm());
     	m.put(AvailableParameters.onlyCHNOPS, metfrag.isOnlyCHNOPS());
     	m.put(AvailableParameters.peaks, metfrag.getInputSpectrum());
-    	m.put(AvailableParameters.substrucAbsent, "not yet implemented");
-    	m.put(AvailableParameters.substrucPresent, "not yet implemented");
+    	m.put(AvailableParameters.substrucAbsent, metfusion.getSubstrucAbsent());
+    	m.put(AvailableParameters.substrucPresent, metfusion.getSubstrucPresent());
     	m.put(AvailableParameters.spectralDB, "MassBank");
     	
     	return m;
