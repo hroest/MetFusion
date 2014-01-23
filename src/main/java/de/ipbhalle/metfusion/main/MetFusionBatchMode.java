@@ -59,6 +59,8 @@ public class MetFusionBatchMode {
 	private List<ResultExt> secondOrder;
 	private List<ResultExt> clusterResults;
 	private List<ResultExtGroupBean> tanimotoClusters;
+	private List<String> substrucPresent;
+	private List<String> substrucAbsent;
 	
 	private final static String prefixSeparator = "_";
 	
@@ -420,6 +422,10 @@ public class MetFusionBatchMode {
 			metfragbm.setFingerprinter(fp);
 		}
 		
+		// import substructure settings
+		mfbm.setSubstrucPresent(settings.getSubstrucPresent());
+		mfbm.setSubstrucAbsent(settings.getSubstrucAbsent());
+		
 		// skip run if output files are already present
 		if(mfbm.checkSKIP) {
 			String filePresent = "";
@@ -549,6 +555,22 @@ public class MetFusionBatchMode {
 
 	public void setClusterResults(List<ResultExt> clusterResults) {
 		this.clusterResults = clusterResults;
+	}
+
+	public List<String> getSubstrucPresent() {
+		return substrucPresent;
+	}
+
+	public void setSubstrucPresent(List<String> substrucPresent) {
+		this.substrucPresent = substrucPresent;
+	}
+
+	public List<String> getSubstrucAbsent() {
+		return substrucAbsent;
+	}
+
+	public void setSubstrucAbsent(List<String> substrucAbsent) {
+		this.substrucAbsent = substrucAbsent;
 	}
 
 }
