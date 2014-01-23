@@ -40,6 +40,19 @@ public class ResultSubstructure extends Result {
 		setInchikey(info.getInChIKey());
 	}
 
+	public ResultSubstructure(Result r, boolean used) {
+		super("SubstructureSearch", r.getId(), r.getName(), r.getScore());
+		this.info = new ExtendedCompoundInfo(Integer.parseInt(r.getId()), r.getSumFormula(), r.getSmiles(), r.getInchi(), r.getInchikey(), 
+				r.getExactMass(), r.getExactMass(), r.getExactMass(), r.getExactMass(), Double.NaN, Double.NaN, r.getName());
+		setMol(r.getMol());
+		this.used = used;
+		setSmiles(r.getSmiles());
+		setExactMass(r.getExactMass());
+		setInchi(r.getInchi());
+		setInchikey(r.getInchikey());
+		setSumFormula(r.getSumFormula());
+	}
+	
 	public ExtendedCompoundInfo getInfo() {
 		return info;
 	}

@@ -63,6 +63,7 @@ import de.ipbhalle.metfusion.utilities.MassBank.MassBankUtilities;
 import de.ipbhalle.metfusion.utilities.output.SDFOutputHandler;
 import de.ipbhalle.metfusion.wrapper.Result;
 import de.ipbhalle.metfusion.wrapper.ResultSubstructure;
+import de.ipbhalle.metfusion.wrapper.SDFDatabase;
 
 public class SubstructureSearch implements Runnable {
 
@@ -72,6 +73,8 @@ public class SubstructureSearch implements Runnable {
 	private String molecularFormula;
 	private MetFusionBatchFileHandler batchFileHandler;
 	private boolean formulaFirst;
+	private boolean sdfFirst;
+	private String sdfFile;
 	
 	public final boolean substrucPresent = Boolean.TRUE;
 	public final boolean substrucAbsent = Boolean.FALSE;
@@ -90,13 +93,33 @@ public class SubstructureSearch implements Runnable {
 	}
 	
 	public SubstructureSearch(List<String> includes, List<String> excludes, String token, String formula, 
-			MetFusionBatchFileHandler batchFileHandler, boolean queryDatabaseViaFormula) {
+			MetFusionBatchFileHandler batchFileHandler, boolean queryDatabaseViaFormula, boolean sdfFirst, String sdfFile) {
 		this(includes, excludes, token, formula, batchFileHandler);
 		this.formulaFirst = formula.isEmpty() ? false : queryDatabaseViaFormula;
+		this.sdfFirst = sdfFirst;
+		this.sdfFile = sdfFile;
 	}
 	
 	private void queryIncludes() {
-		if(formulaFirst) {
+		if(sdfFirst) {
+			// read in SDF for both Original and remaining
+			SDFDatabase sdf = new SDFDatabase("substrucSDF", sdfFile);
+			sdf.run();
+			List<Result> results = sdf.getResults();
+			resultsOriginal = new ArrayList<ResultSubstructure>();
+			// all results from SDF are used
+			for (Result result : results) {
+				resultsOriginal.add(new ResultSubstructure(result, true));
+			}
+			resultsRemaining = resultsOriginal;
+			
+			for (int i = 0; i < includes.size(); i++) {
+				resultsRemaining = filterCandidates(resultsRemaining, includes.get(i), substrucPresent);
+				System.out.println("includes == " + includes.size());
+				System.out.println("[" + i + "] -> remaining = " + resultsRemaining.size());
+			}
+		}
+		else if(formulaFirst) {
 			resultsOriginal = queryDatabaseWithFormula(molecularFormula);
 			resultsRemaining = skipNonUsed(resultsOriginal);
 			System.out.println("includes == 1 \toriginal = " + resultsOriginal.size());
@@ -470,6 +493,7 @@ public class SubstructureSearch implements Runnable {
 				IAtomContainer ac = null;
 				boolean used = false;
 				try {
+					// TODO check for kekule on new CDK SmilesParser to retain all candidates
 					ac = sp.parseSmiles(chemspiderInfo[i].getSMILES());
 					used = true;
 				}
@@ -531,10 +555,13 @@ public class SubstructureSearch implements Runnable {
 			
 			// SMARTS matching
 			try {
+				// TODO check SMILES with sp.kekulise(false); and match on sqt with toUpper(substructure)
+				// thus removing aromaticity for nnn-cases
 				matches = sqt.matches(rs.getMol());
 				//System.out.println("matches -> " + matches);
 				if((matches && include) || (!matches && !include)) {		// keep container
 					remaining.add(rs);
+					System.out.println(rs.getId() + "\t" + rs.getSmiles());
 				}
 				// else discard container
 			} catch (CDKException e) {
@@ -647,7 +674,8 @@ public class SubstructureSearch implements Runnable {
 		
 		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/Known_BT_MSMS_ChemSp/1MeBT_MSMS.mf");
 		
-		File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct_formula/150m0655a_MSMS.mf");
+		//File file = new File("/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct_formula/150m0655a_MSMS.mf");
+		File file = new File("C:/Users/Michael/Dropbox/Eawag_IPB_Shared_MassBank/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct_formula/192m0757b_MSMS.mf");
 		
 		MetFusionBatchFileHandler mbf = new MetFusionBatchFileHandler(file);
 		try {
@@ -671,7 +699,17 @@ public class SubstructureSearch implements Runnable {
 		System.out.println("formula -> " + formula);
 		
 		boolean useFormulaAsQuery = true;
-		SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula, mbf, useFormulaAsQuery);
+		boolean useSDF = false;
+		String sdfFile = "";
+		if(useSDF) {
+			sdfFile = "C:/Users/Michael/Dropbox/Eawag_IPB_Shared_MassBank/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct_formula/results_afterFormulaQuery/192m0757b_MSMS.sdf";
+			if(sdfFile.isEmpty()) {		// TODO alternatively use SDF file from query file?
+				System.err.println("SDF file needs to be specified! Exiting.");
+				System.exit(-1);
+			}
+		}
+			
+		SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula, mbf, useFormulaAsQuery, useSDF, sdfFile);
 		ss.run();
 		List<ResultSubstructure> remaining = ss.getResultsRemaining();
 		List<Result> resultsForSDF = new ArrayList<Result>();
@@ -916,6 +954,22 @@ public class SubstructureSearch implements Runnable {
 
 	public void setFormulaFirst(boolean formulaFirst) {
 		this.formulaFirst = formulaFirst;
+	}
+
+	public boolean isSdfFirst() {
+		return sdfFirst;
+	}
+
+	public void setSdfFirst(boolean sdfFirst) {
+		this.sdfFirst = sdfFirst;
+	}
+
+	public String getSdfFile() {
+		return sdfFile;
+	}
+
+	public void setSdfFile(String sdfFile) {
+		this.sdfFile = sdfFile;
 	}
 
 }

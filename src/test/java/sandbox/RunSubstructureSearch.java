@@ -78,7 +78,7 @@ public class RunSubstructureSearch {
 				continue;
 			}
 			
-			SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula, mbf, useFormulaAsQuery);
+			SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula, mbf, useFormulaAsQuery, false, "");
 			ss.run();
 			List<ResultSubstructure> remaining = ss.getResultsRemaining();
 			List<Result> resultsForSDF = new ArrayList<Result>();
