@@ -25,10 +25,12 @@ import java.io.StringWriter;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.CMLWriter;
 import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.smiles.SmilesParser;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import de.ipbhalle.metfrag.tools.PPMTool;
 
@@ -36,30 +38,84 @@ public class CMLTest {
 
 	/**
 	 * @param args
-	 * @throws CDKException 
 	 * @throws IOException 
 	 */
-	public static void main(String[] args) throws CDKException, IOException {
+	public static void main(String[] args) throws IOException {
 		String smiles = "O";
 		SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
-		IAtomContainer ac = sp.parseSmiles(smiles);
+		IAtomContainer ac = null;
+		try {
+			ac = sp.parseSmiles(smiles);
+		} catch (InvalidSmilesException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		StringWriter sw = new StringWriter();
 //		FileWriter fw = new FileWriter("/tmp/test.cml");
 		CMLWriter cw = new CMLWriter(sw);
-		cw.write(ac);
+		try {
+			cw.write(ac);
+		} catch (CDKException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		cw.close();
 		
 		System.out.println(sw.toString());
 		
 		System.out.println(PPMTool.getPPMDeviation(273.014, 30));
 		
-		smiles = "OC(=O)Cc1cc2nnnc2cc1";
-		ac = sp.parseSmiles(smiles);
+		
+		smiles = "O=C(OCC)c1ccc2nnnc2c1";
+		try {
+			ac = sp.parseSmiles(smiles);
+		} catch (InvalidSmilesException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// default SMILES generation
 		SmilesGenerator sg = new SmilesGenerator();
 		System.out.println(sg.createSMILES(ac));
+		
+		// SMILES after percieveAtomTypesAndConfigureAtoms
+		try {
+			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(ac);
+		} catch (CDKException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println(sg.createSMILES(ac));
+		
+		// SMILES after aromaticity flag
 		sg.setUseAromaticityFlag(true);
 		System.out.println(sg.createSMILES(ac));
+		sg.setUseAromaticityFlag(false);
+		
+		// SMILES parsing with preserved aromaticity
+		sp.setPreservingAromaticity(true);
+		try {
+			ac = sp.parseSmiles(smiles);
+		} catch (InvalidSmilesException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println(sg.createSMILES(ac));
+		
+		// SMILES parsing with preserved aromaticity + percieveAtomTypesAndConfigureAtoms
+		try {
+			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(ac);
+		} catch (CDKException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println(sg.createSMILES(ac));
+		
+		// SMILES parsing with preserved aromaticity + after aromaticity flag
+		sg.setUseAromaticityFlag(true);
+		System.out.println(sg.createSMILES(ac));
+		
 	}
 
 }
