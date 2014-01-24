@@ -136,10 +136,12 @@ public class XLSOutputHandler implements IOutputHandler {
 				@SuppressWarnings("unchecked")
 				List<String> l = (List<String>) o;
 				String temp = "";
-				for (String s : l) {
-					temp += s + ",";
+				if(!l.isEmpty()) {
+					for (String s : l) {
+						temp += s + ",";
+					}
+					temp = temp.substring(0, temp.length()-1);	// remove trailing ,
 				}
-				temp = temp.substring(0, temp.length()-1);	// remove trailing ,
 				value.setCellValue(temp);
 			}
 			else if (o instanceof Double) {
