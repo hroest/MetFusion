@@ -14,12 +14,10 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
- */ 
+ */
 
 package sandbox;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 
@@ -38,11 +36,12 @@ public class CMLTest {
 
 	/**
 	 * @param args
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public static void main(String[] args) throws IOException {
 		String smiles = "O";
-		SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+		SmilesParser sp = new SmilesParser(
+				DefaultChemObjectBuilder.getInstance());
 		IAtomContainer ac = null;
 		try {
 			ac = sp.parseSmiles(smiles);
@@ -50,9 +49,9 @@ public class CMLTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		StringWriter sw = new StringWriter();
-//		FileWriter fw = new FileWriter("/tmp/test.cml");
+		// FileWriter fw = new FileWriter("/tmp/test.cml");
 		CMLWriter cw = new CMLWriter(sw);
 		try {
 			cw.write(ac);
@@ -61,12 +60,11 @@ public class CMLTest {
 			e.printStackTrace();
 		}
 		cw.close();
-		
+
 		System.out.println(sw.toString());
-		
+
 		System.out.println(PPMTool.getPPMDeviation(273.014, 30));
-		
-		
+
 		smiles = "O=C(OCC)c1ccc2nnnc2c1";
 		try {
 			ac = sp.parseSmiles(smiles);
@@ -74,11 +72,11 @@ public class CMLTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		// default SMILES generation
 		SmilesGenerator sg = new SmilesGenerator();
 		System.out.println(sg.createSMILES(ac));
-		
+
 		// SMILES after percieveAtomTypesAndConfigureAtoms
 		try {
 			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(ac);
@@ -87,12 +85,12 @@ public class CMLTest {
 			e.printStackTrace();
 		}
 		System.out.println(sg.createSMILES(ac));
-		
+
 		// SMILES after aromaticity flag
 		sg.setUseAromaticityFlag(true);
 		System.out.println(sg.createSMILES(ac));
 		sg.setUseAromaticityFlag(false);
-		
+
 		// SMILES parsing with preserved aromaticity
 		sp.setPreservingAromaticity(true);
 		try {
@@ -102,8 +100,9 @@ public class CMLTest {
 			e.printStackTrace();
 		}
 		System.out.println(sg.createSMILES(ac));
-		
-		// SMILES parsing with preserved aromaticity + percieveAtomTypesAndConfigureAtoms
+
+		// SMILES parsing with preserved aromaticity +
+		// percieveAtomTypesAndConfigureAtoms
 		try {
 			AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(ac);
 		} catch (CDKException e) {
@@ -111,11 +110,10 @@ public class CMLTest {
 			e.printStackTrace();
 		}
 		System.out.println(sg.createSMILES(ac));
-		
+
 		// SMILES parsing with preserved aromaticity + after aromaticity flag
 		sg.setUseAromaticityFlag(true);
 		System.out.println(sg.createSMILES(ac));
 		
 	}
-
 }
