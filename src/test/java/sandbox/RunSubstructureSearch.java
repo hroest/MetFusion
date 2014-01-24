@@ -40,13 +40,53 @@ public class RunSubstructureSearch {
 	public static void main(String[] args) {
 		String token = "eeca1d0f-4c03-4d81-aa96-328cdccf171a";
 		//String mfDir = "/home/mgerlich/projects/metfusion_tp/BTs/Unknown_BT_MSMS_ChemSp/mf_with_substruct/";
-		if(args == null || args.length == 0) {
+		if(args == null || args.length == 0) {	// specified path, formula and SDF, but no path to SDF
+			System.out.println("updated query and SD files are stored in subfolder [output]");
 			System.err.println("Provide path to mf files for ChemSpider Substructure Search! Aborting.");
+			System.out.println("list of arguments:\n\t[0] -> path to mf files [REQUIRED]" );
+			System.out.println("\t[1] -> use formula as query rather than first substrucPresent [OPTIONAL], values {true,false}, default is true");
+			System.out.println("\t[2] -> use SDF file for substructure search [OPTIONAL], values {true,false}, default is false");
+			System.out.println("\t[3] -> path to SDF file [REQUIRED] if [2] = true");
 			System.exit(-1);
 		}
+		
+		/**
+		 * [0] path to mf files
+		 * [1] use formula as query rather than first substrucPresent
+		 * [2] use SDF as input
+		 * [3] path to SDF
+		 */
 		String mfDir = args[0];
 		boolean useFormulaAsQuery = true;
-		File[] mfFiles = new File(mfDir).listFiles(new FileNameFilterImpl("", "MSMS.mf"));
+		boolean useSDFFile = false;
+		String sdfFile = "";
+		if(args.length == 2)
+			useFormulaAsQuery = Boolean.parseBoolean(args[1]);
+		if(args.length == 3) {
+			useSDFFile = Boolean.parseBoolean(args[2]);
+			if(useSDFFile) {
+				System.err.println("SDF use enabled, but no path to SDF file specified! Aborting.");
+				System.out.println("list of arguments:\n\t[0] -> path to mf files [REQUIRED]" );
+				System.out.println("\t[1] -> use formula as query rather than first substrucPresent [OPTIONAL], values {true,false}, default is true");
+				System.out.println("\t[2] -> use SDF file for substructure search [OPTIONAL], values {true,false}, default is false");
+				System.out.println("\t[3] -> path to SDF file [REQUIRED] if [2] = true");
+				System.exit(-1);
+			}
+			else {
+				System.err.println("No SDF file specified, running online query!");
+				useSDFFile = false;
+			}
+		}
+		if(args.length == 4) {
+			useSDFFile = Boolean.parseBoolean(args[2]);
+			sdfFile = args[3];
+			if(useSDFFile & sdfFile.isEmpty()) {
+				System.err.println("No SDF file specified, running online query!");
+				useSDFFile = false;
+			}
+		}
+		
+		File[] mfFiles = new File(mfDir).listFiles(new FileNameFilterImpl("", "mf"));
 		Arrays.sort(mfFiles);
 		for (int i = 0; i < mfFiles.length; i++) {
 			File file = mfFiles[i];
@@ -78,7 +118,7 @@ public class RunSubstructureSearch {
 				continue;
 			}
 			
-			SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula, mbf, useFormulaAsQuery, false, "");
+			SubstructureSearch ss = new SubstructureSearch(present, absent, token, formula, mbf, useFormulaAsQuery, useSDFFile, sdfFile);
 			ss.run();
 			List<ResultSubstructure> remaining = ss.getResultsRemaining();
 			List<Result> resultsForSDF = new ArrayList<Result>();
@@ -97,6 +137,8 @@ public class RunSubstructureSearch {
 			}
 			String ids = sb.toString();
 			
+			File dir = new File(mfDir, "output");
+			dir.mkdir();
 			if(!ids.isEmpty()) {
 				ids = ids.substring(0, ids.length()-1);
 				System.out.println("ids -> " + ids);
@@ -104,10 +146,10 @@ public class RunSubstructureSearch {
 				String filename = file.getName();
 				String prefix = filename.substring(0, filename.lastIndexOf("."));
 				filename = filename.replace(prefix, prefix + "_ids");
-				File output = new File(file.getParent(), filename);
+				File output = new File(dir, filename);
 				mbf.writeFile(output, settings);
 				
-				SDFOutputHandler so = new SDFOutputHandler(prefix + ".sdf");
+				SDFOutputHandler so = new SDFOutputHandler(dir.getAbsolutePath() + "/" + prefix + ".sdf");
 				so.writeOriginalResults(resultsForSDF, false);
 			}
 		}
