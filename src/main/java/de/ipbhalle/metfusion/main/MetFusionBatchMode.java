@@ -294,8 +294,10 @@ public class MetFusionBatchMode {
 		mbbm.setInputSpectrum(settings.getPeaks());
 		mbbm.setSelectedInstruments(settings.getMbInstruments());
 		mbbm.setLimit(settings.getMbLimit());
+		mbbm.setUniqueInchi(settings.isUnique());
 		
 		metfragbm.setInputSpectrum(settings.getPeaks());
+		metfragbm.setUniqueInchi(settings.isUnique());
 		
 		// set compound database for MetFrag
 		String selectedDB = settings.getMfDatabase().toString();
