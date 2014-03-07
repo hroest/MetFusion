@@ -84,6 +84,9 @@ public class TanimotoIntegrationWeighted extends Integration {
 			newCandidates.add(r);
 		}
 		
+		/**
+		 * TODO: skip recalculating primaries depending on input DB
+		 */
 		for (int i = 0; i < primaries.size(); i++) {
 			ScoreRankPair srp = primQueue.poll();
 			//newPrimaries.add(new Result(primaries.get(srp.getIndex()), srp.getRank()));
