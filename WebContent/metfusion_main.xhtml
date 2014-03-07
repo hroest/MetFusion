@@ -101,6 +101,7 @@
 		    					<ice:inputText id="mbResult" value="#{appBean.mblb.limit}" required="true" 
 		    						requiredMessage="Please enter a number between 1 and 500." 
 		    						validatorMessage="Please enter a number between 1 and 500.">
+		    						<f:validator validatorId="numberValidator"/>
 		    						<f:validateLongRange minimum="1" maximum="500"></f:validateLongRange>
 		    					</ice:inputText>
 		    					<ice:panelGroup effect="#{appBean.effectOutputText}">
@@ -122,6 +123,7 @@
 		    					<ice:inputText id="mbThresh" value="#{appBean.mblb.cutoff}" required="true" 
 		    						requiredMessage="Please enter a number between 0 and 500."
 		    						validatorMessage="Please enter a number between 0 and 500.">
+		    						<f:validator validatorId="numberValidator"/>
 		    						<f:validateLongRange minimum="0" maximum="500"></f:validateLongRange>
 		    					</ice:inputText>
 		    					<ice:panelGroup effect="#{appBean.effectOutputText}">
@@ -298,6 +300,7 @@
 						    	</ice:panelGroup>
 					    		<ice:inputText id="gmdRI" value="#{gmdBean.ri}" required="true">
 					    			<f:convertNumber pattern="####.##"/>
+					    			<f:validator validatorId="numberValidator"/>
 					    			<f:validateDoubleRange minimum="0.0"/>
 					    		</ice:inputText>
 					    		<ice:panelGroup effect="#{appBean.effectOutputText}">
@@ -316,6 +319,7 @@
 					    			</ice:panelTooltip>
 					    		</ice:panelGroup>
 					    		<ice:inputText id="gmdRIwindow" value="#{gmdBean.riWindow}" required="true">
+					    			<f:validator validatorId="numberValidator"/>
 					    			<f:validateDoubleRange minimum="0.0"/>
 					    		</ice:inputText>
 					    		<ice:panelGroup effect="#{appBean.effectOutputText}">
@@ -408,6 +412,7 @@
 					    			</ice:panelTooltip>
 					    		</ice:panelGroup>
 					    		<ice:inputText id="metlinToleranceMSMS" required="true" value="#{metlinBean.toleranceMSMS}">
+					    			<f:validator validatorId="numberValidator"/>
 					    			<f:validateDoubleRange minimum="0.001" maximum="0.5"/>
 					    		</ice:inputText>
 					    		<ice:panelGroup effect="#{appBean.effectOutputText}">
@@ -427,6 +432,7 @@
 					    			</ice:panelTooltip>
 					    		</ice:panelGroup>
 					    		<ice:inputText id="metlinTolerancePrecursor" required="true" value="#{metlinBean.tolerancePrecursor}">
+					    			<f:validator validatorId="numberValidator"/>
 					    			<f:validateLongRange minimum="1" maximum="100"/>
 					    		</ice:inputText>
 					    		<ice:panelGroup effect="#{appBean.effectOutputText}">
@@ -561,6 +567,7 @@
 									<ice:inputText id="parentIon" value="#{appBean.mfb.parentIon}" partialSubmit="true" required="true"									
 										validatorMessage="Value is not between 10 and 10000.0" valueChangeListener="#{appBean.mfb.changeParentIon}"
 										disabled="#{appBean.mfb.viaFormula}">
+										<f:validator validatorId="numberValidator"/>
 										<f:validateDoubleRange minimum="10.0" maximum="10000.0"/>
 									</ice:inputText>
 									<ice:selectOneMenu id="selectAdduct" valueChangeListener="#{appBean.mfb.changeAdduct}"
@@ -590,6 +597,7 @@
 									validatorMessage="Value is not between 10 and 10000.0" disabled="true" style="color: ForestGreen;"
 									rendered="#{!appBean.mfb.renderSDF}">
 <!--									effect="#{appBean.effectOutputText}"-->
+									<f:validator validatorId="numberValidator"/>
 									<f:validateDoubleRange minimum="10.0" maximum="10000.0"></f:validateDoubleRange>
 								</ice:inputText>
 								<ice:panelGroup effect="#{appBean.effectOutputText}" rendered="#{!appBean.mfb.renderSDF}">
@@ -611,6 +619,7 @@
 								</ice:panelGroup>
 								<ice:inputText id="candLimit" value="#{appBean.mfb.limit}" rendered="#{!appBean.mfb.renderSDF}"
 									validatorMessage="Please enter a number between 1 and 10000.">
+									<f:validator validatorId="numberValidator"/>
 									<f:validateLongRange minimum="1" maximum="10000" for="candLimit"></f:validateLongRange>
 								</ice:inputText>
 								<ice:panelGroup effect="#{appBean.effectOutputText}" rendered="#{!appBean.mfb.renderSDF}">
@@ -652,6 +661,7 @@
 								</ice:panelGroup>
 								<ice:inputText id="searchppm" value="#{appBean.mfb.searchppm}" partialSubmit="true" required="true"
 									validatorMessage="Value is not between 0 and 100.0" rendered="#{!appBean.mfb.renderSDF}">
+									<f:validator validatorId="numberValidator"/>
 									<f:validateDoubleRange minimum="0.0" maximum="100.0" for="searchppm"/>
 								</ice:inputText>
 								<ice:panelGroup effect="#{appBean.effectOutputText}" rendered="#{!appBean.mfb.renderSDF}">
@@ -674,6 +684,7 @@
 								</ice:panelGroup>
 								<ice:inputText id="mzabs" value="#{appBean.mfb.mzabs}" partialSubmit="true" required="true"
 									validatorMessage="Value is not between 0 and 100.0">
+									<f:validator validatorId="numberValidator"/>
 									<f:validateDoubleRange minimum="0.0" maximum="100.0" for="mzabs"/>
 								</ice:inputText>
 								<ice:panelGroup effect="#{appBean.effectOutputText}">
@@ -697,6 +708,7 @@
 								</ice:panelGroup>
 								<ice:inputText id="mzppm" value="#{appBean.mfb.mzppm}" partialSubmit="true" required="true"
 									validatorMessage="Value is not between 0 and 100.0">
+									<f:validator validatorId="numberValidator"/>
 									<f:validateDoubleRange minimum="0.0" maximum="100.0" for="mzppm"/>
 								</ice:inputText>
 								<ice:panelGroup effect="#{appBean.effectOutputText}">

@@ -41,6 +41,12 @@
 		<validator-id>feedbackValidator</validator-id>
 		<validator-class>de.ipbhalle.metfusion.web.controller.FeedbackBean</validator-class>
 	</validator>
+	<validator>
+		<description>Validate numbers, prevent use of NaN, infinity and stuff like that.</description>
+		<display-name>numberValidator</display-name>
+		<validator-id>numberValidator</validator-id>
+		<validator-class>de.ipbhalle.metfusion.web.controller.validation.NumberValidator</validator-class>
+	</validator>
 	<navigation-rule>
 		<display-name>LandingPage</display-name>
 		<from-view-id>/LandingPage.xhtml</from-view-id>
