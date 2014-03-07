@@ -137,7 +137,7 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 			new SelectItem(ms3, ms3), new SelectItem(ms4, ms4)};	// available MS levels
 	private String[] selectedMSLevel = {msAll, ms1, ms2, ms3, ms4};	// selected MS levels 
 	private final String parameterMSlvl = "&ms=";		// MassBank MS level parameter
-	private String msLevel = "&ms=all&ms=MS&ms=MS2&ms=MS3&ms=4";						// formatted MS level String
+	private String msLevel = "&ms=all&ms=MS1&ms=MS2&ms=MS3&ms=4&ms=N%2FA";						// formatted MS level String, last == N/A
 	
 	/** Allow to use another server besides the default one. */
 	private boolean selectOtherServer = Boolean.FALSE;
@@ -695,6 +695,12 @@ public class MassBankLookupBean extends Thread implements Runnable, Serializable
 		String param = "quick=true&CEILING=1000&WEIGHT=SQUARE&NORM=SQRT&START=1&TOLUNIT=unit"
 				+ "&CORTYPE=COSINE&FLOOR=0&NUMTHRESHOLD=3&CORTHRESHOLD=0.8&TOLERANCE=0.3"
 				+ "&CUTOFF=" + cutoff + "&NUM=0&VAL=" + paramPeak.toString();
+//		String param = "qpeak=" +paramPeak.toString() + "&CUTOFF=" + cutoff + "&num=20&type=quick&searchType=peak&sortKey=name" +
+//				"&sortAction=1&pageNo=1&exec=" +
+//				"&inst_grp=ESI&inst=CE-ESI-TOF&inst=ESI-FTICR&inst=ESI-ITFT&inst=HPLC-ESI-TOF&inst=LC-ESI-IT&inst=LC-ESI-ITFT&inst=LC-ESI-ITTOF" +
+//				"&inst=LC-ESI-Q&inst=LC-ESI-QFT&inst=LC-ESI-QIT&inst=LC-ESI-QQ&inst=LC-ESI-QTOF&inst=LC-ESI-TOF&inst=UPLC-ESI-QTOF";
+////				"&ms=all&ms=MS&ms=MS1&ms=MS2&ms=MS3&ms=MS4&ms=N%2FA" +
+////				"&ion=1";
 		param += msLevel;	// add MS level information
 		param += inst;	// append ionization mode
 		System.out.println(param);
