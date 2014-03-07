@@ -109,6 +109,8 @@ public class GenerateArrayJob {
 		//fw.write("java -jar -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + " -mf $A -out $B -unique\n");
 		
 		fw.write("java -jar -Dhttp.proxyHost=www-cache.ipb-halle.de -Dhttp.proxyPort=3128" +
+				" -Djava.util.Arrays.useLegacyMergeSort=true" +	// added legacy support for old Java sorting because new one breaks 
+																// PubChemWebService.savingRetrievedHits(File filename, Vector<String> cidsVec) function 
 				" -Dproperty.file.path=/home/mgerlich/workspace_new/MetFusion/WebContent/WEB-INF/ " + jarName + 
 				" -mf $A -out $B -unique -format SDF -spectralSDF\n");
 		
