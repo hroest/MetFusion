@@ -348,7 +348,7 @@ public class MetFragBatchMode implements Runnable {
 	 */
 	private String retrievePeaksExplained(Vector<PeakMolPair> matchedFragments) {
 		String explained = "";
-		if(matchedFragments.size() > 0) {
+		if(matchedFragments != null && matchedFragments.size() > 0) {
 			for (PeakMolPair pair : matchedFragments) {
 				explained += pair.getPeak().getMass() + " " + pair.getPeak().getIntensity() + " ";
 			}
