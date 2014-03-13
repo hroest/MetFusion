@@ -1,1 +1,5 @@
-WebContent/WEB-INF/settings.properties
+/WebContent/WEB-INF/settings.properties
+/WebContent/icetest.xhtml
+/WebContent/massbank.xhtml
+/src/test/java/*
+/build/*
