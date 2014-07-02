@@ -38,19 +38,28 @@ public class NumberValidator implements Validator {
 		else if(value instanceof Double) {
 			Double d = (Double) value;
 			if(d.isNaN())
-				catchError(context);
+				catchError(context, "value is NaN");
 			else if(d.isInfinite())
-				catchError(context);
+				catchError(context, "value is infinite");
 			else if(d < 0)
-				catchError(context);
+				catchError(context, "value is negative");
+		}
+		else if(value instanceof Float) {
+			Float f = (Float) value;
+			if(f.isNaN())
+				catchError(context, "value is NaN");
+			else if(f.isInfinite())
+				catchError(context, "value is infinite");
+			else if(f < 0)
+				catchError(context, "value is negative");
 		}
 		else {
-			catchError(context);
+			catchError(context, "value is no valid number format");
 		}
 	}
 
-	private void catchError(FacesContext context) {
-		FacesMessage msg = new FacesMessage("Number validation failed.", "Invalid number entered.");
+	private void catchError(FacesContext context, String info) {
+		FacesMessage msg = new FacesMessage("Number validation failed.", "Invalid number entered - " + info);
 		JavascriptContext.addJavascriptCall(context, "document.getElementById(\"command\").firstChild.disabled = true;");
 		msg.setSeverity(FacesMessage.SEVERITY_ERROR);
 		throw new ValidatorException(msg);
